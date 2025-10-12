@@ -5,7 +5,7 @@ export default function Home() {
     <>
       <main className="p-6">
         <h1 className="text-amber-600 mb-2">Hello World</h1>
-        <Button>Hello</Button>
+        <Button className='bg-secondary'>Hello</Button>
       </main>
     </>
   )
