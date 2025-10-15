@@ -2,23 +2,25 @@ import Image from 'next/image';
 
 export default function NeedAnalysisFormHeader() {
   return (
-    <div className="w-full h-20 bg-gradient-to-r from-[#10294A] to-[#5d8aba] flex items-center justify-between px-8 relative">
-     
+    <div className="w-full h-32 bg-gradient-to-r from-[#10294A] to-[#3B6FA7] flex items-center justify-between px-8 relative">
+      {/* Logo on the left */}
       <div className="flex items-center">
         <Image
           src="/images/logos/white-t.png"
           alt="Needalyze Logo"
-          width={120}
-          height={30}
+          width={140}
+          height={40}
           className="object-contain"
         />
       </div>
 
-      <div className="absolute left-1/3 transform -translate-x-1/3">
-        <h1 className="text-white text-3xl font-poppins">Need Analyze Form</h1>
+      {/* Title perfectly centered */}
+      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <h1 className="text-white text-3xl font-semibold whitespace-nowrap">Need Analyze Form</h1>
       </div>
 
-      <div className="w-[120px]"></div>
+      {/* Empty div to maintain flexbox balance */}
+      <div className="w-[140px]"></div>
     </div>
   );
 }
