@@ -6,10 +6,10 @@ export default function NeedAnalysisFormHeader() {
       {/* Logo on the left */}
       <div className="flex items-center">
         <Image
-          src="/images/logos/white-t.png"
+          src="/images/logos/white_favicon.png"
           alt="Needalyze Logo"
-          width={140}
-          height={40}
+          width={80}
+          height={50}
           className="object-contain"
         />
       </div>
