@@ -1,19 +1,74 @@
 'use client'
 import Image from 'next/image'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
+
+// Zod validation schema
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+  password: z
+    .string()
+    .min(1, 'Password is required')
+    .min(6, 'Password must be at least 6 characters'),
+})
 
 const page = () => {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(null) // null initially to prevent hydration mismatch
 
-  const handleLogin = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // React Hook Form with Zod resolver
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    mode: 'onSubmit',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
+
+  const handleLogin = async (data) => {
+    try {
+      setLoading(true)
+      console.log('Form submitted successfully with data:', data)
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      console.log('Login successful!')
+      // Your actual login logic here
+
+      // Reset form after successful login if needed
+      // reset()
+    } catch (error) {
+      console.error('Login error:', error)
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -46,109 +101,134 @@ const page = () => {
 
         <div className="w-full md:w-1/2 flex justify-center items-start px-4 py-4 md:py-0 md:justify-center md:items-center bg-gray-50 md:bg-white flex-1 overflow-y-auto">
           <div className="w-full max-w-sm">
-            {/* Mobile Login Card */}
-            <div className="md:hidden">
-              <h1 className="text-center text-2xl font-bold text-primary-900 mb-4 mt-2">
-                LOGIN
-              </h1>
-              <form onSubmit={handleLogin} className="space-y-4 mx-4">
-                <div>
-                  <Input
-                    className="rounded-full placeholder:text-xs p-5 bg-gray-200 border-0"
-                    id="email"
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="email"
-                    required
-                  />
-                </div>
-                <div>
-                  <Input
-                    className="rounded-full placeholder:text-xs p-5 bg-gray-200 border-0"
-                    id="password"
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    required
-                  />
-                </div>
-                <Button className="w-full rounded-full p-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold">
+            {isMobile === null ? (
+              /* Loading state - show nothing or skeleton to prevent flash */
+              <div className="h-96"></div>
+            ) : isMobile ? (
+              /* Mobile View */
+              <div>
+                <h1 className="text-center text-2xl font-bold text-primary-900 mb-5 mt-2">
                   Login
-                </Button>
-                <div>
-                  <Link
-                    href="#"
-                    className="w-full block text-primary-900 hover:text-primary-700 text-sm font-semibold text-center mt-4"
-                  >
-                    Foget Password
-                  </Link>
-                  <p className="text-center text-primary-900 text-sm mt-2">
-                    Don't have account?{' '}
+                </h1>
+                <div className="mx-4">
+                  <form onSubmit={handleSubmit(handleLogin)} noValidate>
+                    <div className="mb-4">
+                      <Input
+                        className="rounded-full placeholder:text-xs p-5 bg-gray-200 border-0"
+                        type="email"
+                        placeholder="Email"
+                        autoComplete="email"
+                        {...register('email')}
+                      />
+                      {errors.email && (
+                        <p className="text-red-600 text-xs mt-1 ml-4">
+                          {errors.email.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="mb-4">
+                      <Input
+                        className="rounded-full placeholder:text-xs p-5 bg-gray-200 border-0"
+                        type="password"
+                        placeholder="Password"
+                        autoComplete="current-password"
+                        {...register('password')}
+                      />
+                      {errors.password && (
+                        <p className="text-red-600 text-xs mt-1 ml-4">
+                          {errors.password.message}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full rounded-full p-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? 'Loading...' : 'Login'}
+                    </Button>
+                  </form>
+                  <div className="space-y-2">
                     <Link
                       href="#"
-                      className="text-primary-900 hover:text-primary-700 font-semibold inline"
+                      className="w-full block text-primary-900 hover:text-primary-700 text-sm font-semibold text-center mt-4"
                     >
-                      Signup here
+                      Forget Password
                     </Link>
-                  </p>
+                    <p className="text-center text-primary-900 text-sm mt-2">
+                      Don't have account?{' '}
+                      <Link
+                        href="#"
+                        className="text-primary-900 hover:text-primary-700 font-semibold inline"
+                      >
+                        Signup
+                      </Link>
+                    </p>
+                  </div>
                 </div>
-              </form>
-            </div>
-
-            {/* Desktop Login Card */}
-            <Card className="hidden md:block shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-center text-2xl">Login</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleLogin}>
-                  <div>
-                    <Input
-                      className="rounded-full placeholder:text-xs p-5 my-4"
-                      id="email-desktop"
-                      type="email"
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      autoComplete="email"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Input
-                      className="mb-4 rounded-full placeholder:text-xs p-5"
-                      id="password-desktop"
-                      type="password"
-                      placeholder="Password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      autoComplete="current-password"
-                      required
-                    />
-                  </div>
-                  <Button className="w-full rounded-full p-5">Login</Button>
-                  <Link
-                    href="#"
-                    className="w-full block text-primary-600 hover:text-primary-400 text-xs font-semibold text-center mt-4 mb-2"
-                  >
-                    Foget Password
-                  </Link>
-                  <p className="text-center text-primary-600 text-xs mt-2">
-                    Don't have account?{' '}
+              </div>
+            ) : (
+              /* Desktop View - Card */
+              <Card className="shadow-sm">
+                <CardHeader>
+                  <CardTitle className="text-center text-2xl">Login</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit(handleLogin)} noValidate>
+                    <div className="mb-4">
+                      <Input
+                        className="rounded-full placeholder:text-xs p-5"
+                        type="email"
+                        placeholder="Email"
+                        autoComplete="email"
+                        {...register('email')}
+                      />
+                      {errors.email && (
+                        <p className="text-red-600 text-xs mt-1 ml-4">
+                          {errors.email.message}
+                        </p>
+                      )}
+                    </div>
+                    <div className="mb-4">
+                      <Input
+                        className="rounded-full placeholder:text-xs p-5"
+                        type="password"
+                        placeholder="Password"
+                        autoComplete="current-password"
+                        {...register('password')}
+                      />
+                      {errors.password && (
+                        <p className="text-red-600 text-xs mt-1 ml-4">
+                          {errors.password.message}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full rounded-full p-5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? 'Loading...' : 'Login'}
+                    </Button>
                     <Link
                       href="#"
-                      className="text-primary-400 hover:text-primary-200 font-semibold inline"
+                      className="w-full block text-primary-600 hover:text-primary-400 text-xs font-semibold text-center mt-4 mb-2"
                     >
-                      Signup here
+                      Forget Password
                     </Link>
-                  </p>
-                </form>
-              </CardContent>
-            </Card>
+                    <p className="text-center text-primary-600 text-xs mt-2">
+                      Don't have account?{' '}
+                      <Link
+                        href="#"
+                        className="text-primary-400 hover:text-primary-200 font-semibold inline"
+                      >
+                        Signup
+                      </Link>
+                    </p>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
