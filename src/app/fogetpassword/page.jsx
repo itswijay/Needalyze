@@ -5,15 +5,46 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import * as z from 'zod'
+
+
+// Zod validation schema
+const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address')
+})
+
 
 const page = () => {
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
+
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error , setError] = useState('');
 
   const handleFogetPass = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError('')
+
+  // Validete email using Zod
+  const result = loginSchema.safeParse({ email });
+
+  if (!result.success) {
+    console.log(result.error.errors) 
+    setError(result.error.errors[0].message)
+    setLoading(false)
+    return
   }
+
+    // Continue with your async logic here
+      console.log('Valid email:', result.data.email)
+
+      setLoading(false)
+
+  }
+
 
   return (
     <>
@@ -63,10 +94,19 @@ const page = () => {
                     autoComplete="email"
                     required
                   />
+                  {error && (
+                        <p className="text-red-600 text-xs mt-1 ml-4">
+                          {error}
+                        </p>
+                  )}
                 </div>
-                <Button className="w-full rounded-full p-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold">
-                  Verify email
+
+                <Button className="w-full rounded-full p-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold"
+                        disabled={loading}
+                >
+                  {loading ? 'Verifying...' : 'Verify Email'}
                 </Button>
+                
               </form>
             </div>
         
@@ -88,11 +128,19 @@ const page = () => {
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    required 
+                    required
                   />
+                  {error && (
+                        <p className="text-red-600 text-xs mt-1 ml-4">
+                          {error}
+                        </p>
+                  )}
                 </div>
                 <div className='mt-5'>
-                  <Button className="w-full rounded-full p-5 bg-[linear-gradient(to_right,_#24456e_30%,_#04182f_80%)] h-[50px]">verify email</Button>
+                  <Button className="w-full rounded-full p-5 bg-[linear-gradient(to_right,_#24456e_30%,_#04182f_80%)] h-[50px]"
+                          disabled={loading}
+                  >
+                  {loading ? 'Verifying...' : 'Verify Email'}</Button>
                 </div>
               </form>
             </CardContent>
