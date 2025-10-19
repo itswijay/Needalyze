@@ -1,12 +1,13 @@
 'use client'
 import Image from 'next/image'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
-
 
 // Zod validation schema
 const loginSchema = z.object({
@@ -16,36 +17,57 @@ const loginSchema = z.object({
     .email('Please enter a valid email address')
 })
 
-
 const page = () => {
+  const [loading, setLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(null) // null initially to prevent hydration mismatch
 
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error , setError] = useState('');
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
 
-  const handleFogetPass = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
 
-  // Validete email using Zod
-  const result = loginSchema.safeParse({ email });
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
-  if (!result.success) {
-    console.log(result.error.errors) 
-    setError(result.error.errors[0].message)
-    setLoading(false)
-    return
-  }
+  // React Hook Form with Zod resolver
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    mode: 'onSubmit',
+    defaultValues: {
+      email: ''
+    },
+  })
+//==============================================
 
-    // Continue with your async logic here
-      console.log('Valid email:', result.data.email)
+  const handleLogin = async (data) => {
+    try {
+      setLoading(true)
+      console.log('Form submitted successfully with data:', data)
 
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+
+      console.log('Verify successful!')
+      // Your actual login logic here
+
+      // Reset form after successful login if needed
+      // reset()
+    } catch (error) {
+      console.error('Login error:', error)
+    } finally {
       setLoading(false)
-
+    }
   }
-
-
+  
+//===========================================
   return (
     <>
       <div className="w-full h-screen flex flex-col md:flex-row overflow-hidden">
@@ -58,8 +80,8 @@ const page = () => {
             priority
             className="w-32 h-32 md:w-[260px] md:h-[260px]"
           />
-          
-        {/* Curved bottom edge - only on mobile */}
+
+          {/* Curved bottom edge - only on mobile */}
           <div className="absolute bottom-[-1px] left-0 w-full overflow-hidden leading-[0] md:hidden">
             <svg
               className="relative block w-full h-[60px]"
@@ -76,78 +98,82 @@ const page = () => {
 
         <div className="w-full md:w-1/2 flex justify-center items-start px-4 py-4 md:py-0 md:justify-center md:items-center bg-gray-50 md:bg-white flex-1 overflow-y-auto">
           <div className="w-full max-w-sm">
-
-            {/* Mobile Login Card */}
-            <div className="md:hidden mt-16">
-              <h1 className="text-center text-2xl font-bold text-primary-900 mb-4 mt-2">
-                FORGET PASSWORD
-              </h1>
-              <form onSubmit={handleFogetPass} className="space-y-7 mx-4">
-                <div>
-                  <Input
-                    className="rounded-full placeholder:text-xs p-5 bg-gray-200 border-0"
-                    id="email"
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="email"
-                    required
-                  />
-                  {error && (
+            {isMobile === null ? (
+              /* Loading state - show nothing or skeleton to prevent flash */
+              <div className="h-96"></div>
+            ) : isMobile ? (
+              /* Mobile View */
+              <div>
+                <h1 className="text-center text-2xl font-bold text-primary-900 mb-5 mt-2">
+                  FORGET PASSWORD
+                </h1>
+                <div className="mx-4">
+                  <form onSubmit={handleSubmit(handleLogin)} noValidate>
+                    <div className="mb-4">
+                      <Input
+                        className="rounded-full placeholder:text-xs p-5 bg-gray-200 border-0"
+                        type="email"
+                        placeholder="Email"
+                        autoComplete="email"
+                        {...register('email')}
+                      />
+                      {errors.email && (
                         <p className="text-red-600 text-xs mt-1 ml-4">
-                          {error}
+                          {errors.email.message}
                         </p>
-                  )}
-                </div>
+                      )}
+                    </div>
 
-                <Button className="w-full rounded-full p-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold"
-                        disabled={loading}
-                >
-                  {loading ? 'Verifying...' : 'Verify Email'}
-                </Button>
-                
-              </form>
-            </div>
-        
-        
-          {/* Desktop Login Card */}
-          <Card className="hidden md:block shadow-sm w-[400px] h-[350px]">
-            <CardHeader>
-              <div className='mt-7'>
-                <CardTitle className="text-center text-2xl">FOGET PASSWORD</CardTitle>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full rounded-full p-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? 'Verifying...' : 'Verify Email'}
+                    </Button>
+                  </form>
+                </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleFogetPass}>
-                <div>
-                  <Input
-                    className="rounded-full placeholder:text-xs p-5 mt-12 h-[50px]"
-                    id="email"
-                    type="email"
-                    placeholder="Email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                  {error && (
+            ) : (
+              /* Desktop View - Card */
+              <Card className="shadow-sm w-[400px] h-[350px]">
+                <CardHeader>
+                  <div className='mt-7'>
+                    <CardTitle className="text-center text-2xl">FORGET PASSWORD</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit(handleLogin)} noValidate>
+                    <div className="mb-4">
+                      <Input
+                        className="rounded-full placeholder:text-xs p-5 mt-12 h-[50px]"
+                        type="email"
+                        placeholder="Email"
+                        autoComplete="email"
+                        {...register('email')}
+                      />
+                      {errors.email && (
                         <p className="text-red-600 text-xs mt-1 ml-4">
-                          {error}
+                          {errors.email.message}
                         </p>
-                  )}
-                </div>
-                <div className='mt-5'>
-                  <Button className="w-full rounded-full p-5 bg-[linear-gradient(to_right,_#24456e_30%,_#04182f_80%)] h-[50px]"
-                          disabled={loading}
-                  >
-                  {loading ? 'Verifying...' : 'Verify Email'}</Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                      )}
+                    </div>
+                    <div className='mt-5'>
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full rounded-full p-5 bg-[linear-gradient(to_right,_#24456e_30%,_#04182f_80%)] h-[50px]"
+                    >
+                      {loading ? 'Verifying...' : 'Verify Email'}
+                    </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
     </>
   )
 }
