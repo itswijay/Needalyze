@@ -1,29 +1,24 @@
-import React from "react"
-import FormContainer from "@/components/FormContainer"
-import FormNavButton from "@/components/FormNavButton"
+"use client";
+import React from "react";
+import FormContainer from "@/components/FormContainer";
+import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
+import ProgressBar from "@/components/ProgressBar";
 
 export default function Form1Page() {
   return (
-    <main className="min-h-screen bg-gray-100 flex justify-center pt-28 pb-10">
-      <FormContainer>
-        <p className="text-center text-gray-500 mb-6">
-        </p>
+    <main className="min-h-screen bg-gray-100 flex flex-col">
+      {/* Header */}
+      <NeedAnalysisFormHeader />
 
-        <div className="flex justify-between mt-110"> 
-          <FormNavButton
-            label="Back"
-            type="prev"
-            variant="gradient"
-          />
+      {/* Progress Bar */}
+      <ProgressBar currentStep={1} totalSteps={4} />
 
-          <FormNavButton
-            label="Next"
-            type="next"
-            variant="gradient"
-          />
-        </div>
-      </FormContainer>
+      {/* Form Section */}
+      <section className="flex-grow flex justify-center pb-10">
+        <FormContainer>
+          {/* Form will go here later */}
+        </FormContainer>
+      </section>
     </main>
-  )
+  );
 }
-
