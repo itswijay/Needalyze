@@ -74,34 +74,67 @@ export default function Form1Page() {
             </div>
 
             <div className="flex flex-col space-y-4">
-  <div>
-    <label className="block text-gray-700 font-medium mb-1">Address</label>
-    <input type="text" placeholder="Your Address" className="border rounded-lg px-4 py-3 bg-[#DCE7F2] w-full" />
-  </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-1">
+                  Address
+                </label>
+                <input
+                  type="text"
+                  placeholder="Your Address"
+                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                />
+              </div>
 
-  <div>
-    <label className="block text-gray-700 font-medium mb-1">Phone Number</label>
-    <input type="text" placeholder="Ex: +94 77 345 6489" className="border rounded-lg px-4 py-3 bg-[#DCE7F2] w-full" />
-  </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: +94 77 345 6489"
+                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                />
+              </div>
 
-  <div>
-    <label className="block text-gray-700 font-medium mb-1">Age</label>
-    <input type="text" placeholder="Ex: 48" className="border rounded-lg px-4 py-3 bg-[#DCE7F2] w-full" />
-  </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-1">
+                  Age
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: 48"
+                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                />
+              </div>
 
-  <div>
-    <label className="block text-gray-700 font-medium mb-1">Children’s Ages</label>
-    <input type="text" placeholder="Ex: 18, 13, 9" className="border rounded-lg px-4 py-3 bg-[#DCE7F2] w-full" />
-  </div>
+              <div>
+                <label className="block text-gray-700 font-medium mb-1">
+                  Children’s Ages
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: 18, 13, 9"
+                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                />
+              </div>
 
-  <div>
-    <label className="block text-gray-700 font-medium mb-1">Monthly Income (LKR)</label>
-    <input type="text" placeholder="Ex: 70,000" className="border rounded-lg px-4 py-3 bg-[#DCE7F2] w-full" />
-  </div>
-</div>
-
+              <div>
+                <label className="block text-gray-700 font-medium mb-1">
+                  Monthly Income (LKR)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ex: 70,000"
+                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                />
+              </div>
+            </div>
           </form>
 
+          <div className="flex justify-between mt-10">
+            <FormNavButton label="Back" type="prev" variant="gradient" />
+            <FormNavButton label="Next" type="next" variant="gradient" />
+          </div>
         </FormContainer>
       </section>
     </main>
