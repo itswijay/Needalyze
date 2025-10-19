@@ -15,7 +15,7 @@ export default function FormNavButton({
     <Button
       onClick={onClick}
       variant={variant}
-      className={`flex items-center justify-center rounded-full w-32 h-13 ${className}`}
+      className={`flex items-center justify-center rounded-full w-30 h-11 ${className}`}
     >
       {isNext ? (
         <>

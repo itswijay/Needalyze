@@ -7,11 +7,9 @@ export default function Form1Page() {
     <main className="min-h-screen bg-gray-100 flex justify-center pt-28 pb-10">
       <FormContainer>
         <p className="text-center text-gray-500 mb-6">
-          {/* Optional instructions */}
         </p>
 
-        {/* Back & Next buttons */}
-        <div className="flex justify-between mt-110"> {/* Adjust mt-32 to move buttons down */}
+        <div className="flex justify-between mt-110"> 
           <FormNavButton
             label="Back"
             type="prev"
@@ -28,3 +26,4 @@ export default function Form1Page() {
     </main>
   )
 }
+
