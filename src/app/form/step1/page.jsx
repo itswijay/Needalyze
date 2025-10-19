@@ -102,10 +102,6 @@ export default function Form1Page() {
 
           </form>
 
-          <div className="flex justify-between mt-10">
-            <FormNavButton label="Back" type="prev" variant="gradient" />
-            <FormNavButton label="Next" type="next" variant="gradient" />
-          </div>
         </FormContainer>
       </section>
     </main>
