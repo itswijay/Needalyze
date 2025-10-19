@@ -7,16 +7,18 @@ import ProgressBar from "@/components/ProgressBar";
 export default function Form1Page() {
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header */}
       <NeedAnalysisFormHeader />
-
-      {/* Progress Bar */}
       <ProgressBar currentStep={1} totalSteps={4} />
-
-      {/* Form Section */}
       <section className="flex-grow flex justify-center pb-10">
         <FormContainer>
-          {/* Form will go here later */}
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="flex flex-col space-y-4">
+              {/* Left Column Inputs */}
+            </div>
+            <div className="flex flex-col space-y-4">
+              {/* Right Column Inputs */}
+            </div>
+          </form>
         </FormContainer>
       </section>
     </main>
