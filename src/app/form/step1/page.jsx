@@ -1,13 +1,21 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 import FormContainer from "@/components/FormContainer";
 import FormNavButton from "@/components/FormNavButton";
 import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
 import ProgressBar from "@/components/ProgressBar";
 
 export default function Form1Page() {
+  const router = useRouter();
+
+  const handleNext = () => {
+    router.push("/form/step2");
+  };
+
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
+
       <NeedAnalysisFormHeader />
 
       <ProgressBar currentStep={1} totalSteps={4} />
@@ -15,7 +23,6 @@ export default function Form1Page() {
       <section className="flex-grow flex justify-center pb-10 px-4 sm:px-6 lg:px-8">
         <FormContainer>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            {/* Left Column */}
             <div className="flex flex-col space-y-4">
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
@@ -73,7 +80,6 @@ export default function Form1Page() {
               </div>
             </div>
 
-            {/* Right Column */}
             <div className="flex flex-col space-y-4">
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
@@ -133,8 +139,18 @@ export default function Form1Page() {
           </form>
 
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-10">
-            <FormNavButton label="Back" type="prev" variant="gradient" />
-            <FormNavButton label="Next" type="next" variant="gradient" />
+            <FormNavButton
+              label="Back"
+              type="prev"
+              variant="gradient"
+              onClick={() => router.back()}
+            />
+            <FormNavButton
+              label="Next"
+              type="next"
+              variant="gradient"
+              onClick={handleNext}
+            />
           </div>
         </FormContainer>
       </section>
