@@ -1,12 +1,16 @@
 "use client";
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader';
 import ProgressBar from '@/components/ProgressBar';
 import FormContainer from '@/components/FormContainer';
+import FormNavButton from '@/components/FormNavButton';
 
 
 export default function NeedAnalysisFormPage2() {
+  const router = useRouter();
+  
   const [insuranceNeeds, setInsuranceNeeds] = useState({
     dependentCostOfLiving: false,
     higherEducationChildren: false,
@@ -37,32 +41,32 @@ export default function NeedAnalysisFormPage2() {
   };
 
   const handleBack = () => {
-    console.log('Navigate back');
+    router.push('/form/step1');
   };
 
   const handleNext = () => {
-    console.log('Navigate next', { insuranceNeeds, healthCovers });
+    router.push('/form/step3');
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-100 flex flex-col">
       <NeedAnalysisFormHeader />
-      <ProgressBar currentStep={2} />
-      
-      <div className="flex justify-center pt-6 pb-10 px-4 sm:px-6 lg:px-8">
-        <FormContainer className="w-full max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 lg:gap-12">
+      <ProgressBar currentStep={2} totalSteps={4} />
+
+      <section className="flex-grow flex justify-center pb-10 px-4 sm:px-6 lg:px-8">
+        <FormContainer>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-12">
             
             {/* Insurance Need Section */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 relative shadow-xl border border-gray-100">
-              <div className="flex items-center justify-between mb-6 lg:mb-8">
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-800 font-sans">Insurance Need</h2>
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: '#89acd0'}}>
+            <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 md:p-6 lg:p-8 relative shadow-lg sm:shadow-xl border border-gray-100">
+              <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+                <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 font-sans">Insurance Need</h2>
+                <div className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: '#89acd0'}}>
                   <span className="text-white text-xs sm:text-sm font-bold font-sans">i</span>
                 </div>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-2 sm:space-y-3 md:space-y-4">
                 <CheckboxCard
                   label="Dependent Cost of Living"
                   checked={insuranceNeeds.dependentCostOfLiving}
@@ -92,15 +96,15 @@ export default function NeedAnalysisFormPage2() {
             </div>
 
             {/* Health Covers Section */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 relative shadow-xl border border-gray-100">
-              <div className="flex items-center justify-between mb-6 lg:mb-8">
-                <h2 className="text-lg sm:text-xl font-semibold text-gray-800 font-sans">Health Covers</h2>
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: '#89acd0'}}>
+            <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl p-3 sm:p-4 md:p-6 lg:p-8 relative shadow-lg sm:shadow-xl border border-gray-100">
+              <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+                <h2 className="text-base sm:text-lg md:text-xl font-semibold text-gray-800 font-sans">Health Covers</h2>
+                <div className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center flex-shrink-0" style={{backgroundColor: '#89acd0'}}>
                   <span className="text-white text-xs sm:text-sm font-bold font-sans">i</span>
                 </div>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-2 sm:space-y-3 md:space-y-4">
                 <CheckboxCard
                   label="Daily Hospitalization Expenses"
                   checked={healthCovers.dailyHospitalizationExpenses}
@@ -125,40 +129,37 @@ export default function NeedAnalysisFormPage2() {
             </div>
           </div>
 
-          {/* Navigation buttons with original colors */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 sm:mt-12">
-            <button
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-10">
+            <FormNavButton
+              label="Back"
+              type="prev"
+              variant="gradient"
               onClick={handleBack}
-              className="w-full sm:w-auto px-6 py-3 rounded-full text-white font-medium font-sans shadow-md hover:shadow-lg transition 
-                         bg-gradient-to-r from-[#89ACD0] to-[#2662B0] order-2 sm:order-1"
-            >
-              ← Back
-            </button>
-            <button
+            />
+            <FormNavButton
+              label="Next"
+              type="next"
+              variant="gradient"
               onClick={handleNext}
-              className="w-full sm:w-auto px-6 py-3 rounded-full text-white font-medium font-sans shadow-md hover:shadow-lg transition 
-                         bg-gradient-to-r from-[#89ACD0] to-[#2662B0] order-1 sm:order-2"
-            >
-              Next →
-            </button>
+            />
           </div>
         </FormContainer>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 
-// Checkbox Card Component with enhanced shadows
+// Checkbox Card Component with enhanced shadows and mobile optimization
 function CheckboxCard({ label, checked, onChange }) {
   return (
     <div 
-      className="flex items-center p-3 sm:p-4 bg-white rounded-2xl sm:rounded-full shadow-2xl border border-gray-200 cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300"
+      className="flex items-center p-2 sm:p-3 md:p-4 bg-white rounded-xl sm:rounded-2xl md:rounded-full shadow-lg sm:shadow-xl md:shadow-2xl border border-gray-200 cursor-pointer hover:shadow-xl sm:hover:shadow-2xl hover:scale-[1.02] sm:hover:scale-105 transition-all duration-300 touch-manipulation"
       onClick={onChange}
       style={{
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05)'
+        boxShadow: '0 4px 15px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)'
       }}
     >
-      <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-md border-2 mr-3 sm:mr-4 flex items-center justify-center transition-colors flex-shrink-0 ${
+      <div className={`w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded border-2 mr-2 sm:mr-3 md:mr-4 flex items-center justify-center transition-colors flex-shrink-0 ${
         checked 
           ? 'border-2' 
           : 'border-2'
@@ -168,12 +169,12 @@ function CheckboxCard({ label, checked, onChange }) {
         borderColor: checked ? '#1b477f' : '#89acd0'
       }}>
         {checked && (
-          <svg className="w-3 h-3 sm:w-4 sm:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="w-2 h-2 sm:w-3 sm:h-3 md:w-4 md:h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
         )}
       </div>
-      <span className="text-gray-700 font-medium text-sm sm:text-base lg:text-lg font-sans">{label}</span>
+      <span className="text-gray-700 font-medium text-xs sm:text-sm md:text-base lg:text-lg font-sans leading-tight">{label}</span>
     </div>
   );
 }
