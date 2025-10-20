@@ -14,10 +14,10 @@ export default function ProgressBar({ currentStep = 2, totalSteps = 4 }) {
               <div className={`
                 w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold
                 ${isActive 
-                  ? 'bg-[#89acd0] text-white'
+                  ? 'bg-[var(--primary-200)] border border-[var(--primary-400)] text-white'
                   : isCompleted
-                    ? 'bg-[#1b477f] text-white'
-                    : 'bg-neutral-300 text-neutral-600'
+                    ? 'bg-[var(--primary-300)] border border-[var(--primary-400)] text-white'
+                    : 'bg-neutral-300 border border-[var(--gray-200)] text-neutral-600'
                 }
               `}>
                 {stepNumber}
@@ -25,14 +25,14 @@ export default function ProgressBar({ currentStep = 2, totalSteps = 4 }) {
               
               {/* Progress Line (don't show after last step) */}
               {stepNumber < totalSteps && (
-                <div className="relative h-1 w-24 mx-4 bg-neutral-300">
+                <div className="relative h-1 w-24 mx-4 bg-neutral-300 border border-[var(--gray-200)] rounded-full">
                   {/* Half-filled line for current step */}
                   {stepNumber === currentStep && (
-                    <div className="absolute top-0 left-0 h-1 w-1/2 bg-[#89acd0]" />
+                    <div className="absolute top-0 left-0 h-1 w-1/2 bg-[var(--primary-200)] border border-[var(--primary-400)] rounded-full" />
                   )}
                   {/* Fully filled line for completed steps */}
                   {stepNumber < currentStep && (
-                    <div className="absolute top-0 left-0 h-1 w-full bg-[#1b477f]" />
+                    <div className="absolute top-0 left-0 h-1 w-full bg-[var(--primary-300)] border border-[var(--primary-400)] rounded-full" />
                   )}
                 </div>
               )}
