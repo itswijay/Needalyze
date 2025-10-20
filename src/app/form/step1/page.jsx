@@ -24,7 +24,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: Sunil Nishantha Karunarathna"
-                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -35,7 +35,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="DD/MM/YYYY"
-                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -46,7 +46,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: Samanthi Ishara Karunarathna"
-                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -57,7 +57,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: 3"
-                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -68,7 +68,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Your Job/Business"
-                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
             </div>
@@ -81,7 +81,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Your Address"
-                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -92,7 +92,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: +94 77 345 6489"
-                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -103,7 +103,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: 48"
-                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -114,7 +114,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: 18, 13, 9"
-                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -125,7 +125,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: 70,000"
-                  className="border border-[#8EABD2] rounded-lg px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
             </div>
