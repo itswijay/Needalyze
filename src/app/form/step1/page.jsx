@@ -1,13 +1,27 @@
 "use client";
-import React from "react";
+
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+
 import FormContainer from "@/components/FormContainer";
 import FormNavButton from "@/components/FormNavButton";
 import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
 import ProgressBar from "@/components/ProgressBar";
 
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
 export default function Form1Page() {
   const router = useRouter();
+  const [date, setDate] = useState(null);
+  const [open, setOpen] = useState(false);
 
   const handleNext = () => {
     router.push("/form/step2");
@@ -15,9 +29,7 @@ export default function Form1Page() {
 
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
-
       <NeedAnalysisFormHeader />
-
       <ProgressBar currentStep={1} totalSteps={4} />
 
       <section className="flex-grow flex justify-center pb-10 px-4 sm:px-6 lg:px-8">
@@ -39,11 +51,41 @@ export default function Form1Page() {
                 <label className="block text-gray-700 font-medium mb-1">
                   Date of Birth
                 </label>
-                <input
-                  type="text"
-                  placeholder="DD/MM/YYYY"
-                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                />
+                <div className="relative">
+                  <input
+                    readOnly
+                    value={date ? format(date, "dd/MM/yyyy") : ""}
+                    placeholder="DD/MM/YYYY"
+                    className="border border-[#8EABD2] rounded-full px-4 py-3 pr-12 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2] cursor-pointer"
+                    onClick={() => setOpen(true)}
+                  />
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="absolute right-3 top-2.5 text-gray-600 hover:text-gray-800"
+                        onClick={() => setOpen(!open)}
+                      >
+                        <CalendarIcon className="h-5 w-5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={(d) => {
+                          setDate(d);
+                          setOpen(false);
+                        }}
+                        fromYear={1950}
+                        toYear={2025}
+                        captionLayout="dropdown" 
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
 
               <div>
