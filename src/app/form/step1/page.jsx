@@ -180,7 +180,7 @@ export default function Form1Page() {
             </div>
           </form>
 
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-10">
+           <div className="flex flex-row justify-between items-center gap-2 sm:gap-4 mt-10">
             <FormNavButton
               label="Back"
               type="prev"
