@@ -1,21 +1,21 @@
-import React from "react"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import React from 'react'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 
 export default function FormNavButton({
   label,
-  type = "next",
+  type = 'next',
   onClick,
-  variant = "default",
-  className = "",
+  variant = 'default',
+  className = '',
 }) {
-  const isNext = type === "next"
+  const isNext = type === 'next'
 
   return (
     <Button
       onClick={onClick}
       variant={variant}
-      className={`flex items-center justify-center rounded-full w-30 h-11 ${className}`}
+      className={`flex items-center justify-center rounded-full w-30 h-11 transition-transform duration-200 hover:scale-103 active:scale-95 ${className}`}
     >
       {isNext ? (
         <>
