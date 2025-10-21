@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export default function NeedAnalysisFormHeader() {
   return (
-    <div className="w-full h-32 bg-gradient-to-r from-[#10294A] to-[#3B6FA7] flex items-center justify-between px-8 relative">
+    <div className="w-full h-32 bg-gradient-to-r from-[var(--primary-600)] via-[var(--primary-300)] to-[var(--primary-600)]  flex items-center justify-between px-8 relative">
       {/* Logo on the left */}
       <div className="flex items-center">
         <Image
