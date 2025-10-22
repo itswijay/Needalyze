@@ -93,14 +93,13 @@ export default function Form1Page() {
 
                   <Popover open={open && !isMobile} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 hover:text-gray-800"
-                        onClick={() => setOpen((s) => !s)}
-                      >
-                        <CalendarIcon className="h-4 w-4" />
-                      </Button>
+                   <Button
+                   type="button"
+                   className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 bg-transparent hover:bg-transparent"
+                   onClick={() => setOpen((s) => !s)}
+                   >
+                  <CalendarIcon className="h-4 w-4" />
+                  </Button>
                     </PopoverTrigger>
 
                     <PopoverContent
