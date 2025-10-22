@@ -8,8 +8,8 @@ const page = () => {
       <div className="flex flex-col justify-center items-center">
         <Image
           src="/images/logos/white-t.png"
-          width="250"
-          height="250"
+          width="180"
+          height="180"
           alt="Needalyze-Logo"
           priority
         />
@@ -20,7 +20,7 @@ const page = () => {
           anytime, anywhere.
         </p>
         <Link href="/login">
-          <Button className="md:mt-15 mt-[-20px] rounded-full px-15 py-[25px] text-black text-lg bg-[#F2F6FA] hover:bg-[#dcdee0] cursor-pointer">
+          <Button className="md:mt-15 mt-[-20px] rounded-full px-10 py-[20px] text-black text-lg bg-[#F2F6FA] hover:bg-[#dcdee0] cursor-pointer">
             Get Started
           </Button>
         </Link>
