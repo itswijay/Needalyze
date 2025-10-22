@@ -47,7 +47,6 @@ export default function NeedAnalysisFormPage2() {
       <NeedAnalysisFormHeader />
       <ProgressBar currentStep={2} totalSteps={4} />
 
-      {/* Center content like Step 1, slightly higher */}
       <section className="flex-grow flex justify-center items-start py-8 px-4">
         <FormContainer>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm -mt-4">
@@ -152,7 +151,7 @@ export default function NeedAnalysisFormPage2() {
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-2 sm:gap-0">
+          <div className="flex flex-row justify-between items-center mt-8 w-full">
             <FormNavButton
               label="Back"
               type="prev"

@@ -32,11 +32,10 @@ export default function Form1Page() {
       <NeedAnalysisFormHeader />
       <ProgressBar currentStep={1} totalSteps={4} />
 
-      {/* Center the form container */}
-      <section className="flex-grow flex justify-center items-center py-6 px-4">
+      <section className="flex-grow flex justify-center items-center py-8 px-4">
         <FormContainer>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm">
-            {/* Left column */}
+
             <div className="flex flex-col space-y-3">
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
