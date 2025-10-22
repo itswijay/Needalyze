@@ -67,7 +67,6 @@ export default function Form1Page() {
         <FormContainer>
           <form className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm">
             <div className="flex flex-col space-y-3">
-              {/* Full Name */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Full Name
@@ -79,7 +78,6 @@ export default function Form1Page() {
                 />
               </div>
 
-              {/* Date of Birth */}
               <div className="relative">
                 <label className="block text-gray-700 font-medium mb-1">
                   Date of Birth
@@ -98,7 +96,7 @@ export default function Form1Page() {
                       <Button
                         type="button"
                         variant="ghost"
-                        className="absolute right-2 top-1.5 text-gray-600 hover:text-gray-800"
+                        className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 hover:text-gray-800"
                         onClick={() => setOpen((s) => !s)}
                       >
                         <CalendarIcon className="h-4 w-4" />
@@ -156,7 +154,6 @@ export default function Form1Page() {
                 </div>
               </div>
 
-              {/* Other left inputs */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Spouse’s Name
@@ -191,7 +188,6 @@ export default function Form1Page() {
               </div>
             </div>
 
-            {/* Right column */}
             <div className="flex flex-col space-y-3">
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
@@ -250,7 +246,6 @@ export default function Form1Page() {
             </div>
           </form>
 
-          {/* Navigation buttons */}
           <div className="flex justify-between items-center mt-6">
             <FormNavButton
               label="Back"
