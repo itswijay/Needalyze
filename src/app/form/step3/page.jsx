@@ -111,19 +111,16 @@ export default function Form3Page() {
         </form>
 
         {/* Navigation Buttons */}
-        <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-2 sm:gap-0">
+        <div className="flex justify-between mt-8 gap-2 sm:gap-0">
           <FormNavButton
             label="Back"
             type="prev"
             variant="gradient"
             onClick={handleBack}
           />
-          {/* <FormNavButton
-            label="Next"
-            type="next"
-            variant="gradient"
-            onClick={handleNext}
-          /> */}
+         <button className="bg-gradient-to-r from-[#8bb4e6] to-[#2563eb] text-white font-semibold px-7 py-2 rounded-full shadow-md hover:from-[#03254f] hover:to-[#1e53c7] transition-all duration-300">
+          Submit 
+        </button>
         </div>
       </FormContainer>
 
@@ -220,13 +217,9 @@ export default function Form3Page() {
                         variant="gradient"
                         onClick={handleBack}
               />
-               <FormNavButton
-                        label="Back"
-                        type="prev"
-                        variant="gradient"
-                        onClick={handleBack}
-              />
-  
+               <button className="bg-gradient-to-r from-[#8bb4e6] to-[#2563eb] text-white font-semibold px-7 py-2.5 rounded-full shadow-md hover:from-[#03254f] hover:to-[#1e53c7] transition-all duration-300" type="prev">
+                 Submit 
+              </button>
               </div>
         </FormContainer>
       </section>
