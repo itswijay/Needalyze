@@ -32,10 +32,12 @@ export default function Form1Page() {
       <NeedAnalysisFormHeader />
       <ProgressBar currentStep={1} totalSteps={4} />
 
-      <section className="flex-grow flex justify-center pb-10 px-4 sm:px-6 lg:px-8">
+      {/* Center the form container */}
+      <section className="flex-grow flex justify-center items-center py-6 px-4">
         <FormContainer>
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-            <div className="flex flex-col space-y-4">
+          <form className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm">
+            {/* Left column */}
+            <div className="flex flex-col space-y-3">
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Full Name
@@ -43,7 +45,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: Sunil Nishantha Karunarathna"
-                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -56,7 +58,7 @@ export default function Form1Page() {
                     readOnly
                     value={date ? format(date, "dd/MM/yyyy") : ""}
                     placeholder="DD/MM/YYYY"
-                    className="border border-[#8EABD2] rounded-full px-4 py-3 pr-12 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2] cursor-pointer"
+                    className="border border-[#8EABD2] rounded-full px-3 py-2 pr-10 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2] cursor-pointer"
                     onClick={() => setOpen(true)}
                   />
                   <Popover open={open} onOpenChange={setOpen}>
@@ -64,10 +66,10 @@ export default function Form1Page() {
                       <Button
                         type="button"
                         variant="ghost"
-                        className="absolute right-3 top-2.5 text-gray-600 hover:text-gray-800"
+                        className="absolute right-2 top-1.5 text-gray-600 hover:text-gray-800"
                         onClick={() => setOpen(!open)}
                       >
-                        <CalendarIcon className="h-5 w-5" />
+                        <CalendarIcon className="h-4 w-4" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -80,7 +82,7 @@ export default function Form1Page() {
                         }}
                         fromYear={1950}
                         toYear={2025}
-                        captionLayout="dropdown" 
+                        captionLayout="dropdown"
                         initialFocus
                       />
                     </PopoverContent>
@@ -95,7 +97,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: Samanthi Ishara Karunarathna"
-                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -106,7 +108,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: 3"
-                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -117,12 +119,13 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Your Job/Business"
-                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
             </div>
 
-            <div className="flex flex-col space-y-4">
+            {/* Right column */}
+            <div className="flex flex-col space-y-3">
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Address
@@ -130,7 +133,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Your Address"
-                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -141,7 +144,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: +94 77 345 6489"
-                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -152,7 +155,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: 48"
-                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -163,7 +166,7 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: 18, 13, 9"
-                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
@@ -174,13 +177,14 @@ export default function Form1Page() {
                 <input
                   type="text"
                   placeholder="Ex: 70,000"
-                  className="border border-[#8EABD2] rounded-full px-4 py-3 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
             </div>
           </form>
 
-           <div className="flex flex-row justify-between items-center gap-2 sm:gap-4 mt-10">
+          {/* Navigation buttons */}
+          <div className="flex justify-between items-center mt-6">
             <FormNavButton
               label="Back"
               type="prev"
