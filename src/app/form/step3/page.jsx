@@ -70,7 +70,7 @@ export default function Form3Page() {
                     <label className="block text-gray-700 font-medium mb-1">
                       Your Human Life Value
                     </label>
-                    <div className="border border-[#8EABD2] rounded-full px-4 py-1 bg-[#7792b7] w-56 text-white flex items-center justify-center font-bold text-2xl">
+                    <div className="border border-[#8EABD2] rounded-full px-4 py-1 bg-[#7792b7] w-56 text-white flex items-center justify-center font-bold text-xl">
                       {hlvalue}
                     </div>
                   </div>
@@ -104,7 +104,7 @@ export default function Form3Page() {
                     <label className="block text-gray-700 font-medium mb-1">
                       Your Actual Human Life Value
                     </label>
-                    <div className="border border-[#8EABD2] rounded-full px-4 py-1 bg-[#7792b7] w-56 text-white flex items-center justify-center font-bold text-2xl">
+                    <div className="border border-[#8EABD2] rounded-full px-4 py-1 bg-[#7792b7] w-56 text-white flex items-center justify-center font-bold text-xl">
                       {hlvalue}
                     </div>
                   </div>
