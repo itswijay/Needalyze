@@ -49,7 +49,7 @@ export default function Form3Page() {
                       Fixed Monthly Expenses
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                     />
                   </div>
@@ -59,7 +59,8 @@ export default function Form3Page() {
                       Bank Interest Rate
                     </label>
                     <input
-                      type="text"
+                      type="number"
+                      step="0.1"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                     />
                   </div>
@@ -81,7 +82,7 @@ export default function Form3Page() {
                       Unsecured Bank Loan
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       placeholder="optional"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                     />
@@ -92,7 +93,7 @@ export default function Form3Page() {
                       Cash In Hand + Insurance
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       placeholder="optional"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                     />
@@ -151,7 +152,7 @@ export default function Form3Page() {
                       Fixed Monthly Expenses
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                     />
                   </div>
@@ -161,7 +162,8 @@ export default function Form3Page() {
                       Bank Interest Rate
                     </label>
                     <input
-                      type="text"
+                      type="number"
+                      step="0.1"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                     />
                   </div>
@@ -171,7 +173,7 @@ export default function Form3Page() {
                       Unsecured Bank Loan
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       placeholder="optional"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                     />
@@ -182,7 +184,7 @@ export default function Form3Page() {
                       Cash In Hand + Insurance
                     </label>
                     <input
-                      type="text"
+                      type="number"
                       placeholder="optional"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                     />
