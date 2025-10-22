@@ -30,6 +30,7 @@ export default function Form3Page() {
 
       {isMobile ? (
         <div>
+          <NeedAnalysisFormHeader />
           <ProgressBar currentStep={3} totalSteps={4} />
 
           <section className="flex-grow flex justify-center items-start py-6 px-4">
