@@ -11,6 +11,7 @@ export default function NeedAnalysisFormHeader() {
           width={70}
           height={70}
           className="object-contain"
+          priority
         />
       </div>
 
