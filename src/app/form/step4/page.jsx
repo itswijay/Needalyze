@@ -34,7 +34,7 @@ export default function Step4Page() {
           </div>
 
           {/* Success Message */}
-          <h1 className="text-3xl md:text-xl font-bold text-primary-600 mb-20">
+          <h1 className="text-2xl md:text-xl font-bold text-primary-600 mb-20">
             Form Completed Successfully
           </h1>
 
