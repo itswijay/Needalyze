@@ -1,50 +1,60 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import React, { useState, useEffect } from "react";
+import { Eye, EyeOff, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import Image from "next/image";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 // Zod Validation Schema
 
-const registerSchema = z.object({
-  firstName: z
-    .string()
-    .min(1, 'First name is required')
-    .regex(/^[a-zA-Z\s]+$/, 'First name should contain only letters'),
-  lastName: z
-    .string()
-    .min(1, 'Last name is required')
-    .regex(/^[a-zA-Z\s]+$/, 'Last name should contain only letters'),
-  phoneNumber: z
-    .string()
-    .min(1, 'Phone number is required')
-    .regex(/^[0-9]{10}$/, 'Phone number must be 10 digits'),
-  branch: z
-    .string()
-    .min(1, 'Please select a branch'),
-  position: z
-    .string()
-    .min(1, 'Please select a position'),
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
-  password: z
-    .string()
-    .min(1, 'Password is required')
-    .min(6, 'Password must be at least 6 characters'),
-  confirmPassword: z
-    .string()
-    .min(1, 'Please confirm your password'),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    firstName: z
+      .string()
+      .min(1, "First name is required")
+      .regex(/^[a-zA-Z\s]+$/, "First name should contain only letters"),
+    lastName: z
+      .string()
+      .min(1, "Last name is required")
+      .regex(/^[a-zA-Z\s]+$/, "Last name should contain only letters"),
+    phoneNumber: z
+      .string()
+      .min(1, "Phone number is required")
+      .regex(/^[0-9]{10}$/, "Phone number must be 10 digits"),
+    branch: z.string().min(1, "Please select a branch"),
+    position: z.string().min(1, "Please select a position"),
+    regCode: z.string().optional(),
+    email: z
+      .string()
+      .min(1, "Email is required")
+      .email("Please enter a valid email address"),
+    password: z
+      .string()
+      .min(1, "Password is required")
+      .min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  })
+  .refine(
+    (data) => {
+      // Registration code is required for Advisor and Team Leader
+      if (data.position === "Advisor" || data.position === "Team Leader") {
+        return data.regCode && data.regCode.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: "Code number is required for this position",
+      path: ["regCode"],
+    }
+  );
 
 export default function Register() {
   // State for responsive behavior
@@ -54,9 +64,18 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
+  const [showPositionDropdown, setShowPositionDropdown] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedPosition, setSelectedPosition] = useState("");
 
-  const branches = ['Warakapola'];
-  const positions = ['Branch Manager', 'Advisor', 'Team Leader'];
+  // ============= NEW: Desktop dropdowns state =============
+  const [showBranchDropdownDesktop, setShowBranchDropdownDesktop] = useState(false);
+  const [showPositionDropdownDesktop, setShowPositionDropdownDesktop] = useState(false);
+  // ========================================================
+
+  const branches = ["Warakapola"];
+  const positions = ["Branch Manager", "Advisor", "Team Leader"];
 
   // Check mobile viewport
   useEffect(() => {
@@ -65,9 +84,24 @@ export default function Register() {
     };
 
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
 
-    return () => window.removeEventListener('resize', checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest(".dropdown-container")) {
+        setShowBranchDropdown(false);
+        setShowPositionDropdown(false);
+        setShowBranchDropdownDesktop(false);
+        setShowPositionDropdownDesktop(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // React Hook Form with Zod
@@ -76,37 +110,56 @@ export default function Register() {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm({
     resolver: zodResolver(registerSchema),
-    mode: 'onSubmit',
+    mode: "onSubmit",
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      phoneNumber: '',
-      branch: '',
-      position: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
+      firstName: "",
+      lastName: "",
+      phoneNumber: "",
+      branch: "",
+      position: "",
+      regCode: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
     },
   });
+
+  // Custom dropdown handlers
+  const handleBranchSelect = (branch) => {
+    setSelectedBranch(branch);
+    setValue("branch", branch);
+    setShowBranchDropdown(false);
+    setShowBranchDropdownDesktop(false);
+  };
+
+  const handlePositionSelect = (position) => {
+    setSelectedPosition(position);
+    setValue("position", position);
+    setShowPositionDropdown(false);
+    setShowPositionDropdownDesktop(false);
+  };
 
   // handleSubmit with react-hook-form
   const onSubmit = async (data) => {
     setIsLoading(true);
 
     try {
-      console.log('Form Data Submitted:', data);
-      
+      console.log("Form Data Submitted:", data);
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      alert('Registration successful! (This is a demo)');
-      
+
+      alert("Registration successful! (This is a demo)");
+
       // Reset form after successful registration
       reset();
+      setSelectedBranch("");
+      setSelectedPosition("");
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -123,7 +176,7 @@ export default function Register() {
     return (
       <div className="w-full min-h-screen flex flex-col overflow-hidden">
         {/* Top Blue Section with Logo */}
-        <div className="w-full bg-[linear-gradient(to_bottom,_#24456e_0%,_#04182f_80%)] flex flex-col justify-center items-center pt-6 pb-12 relative flex-shrink-0">
+        <div className="w-full bg-[linear-gradient(to_bottom,#24456e_0%,#04182f_80%)] flex flex-col justify-center items-center pt-6 pb-12 relative flex-shrink-0">
           <Image
             src="/images/logos/white-t.png"
             width={128}
@@ -161,8 +214,8 @@ export default function Register() {
                   <input
                     type="text"
                     placeholder="First Name"
-                    className="w-full rounded-full placeholder:text-xs p-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('firstName')}
+                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
+                    {...register("firstName")}
                   />
                   {errors.firstName && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -170,14 +223,13 @@ export default function Register() {
                     </p>
                   )}
                 </div>
-
                 {/* Last Name */}
                 <div className="mb-4">
                   <input
                     type="text"
                     placeholder="Last Name"
-                    className="w-full rounded-full placeholder:text-xs p-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('lastName')}
+                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
+                    {...register("lastName")}
                   />
                   {errors.lastName && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -185,14 +237,13 @@ export default function Register() {
                     </p>
                   )}
                 </div>
-
                 {/* Phone Number */}
                 <div className="mb-4">
                   <input
                     type="tel"
                     placeholder="Phone Number"
-                    className="w-full rounded-full placeholder:text-xs p-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('phoneNumber')}
+                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
+                    {...register("phoneNumber")}
                   />
                   {errors.phoneNumber && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -200,57 +251,135 @@ export default function Register() {
                     </p>
                   )}
                 </div>
-
                 {/* Branch Dropdown */}
-                <div className="mb-4 relative">
-                  <select
-                    className="w-full rounded-full placeholder:text-xs p-5 bg-gray-200 border-0 appearance-none cursor-pointer focus:outline-none focus:ring-0"
-                    {...register('branch')}
+                <div className="mb-4 relative dropdown-container">
+                  <input type="hidden" {...register("branch")} />
+                  <div
+                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0 text-left cursor-pointer flex items-center justify-between"
+                    onClick={() => setShowBranchDropdown(!showBranchDropdown)}
                   >
-                    <option value="">Select Branch</option>
-                    {branches.map((branch) => (
-                      <option key={branch} value={branch}>
-                        {branch}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-5 top-5 pointer-events-none text-gray-600" size={20} />
+                    <span
+                      className={
+                        selectedBranch
+                          ? "text-gray-900"
+                          : "text-gray-500 text-xs"
+                      }
+                    >
+                      {selectedBranch || "Select Branch"}
+                    </span>
+                    <ChevronDown
+                      className={`text-gray-600 transition-transform ${
+                        showBranchDropdown ? "rotate-180" : ""
+                      }`}
+                      size={20}
+                    />
+                  </div>
+                  {showBranchDropdown && (
+                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto mt-1">
+                      {selectedBranch && (
+                        <div
+                          className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
+                          onClick={() => handleBranchSelect("")}
+                        >
+                          ✕ Clear Selection
+                        </div>
+                      )}
+                      {branches.map((branch) => (
+                        <div
+                          key={branch}
+                          className="px-5 py-3 hover:bg-gray-100 cursor-pointer text-left text-sm"
+                          onClick={() => handleBranchSelect(branch)}
+                        >
+                          {branch}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {errors.branch && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
                       {errors.branch.message}
                     </p>
                   )}
                 </div>
-
                 {/* Position Dropdown */}
-                <div className="mb-4 relative">
-                  <select
-                    className="w-full rounded-full placeholder:text-xs p-5 bg-gray-200 border-0 appearance-none cursor-pointer focus:outline-none focus:ring-0"
-                    {...register('position')}
+                <div className="mb-4 relative dropdown-container">
+                  <input type="hidden" {...register("position")} />
+                  <div
+                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0 text-left cursor-pointer flex items-center justify-between"
+                    onClick={() =>
+                      setShowPositionDropdown(!showPositionDropdown)
+                    }
                   >
-                    <option value="">Select Position</option>
-                    {positions.map((position) => (
-                      <option key={position} value={position}>
-                        {position}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-5 top-5 pointer-events-none text-gray-600" size={20} />
+                    <span
+                      className={
+                        selectedPosition
+                          ? "text-gray-900"
+                          : "text-gray-500 text-xs"
+                      }
+                    >
+                      {selectedPosition || "Select Position"}
+                    </span>
+                    <ChevronDown
+                      className={`text-gray-600 transition-transform ${
+                        showPositionDropdown ? "rotate-180" : ""
+                      }`}
+                      size={20}
+                    />
+                  </div>
+                  {showPositionDropdown && (
+                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto mt-1">
+                      {selectedPosition && (
+                        <div
+                          className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
+                          onClick={() => handlePositionSelect("")}
+                        >
+                          ✕ Clear Selection
+                        </div>
+                      )}
+                      {positions.map((position) => (
+                        <div
+                          key={position}
+                          className="px-5 py-3 hover:bg-gray-100 cursor-pointer text-left text-sm"
+                          onClick={() => handlePositionSelect(position)}
+                        >
+                          {position}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {errors.position && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
                       {errors.position.message}
                     </p>
                   )}
                 </div>
-
+                {/* ============= CHANGED: "Registration Code" to "Code Number" ============= */}
+                {/* Code Number - Show only for Advisor and Team Leader */}
+                {(selectedPosition === "Advisor" ||
+                  selectedPosition === "Team Leader") && (
+                  <div className="mb-4">
+                    <input
+                      type="text"
+                      placeholder="Code Number"
+                      className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
+                      {...register("regCode")}
+                    />
+                    {errors.regCode && (
+                      <p className="text-red-600 text-xs mt-1 ml-4">
+                        {errors.regCode.message}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {/* ========================================================================== */}
                 {/* Email */}
                 <div className="mb-4">
                   <input
                     type="email"
                     placeholder="Email"
                     autoComplete="email"
-                    className="w-full rounded-full placeholder:text-xs p-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('email')}
+                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
+                    {...register("email")}
                   />
                   {errors.email && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -258,20 +387,19 @@ export default function Register() {
                     </p>
                   )}
                 </div>
-
                 {/* Password */}
                 <div className="mb-4 relative">
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Password"
                     autoComplete="new-password"
-                    className="w-full rounded-full placeholder:text-xs p-5 pr-12 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('password')}
+                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
+                    {...register("password")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-5 top-5 text-gray-600 hover:text-gray-900 transition-colors"
+                    className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
@@ -281,22 +409,25 @@ export default function Register() {
                     </p>
                   )}
                 </div>
-
                 {/* Confirm Password */}
                 <div className="mb-4 relative">
                   <input
-                    type={showConfirmPassword ? 'text' : 'password'}
+                    type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm Password"
                     autoComplete="new-password"
-                    className="w-full rounded-full placeholder:text-xs p-5 pr-12 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('confirmPassword')}
+                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
+                    {...register("confirmPassword")}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-5 top-5 text-gray-600 hover:text-gray-900 transition-colors"
+                    className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
                   >
-                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    {showConfirmPassword ? (
+                      <EyeOff size={20} />
+                    ) : (
+                      <Eye size={20} />
+                    )}
                   </button>
                   {errors.confirmPassword && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -304,21 +435,20 @@ export default function Register() {
                     </p>
                   )}
                 </div>
-
                 {/* Register Button */}
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full rounded-full p-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full rounded-full p-5.5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Registering...' : 'Register'}
+                  {isLoading ? "Registering..." : "Register"}
                 </Button>
               </form>
 
               {/* Login Link */}
               <div className="space-y-2">
                 <p className="text-center text-primary-900 text-sm mt-4">
-                  Already have an Account?{' '}
+                  Already have an Account?{" "}
                   <Link
                     href="/login"
                     className="text-primary-900 hover:text-primary-700 font-semibold inline"
@@ -339,7 +469,7 @@ export default function Register() {
   return (
     <div className="w-full h-screen flex flex-row overflow-hidden">
       {/* Left Section - Blue Background*/}
-      <div className="w-1/2 bg-[linear-gradient(to_bottom,_#24456e_0%,_#04182f_80%)] flex flex-col justify-center items-center p-8">
+      <div className="w-1/2 bg-[linear-gradient(to_bottom,#24456e_0%,#04182f_80%)] flex flex-col justify-center items-center p-8">
         <div className="text-center">
           <div className="mb-1">
             <div className="flex justify-center mb-1">
@@ -356,21 +486,26 @@ export default function Register() {
         </div>
       </div>
 
+      {/* ============= CHANGED: Added py-8 for equal top and bottom spacing ============= */}
       {/* Right Section - Form*/}
-      <div className="w-1/2 bg-white flex-1 overflow-y-auto p-8 flex items-start justify-center pt-20">
-        <div className="w-full max-w-sm">
-          <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200">
-            <h1 className="text-center text-2xl font-bold text-gray-900 mb-6">
+      <div className="w-1/2 bg-white flex-1 overflow-y-auto py-8 px-8 flex items-center justify-center">
+        <div className="w-full max-w-md">
+          <div className="bg-white p-10 rounded-lg shadow-sm border border-gray-200">
+            <h1 className="text-center text-2xl font-bold text-gray-900 mb-8">
               Register
             </h1>
-            <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-3">
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              noValidate
+              className="space-y-4"
+            >
               {/* First Name */}
               <div>
                 <input
                   type="text"
                   placeholder="First Name"
-                  className="w-full rounded-full placeholder:text-xs px-5 py-3 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('firstName')}
+                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
+                  {...register("firstName")}
                 />
                 {errors.firstName && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -384,8 +519,8 @@ export default function Register() {
                 <input
                   type="text"
                   placeholder="Last Name"
-                  className="w-full rounded-full placeholder:text-xs px-5 py-3 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('lastName')}
+                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
+                  {...register("lastName")}
                 />
                 {errors.lastName && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -399,8 +534,8 @@ export default function Register() {
                 <input
                   type="tel"
                   placeholder="Phone Number"
-                  className="w-full rounded-full placeholder:text-xs px-5 py-3 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('phoneNumber')}
+                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
+                  {...register("phoneNumber")}
                 />
                 {errors.phoneNumber && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -409,20 +544,51 @@ export default function Register() {
                 )}
               </div>
 
+              {/* ============= CHANGED: Branch Dropdown to match mobile style with rounded corners ============= */}
               {/* Branch Dropdown */}
-              <div className="relative">
-                <select
-                  className="w-full rounded-full placeholder:text-xs px-5 py-3 border border-gray-300 appearance-none cursor-pointer focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('branch')}
+              <div className="relative dropdown-container">
+                <input type="hidden" {...register("branch")} />
+                <div
+                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600 text-left cursor-pointer flex items-center justify-between bg-white"
+                  onClick={() => setShowBranchDropdownDesktop(!showBranchDropdownDesktop)}
                 >
-                  <option value="">Select Branch</option>
-                  {branches.map((branch) => (
-                    <option key={branch} value={branch}>
-                      {branch}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-5 top-3.5 pointer-events-none text-gray-600" size={20} />
+                  <span
+                    className={
+                      selectedBranch
+                        ? "text-gray-900"
+                        : "text-gray-500 text-sm"
+                    }
+                  >
+                    {selectedBranch || "Select Branch"}
+                  </span>
+                  <ChevronDown
+                    className={`text-gray-600 transition-transform ${
+                      showBranchDropdownDesktop ? "rotate-180" : ""
+                    }`}
+                    size={20}
+                  />
+                </div>
+                {showBranchDropdownDesktop && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto mt-1">
+                    {selectedBranch && (
+                      <div
+                        className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
+                        onClick={() => handleBranchSelect("")}
+                      >
+                        ✕ Clear Selection
+                      </div>
+                    )}
+                    {branches.map((branch) => (
+                      <div
+                        key={branch}
+                        className="px-5 py-3 hover:bg-gray-100 cursor-pointer text-left text-sm"
+                        onClick={() => handleBranchSelect(branch)}
+                      >
+                        {branch}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {errors.branch && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
                     {errors.branch.message}
@@ -430,20 +596,51 @@ export default function Register() {
                 )}
               </div>
 
+              {/* ============= CHANGED: Position Dropdown to match mobile style with rounded corners ============= */}
               {/* Position Dropdown */}
-              <div className="relative">
-                <select
-                  className="w-full rounded-full placeholder:text-xs px-5 py-3 border border-gray-300 appearance-none cursor-pointer focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('position')}
+              <div className="relative dropdown-container">
+                <input type="hidden" {...register("position")} />
+                <div
+                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600 text-left cursor-pointer flex items-center justify-between bg-white"
+                  onClick={() => setShowPositionDropdownDesktop(!showPositionDropdownDesktop)}
                 >
-                  <option value="">Select Position</option>
-                  {positions.map((position) => (
-                    <option key={position} value={position}>
-                      {position}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-5 top-3.5 pointer-events-none text-gray-600" size={20} />
+                  <span
+                    className={
+                      selectedPosition
+                        ? "text-gray-900"
+                        : "text-gray-500 text-sm"
+                    }
+                  >
+                    {selectedPosition || "Select Position"}
+                  </span>
+                  <ChevronDown
+                    className={`text-gray-600 transition-transform ${
+                      showPositionDropdownDesktop ? "rotate-180" : ""
+                    }`}
+                    size={20}
+                  />
+                </div>
+                {showPositionDropdownDesktop && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto mt-1">
+                    {selectedPosition && (
+                      <div
+                        className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
+                        onClick={() => handlePositionSelect("")}
+                      >
+                        ✕ Clear Selection
+                      </div>
+                    )}
+                    {positions.map((position) => (
+                      <div
+                        key={position}
+                        className="px-5 py-3 hover:bg-gray-100 cursor-pointer text-left text-sm"
+                        onClick={() => handlePositionSelect(position)}
+                      >
+                        {position}
+                      </div>
+                    ))}
+                  </div>
+                )}
                 {errors.position && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
                     {errors.position.message}
@@ -451,14 +648,34 @@ export default function Register() {
                 )}
               </div>
 
+              {/* ============= CHANGED: "Registration Code" to "Code Number" ============= */}
+              {/* Code Number - Show only for Advisor and Team Leader */}
+              {(selectedPosition === "Advisor" ||
+                selectedPosition === "Team Leader") && (
+                <div>
+                  <input
+                    type="text"
+                    placeholder="Code Number"
+                    className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
+                    {...register("regCode")}
+                  />
+                  {errors.regCode && (
+                    <p className="text-red-600 text-xs mt-1 ml-4">
+                      {errors.regCode.message}
+                    </p>
+                  )}
+                </div>
+              )}
+              {/* ========================================================================== */}
+
               {/* Email */}
               <div>
                 <input
                   type="email"
                   placeholder="Email"
                   autoComplete="email"
-                  className="w-full rounded-full placeholder:text-xs px-5 py-3 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('email')}
+                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
+                  {...register("email")}
                 />
                 {errors.email && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -470,16 +687,16 @@ export default function Register() {
               {/* Password */}
               <div className="relative">
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   autoComplete="new-password"
-                  className="w-full rounded-full placeholder:text-xs px-5 py-3 pr-12 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('password')}
+                  className="w-full rounded-full placeholder:text-sm px-5 py-2 pr-12 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
+                  {...register("password")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-5 top-3.5 text-gray-600 hover:text-gray-900 transition-colors"
+                  className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -493,18 +710,22 @@ export default function Register() {
               {/* Confirm Password */}
               <div className="relative">
                 <input
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? "text" : "password"}
                   placeholder="Confirm Password"
                   autoComplete="new-password"
-                  className="w-full rounded-full placeholder:text-xs px-5 py-3 pr-12 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('confirmPassword')}
+                  className="w-full rounded-full placeholder:text-sm px-5 py-2 pr-12 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
+                  {...register("confirmPassword")}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-5 top-3.5 text-gray-600 hover:text-gray-900 transition-colors"
+                  className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
                 >
-                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showConfirmPassword ? (
+                    <EyeOff size={20} />
+                  ) : (
+                    <Eye size={20} />
+                  )}
                 </button>
                 {errors.confirmPassword && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -514,20 +735,22 @@ export default function Register() {
               </div>
 
               {/* Register Button */}
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full rounded-full py-3 px-5 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Registering...' : 'Register'}
-              </Button>
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full rounded-full py-5.5 px-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? "Registering..." : "Register"}
+                </Button>
+              </div>
 
               {/* Login Link */}
-              <p className="text-center text-primary-600 text-xs mt-4">
-                Already have an Account?{' '}
+              <p className="text-center text-gray-600 text-sm mt-6">
+                Already have an Account?{" "}
                 <Link
                   href="/login"
-                  className="text-primary-400 hover:text-primary-200 font-semibold inline"
+                  className="text-primary-600 hover:text-primary-700 font-semibold inline"
                 >
                   Login
                 </Link>
@@ -539,4 +762,3 @@ export default function Register() {
     </div>
   );
 }
-
