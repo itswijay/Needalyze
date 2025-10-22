@@ -124,32 +124,33 @@ export default function Form1Page() {
                   </Popover>
 
                   {mounted && isMobile && open && (
-                    <div
-                      className="fixed inset-0 z-50 flex items-center justify-center"
-                      aria-modal="true"
-                      role="dialog"
-                    >
-                      <div
-                        className="absolute inset-0 bg-black/40"
-                        onClick={() => setOpen(false)}
-                      />
+                  <div
+                    className="fixed inset-0 z-50 flex items-center justify-center"
+                    aria-modal="true"
+                    role="dialog"
+                  >
+                  <div
+                  className="absolute inset-0 bg-black/40"
+                  onClick={() => setOpen(false)}
+                  />
 
-                      <div className="relative z-50 scale-95">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={(d) => {
-                            setDate(d);
-                            setOpen(false);
-                          }}
-                          fromYear={1950}
-                          toYear={2025}
-                          captionLayout="dropdown"
-                          initialFocus
-                        />
-                      </div>
-                    </div>
-                  )}
+                <div className="relative z-50 bg-white rounded-2xl p-3 shadow-lg border border-gray-200">
+                 <Calendar
+                 mode="single"
+                 selected={date}
+                onSelect={(d) => {
+                 setDate(d);
+                 setOpen(false);
+                 }}
+                 fromYear={1950}
+                 toYear={2025}
+                 captionLayout="dropdown"
+                 initialFocus
+                 className="rounded-full"
+                />
+              </div>
+              </div>
+               )}
                 </div>
               </div>
 
