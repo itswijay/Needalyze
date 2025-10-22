@@ -49,10 +49,10 @@ export default function NeedAnalysisFormPage2() {
 
       <section className="flex-grow flex justify-center items-start py-8 px-4">
         <FormContainer>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm -mt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 text-sm -mt-4">
             {/* Insurance Need Section */}
-            <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
-              <div className="flex items-center justify-between mb-5">
+            <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-xl border border-gray-100">
+              <div className="flex items-center justify-between mb-4 sm:mb-5">
                 <h2 className="text-gray-700 font-medium text-base">
                   Insurance Need
                 </h2>
@@ -104,8 +104,8 @@ export default function NeedAnalysisFormPage2() {
             </div>
 
             {/* Health Covers Section */}
-            <div className="bg-white rounded-3xl p-6 shadow-xl border border-gray-100">
-              <div className="flex items-center justify-between mb-5">
+            <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-xl border border-gray-100">
+              <div className="flex items-center justify-between mb-4 sm:mb-5">
                 <h2 className="text-gray-700 font-medium text-base">
                   Health Covers
                 </h2>
@@ -175,7 +175,7 @@ export default function NeedAnalysisFormPage2() {
 function CheckboxCard({ label, checked, onChange }) {
   return (
     <div
-      className="flex items-center px-4 py-3 bg-white rounded-full shadow-xl border border-gray-200 
+      className="flex items-center px-3 py-2 sm:px-4 sm:py-3 bg-white rounded-full shadow-xl border border-gray-200 
                  cursor-pointer hover:shadow-2xl hover:scale-105 transition-all duration-300"
       onClick={onChange}
       style={{
@@ -184,7 +184,7 @@ function CheckboxCard({ label, checked, onChange }) {
       }}
     >
       <div
-        className={`w-5 h-5 rounded border-2 mr-3 flex items-center justify-center transition-colors flex-shrink-0`}
+        className={`w-4 h-4 sm:w-5 sm:h-5 rounded border-2 mr-2 sm:mr-3 flex items-center justify-center transition-colors flex-shrink-0`}
         style={{
           backgroundColor: checked ? "#1b477f" : "#89acd0",
           borderColor: checked ? "#1b477f" : "#89acd0",
@@ -192,7 +192,7 @@ function CheckboxCard({ label, checked, onChange }) {
       >
         {checked && (
           <svg
-            className="w-3 h-3 text-white"
+            className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -207,7 +207,7 @@ function CheckboxCard({ label, checked, onChange }) {
           </svg>
         )}
       </div>
-      <span className="text-gray-700 font-medium">{label}</span>
+      <span className="text-gray-700 font-medium text-sm sm:text-base">{label}</span>
     </div>
   );
 }
