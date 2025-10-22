@@ -14,7 +14,7 @@ export default function Form3Page() {
     const handleBack = () => router.push("/form/step2");
 
     const [isMobile , setIsMobile] = useState(false);
-    const [isValue , setIsValue]  = useState(0)
+    const [hlvalue , setHLValue]  = useState(0)
 
     useEffect(() => {
       const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -73,7 +73,7 @@ export default function Form3Page() {
               <label className="block text-gray-700 font-medium mb-1">
                 Your Human Life Value
               </label>
-              <div className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#7792b7] w-60 text-white flex items-center justify-center font-bold text-2xl">{isValue}</div>
+              <div className="border border-[#8EABD2] rounded-full px-4 py-1 bg-[#7792b7] w-56 text-white flex items-center justify-center font-bold text-2xl">{hlvalue}</div>
             </div>
           </div>
 
@@ -105,7 +105,7 @@ export default function Form3Page() {
               <label className="block text-gray-700 font-medium mb-1">
                 Your Actual Human Life Value
               </label>
-              <div className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#7792b7] w-60 text-white flex items-center justify-center font-bold text-2xl">{isValue}</div>
+              <div className="border border-[#8EABD2] rounded-full px-4 py-1 bg-[#7792b7] w-56 text-white flex items-center justify-center font-bold text-2xl">{hlvalue}</div>
             </div>
           </div>
         </form>
@@ -118,9 +118,11 @@ export default function Form3Page() {
             variant="gradient"
             onClick={handleBack}
           />
-         <button className="bg-gradient-to-r from-[#8bb4e6] to-[#2563eb] text-white font-semibold px-7 py-2 rounded-full shadow-md hover:from-[#03254f] hover:to-[#1e53c7] transition-all duration-300">
-          Submit 
-        </button>
+          <Button
+            className="rounded-full w-30 h-11 flex items-center justify-center text-center hover:scale-103 active:scale-95"
+            variant="gradient">
+            Submit
+          </Button>
         </div>
       </FormContainer>
 
@@ -192,19 +194,19 @@ export default function Form3Page() {
             </div>
 
             {/* Right column */}
-            <div className="flex flex-col space-y-4 mt-7">
+            <div className="flex flex-col space-y-4 mt-7 items-center">
               <div className="order-2 md:order-1">
                 <label className="block text-gray-700 font-medium mb-1">
                   Your Human Life Value
                 </label>
-                <div className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#7792b7] w-full text-white flex items-center justify-center font-bold text-2xl">{isValue}</div>
+                <div className="border border-[#8EABD2] rounded-full px-4 py-1 bg-[#7792b7] w-64 text-white flex items-center justify-center font-bold text-2xl">{hlvalue}</div>
               </div>
 
               <div className="order-2 md:order-2 mt-20">
                 <label className="block text-gray-700 font-medium">
                   Your Actual Human Life Value
                 </label>
-                <div className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#7792b7] w-full text-white flex items-center justify-center font-bold text-2xl">{isValue}</div>
+                <div className="border border-[#8EABD2] rounded-full px-4 py-1 bg-[#7792b7] w-64 text-white flex items-center justify-center font-bold text-2xl">{hlvalue}</div>
               </div>
             </div>
           </form>
@@ -217,9 +219,11 @@ export default function Form3Page() {
                         variant="gradient"
                         onClick={handleBack}
               />
-               <button className="bg-gradient-to-r from-[#8bb4e6] to-[#2563eb] text-white font-semibold px-7 py-2.5 rounded-full shadow-md hover:from-[#03254f] hover:to-[#1e53c7] transition-all duration-300" type="prev">
-                 Submit 
-              </button>
+               <Button
+                  className="rounded-full w-30 h-11 flex items-center justify-center text-center hover:scale-103 active:scale-95"
+                  variant="gradient">
+                  Submit
+                </Button>
               </div>
         </FormContainer>
       </section>
