@@ -3,13 +3,14 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 import FormContainer from "@/components/FormContainer";
 import FormNavButton from "@/components/FormNavButton";
 import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
 import ProgressBar from "@/components/ProgressBar";
-
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -19,28 +20,76 @@ import {
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+const formSchema = z
+  .object({
+    fullName: z.string().min(1, "Full name is required"),
+    dateOfBirth: z.date({ required_error: "Date of birth is required" }),
+    spouseName: z.string().optional(),
+    phoneNumber: z
+      .string()
+      .min(1, "Phone number is required")
+      .refine(
+        (val) => /^(\+94|0)\d{9}$/.test(val),
+        "Phone number must be 10 digits or in +94 format"
+      ),
+    numberOfChildren: z
+      .string()
+      .min(1, "Number of children is required")
+      .refine((val) => !isNaN(val), "Must be a number"),
+    childrenAges: z.string().optional(),
+    occupation: z.string().optional(), 
+    age: z
+      .string()
+      .min(1, "Age is required")
+      .refine((val) => !isNaN(val), "Must be a number"),
+    monthlyIncome: z
+      .string()
+      .min(1, "Monthly income is required")
+      .refine((val) => !isNaN(val), "Must be a number"),
+  })
+  .refine(
+    (data) => {
+      if (Number(data.numberOfChildren) > 0 && !data.childrenAges?.trim()) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Children’s ages are required when you have children",
+      path: ["childrenAges"],
+    }
+  );
+
 export default function Form1Page() {
   const router = useRouter();
-  
-  const { register, handleSubmit, setValue, watch } = useForm({
+  const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(formSchema),
+    mode: "onChange",
     defaultValues: {
       fullName: "",
       dateOfBirth: null,
       spouseName: "",
-      numChildren: "",
-      occupation: "",
-      address: "",
       phoneNumber: "",
-      age: "",
+      numberOfChildren: "",
       childrenAges: "",
-      income: "",
+      occupation: "",
+      age: "",
+      monthlyIncome: "",
     },
   });
 
   const date = watch("dateOfBirth");
-  const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const numChildren = watch("numberOfChildren");
 
   useEffect(() => setMounted(true), []);
 
@@ -49,12 +98,8 @@ export default function Form1Page() {
     const mq = window.matchMedia("(max-width: 767px)");
     const handler = (e) => setIsMobile(e.matches);
     setIsMobile(mq.matches);
-    if (mq.addEventListener) mq.addEventListener("change", handler);
-    else mq.addListener(handler);
-    return () => {
-      if (mq.removeEventListener) mq.removeEventListener("change", handler);
-      else mq.removeListener(handler);
-    };
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
   }, []);
 
   const onKeyDown = useCallback(
@@ -84,21 +129,33 @@ export default function Form1Page() {
       <section className="flex-grow flex justify-center items-center py-8 px-4">
         <FormContainer>
           <form
-            onSubmit={handleSubmit(onSubmit)}
             className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
+            onSubmit={handleSubmit(onSubmit)}
           >
-            {/* Left Column */}
+            {/* LEFT SIDE */}
             <div className="flex flex-col space-y-3">
+              {/* Full Name */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Full Name
                 </label>
                 <input
                   {...register("fullName")}
-                  type="text"
                   placeholder="Ex: Sunil Nishantha Karunarathna"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className={`border ${
+                    errors.fullName
+                      ? "border-[var(--error-400)]"
+                      : "border-[#8EABD2]"
+                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
+                {errors.fullName && (
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: "var(--error-400)" }}
+                  >
+                    {errors.fullName.message}
+                  </p>
+                )}
               </div>
 
               {/* Date of Birth */}
@@ -106,186 +163,262 @@ export default function Form1Page() {
                 <label className="block text-gray-700 font-medium mb-1">
                   Date of Birth
                 </label>
-                <div className="relative">
-                  <input
-                    readOnly
-                    value={date ? format(date, "dd/MM/yyyy") : ""}
-                    placeholder="DD/MM/YYYY"
-                    className="border border-[#8EABD2] rounded-full px-3 py-2 pr-10 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2] cursor-pointer"
-                    onClick={() => setOpen(true)}
-                  />
-
-                  <Popover open={open && !isMobile} onOpenChange={setOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 bg-transparent hover:bg-transparent"
-                        onClick={() => setOpen((s) => !s)}
-                      >
-                        <CalendarIcon className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-
-                    <PopoverContent
-                      className="w-auto p-0 mt-2 border border-gray-200 rounded-xl shadow-lg"
-                      side="bottom"
-                      align="center"
-                      sideOffset={4}
-                    >
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={(d) => {
-                          setValue("dateOfBirth", d);
-                          setOpen(false);
-                        }}
-                        fromYear={1950}
-                        toYear={2025}
-                        captionLayout="dropdown"
-                        initialFocus
+                <Controller
+                  control={control}
+                  name="dateOfBirth"
+                  render={({ field }) => (
+                    <div className="relative">
+                      <input
+                        readOnly
+                        value={field.value ? format(field.value, "dd/MM/yyyy") : ""}
+                        placeholder="DD/MM/YYYY"
+                        className={`border ${
+                          errors.dateOfBirth
+                            ? "border-[var(--error-400)]"
+                            : "border-[#8EABD2]"
+                        } rounded-full px-3 py-2 pr-10 bg-[#DCE7F2] w-full focus:outline-none cursor-pointer`}
+                        onClick={() => setOpen(true)}
                       />
-                    </PopoverContent>
-                  </Popover>
 
-                  {/* Mobile Calendar */}
-                  {mounted && isMobile && open && (
-                    <div
-                      className="fixed inset-0 z-50 flex items-center justify-center"
-                      aria-modal="true"
-                      role="dialog"
-                    >
-                      <div
-                        className="absolute inset-0 bg-black/40"
-                        onClick={() => setOpen(false)}
-                      />
-                      <div className="relative z-50 bg-white rounded-2xl p-3 shadow-lg border border-gray-200">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={(d) => {
-                            setValue("dateOfBirth", d);
-                            setOpen(false);
-                          }}
-                          fromYear={1950}
-                          toYear={2025}
-                          captionLayout="dropdown"
-                          initialFocus
-                          className="rounded-full"
-                        />
-                      </div>
+                      <Popover open={open && !isMobile} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 bg-transparent hover:bg-transparent"
+                            onClick={() => setOpen((s) => !s)}
+                          >
+                            <CalendarIcon className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-auto p-0 mt-2 border border-gray-200 rounded-xl shadow-lg"
+                          side="bottom"
+                          align="center"
+                          sideOffset={4}
+                        >
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(d) => {
+                              field.onChange(d);
+                              setOpen(false);
+                            }}
+                            fromYear={1950}
+                            toYear={2025}
+                            captionLayout="dropdown"
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      {mounted && isMobile && open && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center">
+                          <div
+                            className="absolute inset-0 bg-black/40"
+                            onClick={() => setOpen(false)}
+                          />
+                          <div className="relative z-50 bg-white rounded-2xl p-3 shadow-lg border border-gray-200">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={(d) => {
+                                field.onChange(d);
+                                setOpen(false);
+                              }}
+                              fromYear={1950}
+                              toYear={2025}
+                              captionLayout="dropdown"
+                              initialFocus
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
+                />
+                {errors.dateOfBirth && (
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: "var(--error-400)" }}
+                  >
+                    {errors.dateOfBirth.message}
+                  </p>
+                )}
               </div>
 
+              {/* Spouse Name */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Spouse’s Name
                 </label>
                 <input
                   {...register("spouseName")}
-                  type="text"
                   placeholder="Ex: Samanthi Ishara Karunarathna"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
                 />
               </div>
 
+              {/* Number of Children */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Number of Children
                 </label>
                 <input
-                  {...register("numChildren")}
-                  type="text"
+                  {...register("numberOfChildren")}
                   placeholder="Ex: 3"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className={`border ${
+                    errors.numberOfChildren
+                      ? "border-[var(--error-400)]"
+                      : "border-[#8EABD2]"
+                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
+                {errors.numberOfChildren && (
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: "var(--error-400)" }}
+                  >
+                    {errors.numberOfChildren.message}
+                  </p>
+                )}
               </div>
 
+              {/* Occupation (Optional) */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
-                  Occupation / Business
+                  Occupation / Business (Optional)
                 </label>
                 <input
                   {...register("occupation")}
-                  type="text"
                   placeholder="Your Job/Business"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className={`border ${
+                    errors.occupation
+                      ? "border-[var(--error-400)]"
+                      : "border-[#8EABD2]"
+                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
+                {errors.occupation && (
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: "var(--error-400)" }}
+                  >
+                    {errors.occupation.message}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Right Column */}
+            {/* RIGHT SIDE */}
             <div className="flex flex-col space-y-3">
+              {/* Address */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Address
                 </label>
                 <input
-                  {...register("address")}
-                  type="text"
                   placeholder="Your Address"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
                 />
               </div>
 
+              {/* Phone */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Phone Number
                 </label>
                 <input
                   {...register("phoneNumber")}
-                  type="text"
                   placeholder="Ex: +94 77 345 6489"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className={`border ${
+                    errors.phoneNumber
+                      ? "border-[var(--error-400)]"
+                      : "border-[#8EABD2]"
+                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
+                {errors.phoneNumber && (
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: "var(--error-400)" }}
+                  >
+                    {errors.phoneNumber.message}
+                  </p>
+                )}
               </div>
 
+              {/* Age */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Age
                 </label>
                 <input
                   {...register("age")}
-                  type="text"
                   placeholder="Ex: 48"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className={`border ${
+                    errors.age
+                      ? "border-[var(--error-400)]"
+                      : "border-[#8EABD2]"
+                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
+                {errors.age && (
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: "var(--error-400)" }}
+                  >
+                    {errors.age.message}
+                  </p>
+                )}
               </div>
 
+              {/* Children’s Ages */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Children’s Ages
                 </label>
                 <input
                   {...register("childrenAges")}
-                  type="text"
                   placeholder="Ex: 18, 13, 9"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className={`border ${
+                    errors.childrenAges
+                      ? "border-[var(--error-400)]"
+                      : "border-[#8EABD2]"
+                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
+                {errors.childrenAges && (
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: "var(--error-400)" }}
+                  >
+                    {errors.childrenAges.message}
+                  </p>
+                )}
               </div>
 
+              {/* Monthly Income */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Monthly Income (LKR)
                 </label>
                 <input
-                  {...register("income")}
-                  type="text"
+                  {...register("monthlyIncome")}
                   placeholder="Ex: 70,000"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                  className={`border ${
+                    errors.monthlyIncome
+                      ? "border-[var(--error-400)]"
+                      : "border-[#8EABD2]"
+                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
+                {errors.monthlyIncome && (
+                  <p
+                    className="text-xs mt-1"
+                    style={{ color: "var(--error-400)" }}
+                  >
+                    {errors.monthlyIncome.message}
+                  </p>
+                )}
               </div>
             </div>
           </form>
 
           <div className="flex justify-between items-center mt-6">
-            <FormNavButton
-              label="Back"
-              type="prev"
-              variant="gradient"
-              disabled
-            />
+            <FormNavButton label="Back" type="prev" variant="gradient" disabled />
             <FormNavButton
               label="Next"
               type="next"
