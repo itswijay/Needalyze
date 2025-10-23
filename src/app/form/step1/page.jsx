@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
+import { useForm } from "react-hook-form";
 
 import FormContainer from "@/components/FormContainer";
 import FormNavButton from "@/components/FormNavButton";
@@ -20,7 +21,23 @@ import { Button } from "@/components/ui/button";
 
 export default function Form1Page() {
   const router = useRouter();
-  const [date, setDate] = useState(null);
+  
+  const { register, handleSubmit, setValue, watch } = useForm({
+    defaultValues: {
+      fullName: "",
+      dateOfBirth: null,
+      spouseName: "",
+      numChildren: "",
+      occupation: "",
+      address: "",
+      phoneNumber: "",
+      age: "",
+      childrenAges: "",
+      income: "",
+    },
+  });
+
+  const date = watch("dateOfBirth");
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -54,7 +71,8 @@ export default function Form1Page() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, mounted, onKeyDown]);
 
-  const handleNext = () => {
+  const onSubmit = (data) => {
+    console.log("Form Data:", data);
     router.push("/form/step2");
   };
 
@@ -65,19 +83,25 @@ export default function Form1Page() {
 
       <section className="flex-grow flex justify-center items-center py-8 px-4">
         <FormContainer>
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
+          >
+            {/* Left Column */}
             <div className="flex flex-col space-y-3">
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Full Name
                 </label>
                 <input
+                  {...register("fullName")}
                   type="text"
                   placeholder="Ex: Sunil Nishantha Karunarathna"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                 />
               </div>
 
+              {/* Date of Birth */}
               <div className="relative">
                 <label className="block text-gray-700 font-medium mb-1">
                   Date of Birth
@@ -93,13 +117,13 @@ export default function Form1Page() {
 
                   <Popover open={open && !isMobile} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
-                   <Button
-                   type="button"
-                   className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 bg-transparent hover:bg-transparent"
-                   onClick={() => setOpen((s) => !s)}
-                   >
-                  <CalendarIcon className="h-4 w-4" />
-                  </Button>
+                      <Button
+                        type="button"
+                        className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 bg-transparent hover:bg-transparent"
+                        onClick={() => setOpen((s) => !s)}
+                      >
+                        <CalendarIcon className="h-4 w-4" />
+                      </Button>
                     </PopoverTrigger>
 
                     <PopoverContent
@@ -112,7 +136,7 @@ export default function Form1Page() {
                         mode="single"
                         selected={date}
                         onSelect={(d) => {
-                          setDate(d);
+                          setValue("dateOfBirth", d);
                           setOpen(false);
                         }}
                         fromYear={1950}
@@ -123,34 +147,34 @@ export default function Form1Page() {
                     </PopoverContent>
                   </Popover>
 
+                  {/* Mobile Calendar */}
                   {mounted && isMobile && open && (
-                  <div
-                    className="fixed inset-0 z-50 flex items-center justify-center"
-                    aria-modal="true"
-                    role="dialog"
-                  >
-                  <div
-                  className="absolute inset-0 bg-black/40"
-                  onClick={() => setOpen(false)}
-                  />
-
-                <div className="relative z-50 bg-white rounded-2xl p-3 shadow-lg border border-gray-200">
-                 <Calendar
-                 mode="single"
-                 selected={date}
-                onSelect={(d) => {
-                 setDate(d);
-                 setOpen(false);
-                 }}
-                 fromYear={1950}
-                 toYear={2025}
-                 captionLayout="dropdown"
-                 initialFocus
-                 className="rounded-full"
-                />
-              </div>
-              </div>
-               )}
+                    <div
+                      className="fixed inset-0 z-50 flex items-center justify-center"
+                      aria-modal="true"
+                      role="dialog"
+                    >
+                      <div
+                        className="absolute inset-0 bg-black/40"
+                        onClick={() => setOpen(false)}
+                      />
+                      <div className="relative z-50 bg-white rounded-2xl p-3 shadow-lg border border-gray-200">
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={(d) => {
+                            setValue("dateOfBirth", d);
+                            setOpen(false);
+                          }}
+                          fromYear={1950}
+                          toYear={2025}
+                          captionLayout="dropdown"
+                          initialFocus
+                          className="rounded-full"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -159,6 +183,7 @@ export default function Form1Page() {
                   Spouse’s Name
                 </label>
                 <input
+                  {...register("spouseName")}
                   type="text"
                   placeholder="Ex: Samanthi Ishara Karunarathna"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
@@ -170,6 +195,7 @@ export default function Form1Page() {
                   Number of Children
                 </label>
                 <input
+                  {...register("numChildren")}
                   type="text"
                   placeholder="Ex: 3"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
@@ -181,6 +207,7 @@ export default function Form1Page() {
                   Occupation / Business
                 </label>
                 <input
+                  {...register("occupation")}
                   type="text"
                   placeholder="Your Job/Business"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
@@ -188,12 +215,14 @@ export default function Form1Page() {
               </div>
             </div>
 
+            {/* Right Column */}
             <div className="flex flex-col space-y-3">
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Address
                 </label>
                 <input
+                  {...register("address")}
                   type="text"
                   placeholder="Your Address"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
@@ -205,6 +234,7 @@ export default function Form1Page() {
                   Phone Number
                 </label>
                 <input
+                  {...register("phoneNumber")}
                   type="text"
                   placeholder="Ex: +94 77 345 6489"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
@@ -216,6 +246,7 @@ export default function Form1Page() {
                   Age
                 </label>
                 <input
+                  {...register("age")}
                   type="text"
                   placeholder="Ex: 48"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
@@ -227,6 +258,7 @@ export default function Form1Page() {
                   Children’s Ages
                 </label>
                 <input
+                  {...register("childrenAges")}
                   type="text"
                   placeholder="Ex: 18, 13, 9"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
@@ -238,6 +270,7 @@ export default function Form1Page() {
                   Monthly Income (LKR)
                 </label>
                 <input
+                  {...register("income")}
                   type="text"
                   placeholder="Ex: 70,000"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
@@ -251,13 +284,13 @@ export default function Form1Page() {
               label="Back"
               type="prev"
               variant="gradient"
-              onClick={() => router.back()}
+              disabled
             />
             <FormNavButton
               label="Next"
               type="next"
               variant="gradient"
-              onClick={handleNext}
+              onClick={handleSubmit(onSubmit)}
             />
           </div>
         </FormContainer>
