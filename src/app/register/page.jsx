@@ -1,13 +1,13 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect } from "react";
-import { Eye, EyeOff, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import Image from "next/image";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import React, { useState, useEffect } from 'react'
+import { Eye, EyeOff, ChevronDown } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import Image from 'next/image'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
 // Zod Validation Schema
 
@@ -15,94 +15,96 @@ const registerSchema = z
   .object({
     firstName: z
       .string()
-      .min(1, "First name is required")
-      .regex(/^[a-zA-Z\s]+$/, "First name should contain only letters"),
+      .min(1, 'First name is required')
+      .regex(/^[a-zA-Z\s]+$/, 'First name should contain only letters'),
     lastName: z
       .string()
-      .min(1, "Last name is required")
-      .regex(/^[a-zA-Z\s]+$/, "Last name should contain only letters"),
+      .min(1, 'Last name is required')
+      .regex(/^[a-zA-Z\s]+$/, 'Last name should contain only letters'),
     phoneNumber: z
       .string()
-      .min(1, "Phone number is required")
-      .regex(/^[0-9]{10}$/, "Phone number must be 10 digits"),
-    branch: z.string().min(1, "Please select a branch"),
-    position: z.string().min(1, "Please select a position"),
+      .min(1, 'Phone number is required')
+      .regex(/^[0-9]{10}$/, 'Phone number must be 10 digits'),
+    branch: z.string().min(1, 'Please select a branch'),
+    position: z.string().min(1, 'Please select a position'),
     regCode: z.string().optional(),
     email: z
       .string()
-      .min(1, "Email is required")
-      .email("Please enter a valid email address"),
+      .min(1, 'Email is required')
+      .email('Please enter a valid email address'),
     password: z
       .string()
-      .min(1, "Password is required")
-      .min(6, "Password must be at least 6 characters"),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+      .min(1, 'Password is required')
+      .min(6, 'Password must be at least 6 characters'),
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
   })
   .refine(
     (data) => {
       // Registration code is required for Advisor and Team Leader
-      if (data.position === "Advisor" || data.position === "Team Leader") {
-        return data.regCode && data.regCode.trim().length > 0;
+      if (data.position === 'Advisor' || data.position === 'Team Leader') {
+        return data.regCode && data.regCode.trim().length > 0
       }
-      return true;
+      return true
     },
     {
-      message: "Code number is required for this position",
-      path: ["regCode"],
+      message: 'Code number is required for this position',
+      path: ['regCode'],
     }
-  );
+  )
 
 export default function Register() {
   // State for responsive behavior
-  const [isMobile, setIsMobile] = useState(null);
+  const [isMobile, setIsMobile] = useState(null)
   // ====
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
-  const [showPositionDropdown, setShowPositionDropdown] = useState(false);
-  const [selectedBranch, setSelectedBranch] = useState("");
-  const [selectedPosition, setSelectedPosition] = useState("");
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [showBranchDropdown, setShowBranchDropdown] = useState(false)
+  const [showPositionDropdown, setShowPositionDropdown] = useState(false)
+  const [selectedBranch, setSelectedBranch] = useState('')
+  const [selectedPosition, setSelectedPosition] = useState('')
 
   // ============= NEW: Desktop dropdowns state =============
-  const [showBranchDropdownDesktop, setShowBranchDropdownDesktop] = useState(false);
-  const [showPositionDropdownDesktop, setShowPositionDropdownDesktop] = useState(false);
+  const [showBranchDropdownDesktop, setShowBranchDropdownDesktop] =
+    useState(false)
+  const [showPositionDropdownDesktop, setShowPositionDropdownDesktop] =
+    useState(false)
   // ========================================================
 
-  const branches = ["Warakapola"];
-  const positions = ["Branch Manager", "Advisor", "Team Leader"];
+  const branches = ['Warakapola']
+  const positions = ['Branch Manager', 'Advisor', 'Team Leader']
 
   // Check mobile viewport
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
+      setIsMobile(window.innerWidth < 768)
+    }
 
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
 
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest(".dropdown-container")) {
-        setShowBranchDropdown(false);
-        setShowPositionDropdown(false);
-        setShowBranchDropdownDesktop(false);
-        setShowPositionDropdownDesktop(false);
+      if (!event.target.closest('.dropdown-container')) {
+        setShowBranchDropdown(false)
+        setShowPositionDropdown(false)
+        setShowBranchDropdownDesktop(false)
+        setShowPositionDropdownDesktop(false)
       }
-    };
+    }
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // React Hook Form with Zod
   const {
@@ -113,61 +115,61 @@ export default function Register() {
     setValue,
   } = useForm({
     resolver: zodResolver(registerSchema),
-    mode: "onSubmit",
+    mode: 'onSubmit',
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      phoneNumber: "",
-      branch: "",
-      position: "",
-      regCode: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+      branch: '',
+      position: '',
+      regCode: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
     },
-  });
+  })
 
   // Custom dropdown handlers
   const handleBranchSelect = (branch) => {
-    setSelectedBranch(branch);
-    setValue("branch", branch);
-    setShowBranchDropdown(false);
-    setShowBranchDropdownDesktop(false);
-  };
+    setSelectedBranch(branch)
+    setValue('branch', branch)
+    setShowBranchDropdown(false)
+    setShowBranchDropdownDesktop(false)
+  }
 
   const handlePositionSelect = (position) => {
-    setSelectedPosition(position);
-    setValue("position", position);
-    setShowPositionDropdown(false);
-    setShowPositionDropdownDesktop(false);
-  };
+    setSelectedPosition(position)
+    setValue('position', position)
+    setShowPositionDropdown(false)
+    setShowPositionDropdownDesktop(false)
+  }
 
   // handleSubmit with react-hook-form
   const onSubmit = async (data) => {
-    setIsLoading(true);
+    setIsLoading(true)
 
     try {
-      console.log("Form Data Submitted:", data);
+      console.log('Form Data Submitted:', data)
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      alert("Registration successful! (This is a demo)");
+      alert('Registration successful! (This is a demo)')
 
       // Reset form after successful registration
-      reset();
-      setSelectedBranch("");
-      setSelectedPosition("");
+      reset()
+      setSelectedBranch('')
+      setSelectedPosition('')
     } catch (error) {
-      console.error("Error:", error);
+      console.error('Error:', error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   // Render loading state during hydration
   if (isMobile === null) {
-    return <div className="h-screen"></div>;
+    return <div className="h-screen"></div>
   }
 
   // Mobile Layout
@@ -203,7 +205,7 @@ export default function Register() {
 
         {/* Form Section */}
         <div className="w-full flex justify-center items-start px-4 py-4 bg-gray-50 flex-1 overflow-y-auto">
-          <div className="w-full max-w-sm">
+          <div className="w-full max-w-sm mb-12">
             <h1 className="text-center text-2xl font-bold text-primary-900 mb-5 mt-2">
               Register
             </h1>
@@ -215,7 +217,7 @@ export default function Register() {
                     type="text"
                     placeholder="First Name"
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register("firstName")}
+                    {...register('firstName')}
                   />
                   {errors.firstName && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -229,7 +231,7 @@ export default function Register() {
                     type="text"
                     placeholder="Last Name"
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register("lastName")}
+                    {...register('lastName')}
                   />
                   {errors.lastName && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -243,7 +245,7 @@ export default function Register() {
                     type="tel"
                     placeholder="Phone Number"
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register("phoneNumber")}
+                    {...register('phoneNumber')}
                   />
                   {errors.phoneNumber && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -253,7 +255,7 @@ export default function Register() {
                 </div>
                 {/* Branch Dropdown */}
                 <div className="mb-4 relative dropdown-container">
-                  <input type="hidden" {...register("branch")} />
+                  <input type="hidden" {...register('branch')} />
                   <div
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0 text-left cursor-pointer flex items-center justify-between"
                     onClick={() => setShowBranchDropdown(!showBranchDropdown)}
@@ -261,15 +263,15 @@ export default function Register() {
                     <span
                       className={
                         selectedBranch
-                          ? "text-gray-900"
-                          : "text-gray-500 text-xs"
+                          ? 'text-gray-900'
+                          : 'text-gray-500 text-xs'
                       }
                     >
-                      {selectedBranch || "Select Branch"}
+                      {selectedBranch || 'Select Branch'}
                     </span>
                     <ChevronDown
                       className={`text-gray-600 transition-transform ${
-                        showBranchDropdown ? "rotate-180" : ""
+                        showBranchDropdown ? 'rotate-180' : ''
                       }`}
                       size={20}
                     />
@@ -279,7 +281,7 @@ export default function Register() {
                       {selectedBranch && (
                         <div
                           className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
-                          onClick={() => handleBranchSelect("")}
+                          onClick={() => handleBranchSelect('')}
                         >
                           ✕ Clear Selection
                         </div>
@@ -303,7 +305,7 @@ export default function Register() {
                 </div>
                 {/* Position Dropdown */}
                 <div className="mb-4 relative dropdown-container">
-                  <input type="hidden" {...register("position")} />
+                  <input type="hidden" {...register('position')} />
                   <div
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0 text-left cursor-pointer flex items-center justify-between"
                     onClick={() =>
@@ -313,15 +315,15 @@ export default function Register() {
                     <span
                       className={
                         selectedPosition
-                          ? "text-gray-900"
-                          : "text-gray-500 text-xs"
+                          ? 'text-gray-900'
+                          : 'text-gray-500 text-xs'
                       }
                     >
-                      {selectedPosition || "Select Position"}
+                      {selectedPosition || 'Select Position'}
                     </span>
                     <ChevronDown
                       className={`text-gray-600 transition-transform ${
-                        showPositionDropdown ? "rotate-180" : ""
+                        showPositionDropdown ? 'rotate-180' : ''
                       }`}
                       size={20}
                     />
@@ -331,7 +333,7 @@ export default function Register() {
                       {selectedPosition && (
                         <div
                           className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
-                          onClick={() => handlePositionSelect("")}
+                          onClick={() => handlePositionSelect('')}
                         >
                           ✕ Clear Selection
                         </div>
@@ -355,14 +357,14 @@ export default function Register() {
                 </div>
                 {/* ============= CHANGED: "Registration Code" to "Code Number" ============= */}
                 {/* Code Number - Show only for Advisor and Team Leader */}
-                {(selectedPosition === "Advisor" ||
-                  selectedPosition === "Team Leader") && (
+                {(selectedPosition === 'Advisor' ||
+                  selectedPosition === 'Team Leader') && (
                   <div className="mb-4">
                     <input
                       type="text"
                       placeholder="Code Number"
                       className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                      {...register("regCode")}
+                      {...register('regCode')}
                     />
                     {errors.regCode && (
                       <p className="text-red-600 text-xs mt-1 ml-4">
@@ -379,7 +381,7 @@ export default function Register() {
                     placeholder="Email"
                     autoComplete="email"
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register("email")}
+                    {...register('email')}
                   />
                   {errors.email && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -390,11 +392,11 @@ export default function Register() {
                 {/* Password */}
                 <div className="mb-4 relative">
                   <input
-                    type={showPassword ? "text" : "password"}
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Password"
                     autoComplete="new-password"
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register("password")}
+                    {...register('password')}
                   />
                   <button
                     type="button"
@@ -412,11 +414,11 @@ export default function Register() {
                 {/* Confirm Password */}
                 <div className="mb-4 relative">
                   <input
-                    type={showConfirmPassword ? "text" : "password"}
+                    type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="Confirm Password"
                     autoComplete="new-password"
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register("confirmPassword")}
+                    {...register('confirmPassword')}
                   />
                   <button
                     type="button"
@@ -441,14 +443,14 @@ export default function Register() {
                   disabled={isLoading}
                   className="w-full rounded-full p-5.5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? "Registering..." : "Register"}
+                  {isLoading ? 'Registering...' : 'Register'}
                 </Button>
               </form>
 
               {/* Login Link */}
               <div className="space-y-2">
                 <p className="text-center text-primary-900 text-sm mt-4">
-                  Already have an Account?{" "}
+                  Already have an Account?{' '}
                   <Link
                     href="/login"
                     className="text-primary-900 hover:text-primary-700 font-semibold inline"
@@ -461,7 +463,7 @@ export default function Register() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   // Desktop Layout
@@ -488,8 +490,8 @@ export default function Register() {
 
       {/* ============= CHANGED: Added py-8 for equal top and bottom spacing ============= */}
       {/* Right Section - Form*/}
-      <div className="w-1/2 bg-white flex-1 overflow-y-auto py-8 px-8 flex items-center justify-center">
-        <div className="w-full max-w-md">
+      <div className="w-1/2 bg-white flex-1 overflow-y-auto py-8 px-8 flex justify-center">
+        <div className="w-full max-w-md my-auto">
           <div className="bg-white p-10 rounded-lg shadow-sm border border-gray-200">
             <h1 className="text-center text-2xl font-bold text-gray-900 mb-8">
               Register
@@ -505,7 +507,7 @@ export default function Register() {
                   type="text"
                   placeholder="First Name"
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register("firstName")}
+                  {...register('firstName')}
                 />
                 {errors.firstName && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -520,7 +522,7 @@ export default function Register() {
                   type="text"
                   placeholder="Last Name"
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register("lastName")}
+                  {...register('lastName')}
                 />
                 {errors.lastName && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -535,7 +537,7 @@ export default function Register() {
                   type="tel"
                   placeholder="Phone Number"
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register("phoneNumber")}
+                  {...register('phoneNumber')}
                 />
                 {errors.phoneNumber && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -547,23 +549,23 @@ export default function Register() {
               {/* ============= CHANGED: Branch Dropdown to match mobile style with rounded corners ============= */}
               {/* Branch Dropdown */}
               <div className="relative dropdown-container">
-                <input type="hidden" {...register("branch")} />
+                <input type="hidden" {...register('branch')} />
                 <div
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600 text-left cursor-pointer flex items-center justify-between bg-white"
-                  onClick={() => setShowBranchDropdownDesktop(!showBranchDropdownDesktop)}
+                  onClick={() =>
+                    setShowBranchDropdownDesktop(!showBranchDropdownDesktop)
+                  }
                 >
                   <span
                     className={
-                      selectedBranch
-                        ? "text-gray-900"
-                        : "text-gray-500 text-sm"
+                      selectedBranch ? 'text-gray-900' : 'text-gray-500 text-sm'
                     }
                   >
-                    {selectedBranch || "Select Branch"}
+                    {selectedBranch || 'Select Branch'}
                   </span>
                   <ChevronDown
                     className={`text-gray-600 transition-transform ${
-                      showBranchDropdownDesktop ? "rotate-180" : ""
+                      showBranchDropdownDesktop ? 'rotate-180' : ''
                     }`}
                     size={20}
                   />
@@ -573,7 +575,7 @@ export default function Register() {
                     {selectedBranch && (
                       <div
                         className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
-                        onClick={() => handleBranchSelect("")}
+                        onClick={() => handleBranchSelect('')}
                       >
                         ✕ Clear Selection
                       </div>
@@ -599,23 +601,25 @@ export default function Register() {
               {/* ============= CHANGED: Position Dropdown to match mobile style with rounded corners ============= */}
               {/* Position Dropdown */}
               <div className="relative dropdown-container">
-                <input type="hidden" {...register("position")} />
+                <input type="hidden" {...register('position')} />
                 <div
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600 text-left cursor-pointer flex items-center justify-between bg-white"
-                  onClick={() => setShowPositionDropdownDesktop(!showPositionDropdownDesktop)}
+                  onClick={() =>
+                    setShowPositionDropdownDesktop(!showPositionDropdownDesktop)
+                  }
                 >
                   <span
                     className={
                       selectedPosition
-                        ? "text-gray-900"
-                        : "text-gray-500 text-sm"
+                        ? 'text-gray-900'
+                        : 'text-gray-500 text-sm'
                     }
                   >
-                    {selectedPosition || "Select Position"}
+                    {selectedPosition || 'Select Position'}
                   </span>
                   <ChevronDown
                     className={`text-gray-600 transition-transform ${
-                      showPositionDropdownDesktop ? "rotate-180" : ""
+                      showPositionDropdownDesktop ? 'rotate-180' : ''
                     }`}
                     size={20}
                   />
@@ -625,7 +629,7 @@ export default function Register() {
                     {selectedPosition && (
                       <div
                         className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
-                        onClick={() => handlePositionSelect("")}
+                        onClick={() => handlePositionSelect('')}
                       >
                         ✕ Clear Selection
                       </div>
@@ -650,14 +654,14 @@ export default function Register() {
 
               {/* ============= CHANGED: "Registration Code" to "Code Number" ============= */}
               {/* Code Number - Show only for Advisor and Team Leader */}
-              {(selectedPosition === "Advisor" ||
-                selectedPosition === "Team Leader") && (
+              {(selectedPosition === 'Advisor' ||
+                selectedPosition === 'Team Leader') && (
                 <div>
                   <input
                     type="text"
                     placeholder="Code Number"
                     className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                    {...register("regCode")}
+                    {...register('regCode')}
                   />
                   {errors.regCode && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -675,7 +679,7 @@ export default function Register() {
                   placeholder="Email"
                   autoComplete="email"
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register("email")}
+                  {...register('email')}
                 />
                 {errors.email && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -687,11 +691,11 @@ export default function Register() {
               {/* Password */}
               <div className="relative">
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   placeholder="Password"
                   autoComplete="new-password"
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 pr-12 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register("password")}
+                  {...register('password')}
                 />
                 <button
                   type="button"
@@ -710,11 +714,11 @@ export default function Register() {
               {/* Confirm Password */}
               <div className="relative">
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="Confirm Password"
                   autoComplete="new-password"
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 pr-12 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register("confirmPassword")}
+                  {...register('confirmPassword')}
                 />
                 <button
                   type="button"
@@ -741,13 +745,13 @@ export default function Register() {
                   disabled={isLoading}
                   className="w-full rounded-full py-5.5 px-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? "Registering..." : "Register"}
+                  {isLoading ? 'Registering...' : 'Register'}
                 </Button>
               </div>
 
               {/* Login Link */}
               <p className="text-center text-gray-600 text-sm mt-6">
-                Already have an Account?{" "}
+                Already have an Account?{' '}
                 <Link
                   href="/login"
                   className="text-primary-600 hover:text-primary-700 font-semibold inline"
@@ -760,5 +764,5 @@ export default function Register() {
         </div>
       </div>
     </div>
-  );
+  )
 }
