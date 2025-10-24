@@ -25,40 +25,57 @@ const formSchema = z
     fullName: z.string().min(1, "Full name is required"),
     dateOfBirth: z.date({ required_error: "Date of birth is required" }),
     spouseName: z.string().optional(),
+    address: z.string().min(1, "Address is required"),
     phoneNumber: z
       .string()
       .min(1, "Phone number is required")
       .refine(
-        (val) => /^(\+94|0)\d{9}$/.test(val),
-        "Phone number must be 10 digits or in +94 format"
+        (val) => /^\+\d{11}$/.test(val),
+        "Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)"
       ),
+
+    // transform numberOfChildren as number
     numberOfChildren: z
       .string()
       .min(1, "Number of children is required")
-      .refine((val) => !isNaN(val), "Must be a number"),
+      .refine((val) => /^\d+$/.test(val), "Must be a number")
+      .transform((val) => Number(val)),
+
     childrenAges: z.string().optional(),
-    occupation: z.string().optional(), 
+    occupation: z.string().optional(),
+
+    // transform age as number
     age: z
       .string()
       .min(1, "Age is required")
-      .refine((val) => !isNaN(val), "Must be a number"),
+      .refine((val) => /^\d+$/.test(val), "Must be a number")
+      .transform((val) => Number(val)),
+
+    // transform monthlyIncome as number
     monthlyIncome: z
       .string()
       .min(1, "Monthly income is required")
-      .refine((val) => !isNaN(val), "Must be a number"),
+      .refine((val) => /^\d+$/.test(val), "Must be a number")
+      .transform((val) => Number(val)),
   })
   .refine(
     (data) => {
-      if (Number(data.numberOfChildren) > 0 && !data.childrenAges?.trim()) {
-        return false;
+      const numChildren = data.numberOfChildren;
+      if (numChildren > 0) {
+        if (!data.childrenAges?.trim()) return false;
+        const ages = data.childrenAges.split(",").map((a) => a.trim());
+        if (ages.length !== numChildren) return false;
+        if (!ages.every((a) => /^\d+$/.test(a))) return false;
       }
       return true;
     },
     {
-      message: "Children’s ages are required when you have children",
+      message:
+        "Enter the exact number of children's ages separated by commas (e.g., 5, 8, 12)",
       path: ["childrenAges"],
     }
   );
+
 
 export default function Form1Page() {
   const router = useRouter();
@@ -80,6 +97,7 @@ export default function Form1Page() {
       dateOfBirth: null,
       spouseName: "",
       phoneNumber: "",
+      address: "",
       numberOfChildren: "",
       childrenAges: "",
       occupation: "",
@@ -149,10 +167,7 @@ export default function Form1Page() {
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.fullName && (
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "var(--error-400)" }}
-                  >
+                  <p className="text-xs mt-1 text-[var(--error-400)]">
                     {errors.fullName.message}
                   </p>
                 )}
@@ -179,7 +194,6 @@ export default function Form1Page() {
                         } rounded-full px-3 py-2 pr-10 bg-[#DCE7F2] w-full focus:outline-none cursor-pointer`}
                         onClick={() => setOpen(true)}
                       />
-
                       <Popover open={open && !isMobile} onOpenChange={setOpen}>
                         <PopoverTrigger asChild>
                           <Button
@@ -236,10 +250,7 @@ export default function Form1Page() {
                   )}
                 />
                 {errors.dateOfBirth && (
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "var(--error-400)" }}
-                  >
+                  <p className="text-xs mt-1 text-[var(--error-400)]">
                     {errors.dateOfBirth.message}
                   </p>
                 )}
@@ -272,16 +283,13 @@ export default function Form1Page() {
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.numberOfChildren && (
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "var(--error-400)" }}
-                  >
+                  <p className="text-xs mt-1 text-[var(--error-400)]">
                     {errors.numberOfChildren.message}
                   </p>
                 )}
               </div>
 
-              {/* Occupation (Optional) */}
+              {/* Occupation */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Occupation / Business (Optional)
@@ -289,20 +297,8 @@ export default function Form1Page() {
                 <input
                   {...register("occupation")}
                   placeholder="Your Job/Business"
-                  className={`border ${
-                    errors.occupation
-                      ? "border-[var(--error-400)]"
-                      : "border-[#8EABD2]"
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
                 />
-                {errors.occupation && (
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "var(--error-400)" }}
-                  >
-                    {errors.occupation.message}
-                  </p>
-                )}
               </div>
             </div>
 
@@ -314,19 +310,29 @@ export default function Form1Page() {
                   Address
                 </label>
                 <input
+                  {...register("address")}
                   placeholder="Your Address"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
+                  className={`border ${
+                    errors.address
+                      ? "border-[var(--error-400)]"
+                      : "border-[#8EABD2]"
+                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
+                {errors.address && (
+                  <p className="text-xs mt-1 text-[var(--error-400)]">
+                    {errors.address.message}
+                  </p>
+                )}
               </div>
 
-              {/* Phone */}
+              {/* Phone Number */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
                   Phone Number
                 </label>
                 <input
                   {...register("phoneNumber")}
-                  placeholder="Ex: +94 77 345 6489"
+                  placeholder="Ex: +94771234567"
                   className={`border ${
                     errors.phoneNumber
                       ? "border-[var(--error-400)]"
@@ -334,10 +340,7 @@ export default function Form1Page() {
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.phoneNumber && (
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "var(--error-400)" }}
-                  >
+                  <p className="text-xs mt-1 text-[var(--error-400)]">
                     {errors.phoneNumber.message}
                   </p>
                 )}
@@ -358,10 +361,7 @@ export default function Form1Page() {
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.age && (
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "var(--error-400)" }}
-                  >
+                  <p className="text-xs mt-1 text-[var(--error-400)]">
                     {errors.age.message}
                   </p>
                 )}
@@ -374,7 +374,7 @@ export default function Form1Page() {
                 </label>
                 <input
                   {...register("childrenAges")}
-                  placeholder="Ex: 18, 13, 9"
+                  placeholder="Ex: 5, 8, 12"
                   className={`border ${
                     errors.childrenAges
                       ? "border-[var(--error-400)]"
@@ -382,10 +382,7 @@ export default function Form1Page() {
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.childrenAges && (
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "var(--error-400)" }}
-                  >
+                  <p className="text-xs mt-1 text-[var(--error-400)]">
                     {errors.childrenAges.message}
                   </p>
                 )}
@@ -398,7 +395,7 @@ export default function Form1Page() {
                 </label>
                 <input
                   {...register("monthlyIncome")}
-                  placeholder="Ex: 70,000"
+                  placeholder="Ex: 70000"
                   className={`border ${
                     errors.monthlyIncome
                       ? "border-[var(--error-400)]"
@@ -406,10 +403,7 @@ export default function Form1Page() {
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.monthlyIncome && (
-                  <p
-                    className="text-xs mt-1"
-                    style={{ color: "var(--error-400)" }}
-                  >
+                  <p className="text-xs mt-1 text-[var(--error-400)]">
                     {errors.monthlyIncome.message}
                   </p>
                 )}
