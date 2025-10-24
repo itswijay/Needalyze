@@ -48,6 +48,7 @@ const step2Schema = z.object({
 
 export default function NeedAnalysisFormPage2() {
   const router = useRouter();
+  const [showConflictMessage, setShowConflictMessage] = useState(false);
 
   const { 
     control, 
@@ -84,17 +85,31 @@ export default function NeedAnalysisFormPage2() {
 
   const handleHealthCoverChange = (field, currentValue) => {
     const newValue = !currentValue;
-    const currentHealthCovers = { ...watchedValues.healthCovers, [field]: newValue };
     
-    // Check if this would violate the max 3 selection rule
+    // Show message when trying to select Surgery Cover while Hospital Bill Cover is selected
+    if (field === 'surgeryCover' && newValue && watchedValues.healthCovers?.hospitalBillCover) {
+      setShowConflictMessage(true);
+      return;
+    }
+    
+    // Show message when trying to select Hospital Bill Cover while Surgery Cover is selected
+    if (field === 'hospitalBillCover' && newValue && watchedValues.healthCovers?.surgeryCover) {
+      setShowConflictMessage(true);
+      return;
+    }
+    
+    // Hide message when deselecting conflicting options
+    if (!newValue && (field === 'surgeryCover' || field === 'hospitalBillCover')) {
+      setShowConflictMessage(false);
+    }
+    
+    // Check validation for max selections
+    const currentHealthCovers = { ...watchedValues.healthCovers, [field]: newValue };
     const selectedCount = Object.values(currentHealthCovers).filter(Boolean).length;
     
-    // Check if this would violate the mutual exclusion rule
-    const wouldViolateMutualExclusion = currentHealthCovers.hospitalBillCover && currentHealthCovers.surgeryCover;
-    
-    // Prevent selection if it would violate rules (but allow deselection)
-    if (newValue && (selectedCount > 3 || wouldViolateMutualExclusion)) {
-      return; // Don't allow the change
+    // Prevent selection if more than 3 options
+    if (newValue && selectedCount > 3) {
+      return;
     }
     
     setValue(`healthCovers.${field}`, newValue, { shouldValidate: true });
@@ -217,6 +232,15 @@ export default function NeedAnalysisFormPage2() {
                   </div>
                 </div>
 
+                {/* Conflict Warning Message */}
+                {showConflictMessage && (
+                  <div className="mb-4 p-3 bg-red-50 border-2 border-red-300 rounded-lg shadow-lg">
+                    <p className="text-red-700 text-sm font-bold">
+                      ⚠️ You cannot select both Hospital Bill Cover and Surgery Cover at the same time
+                    </p>
+                  </div>
+                )}
+
                 <div className="space-y-3">
                   <Controller
                     name="healthCovers.dailyHospitalizationExpenses"
@@ -241,7 +265,6 @@ export default function NeedAnalysisFormPage2() {
                         onChange={() =>
                           handleHealthCoverChange("surgeryCover", field.value)
                         }
-                        disabled={watchedValues.healthCovers?.hospitalBillCover && !field.value}
                       />
                     )}
                   />
@@ -255,7 +278,6 @@ export default function NeedAnalysisFormPage2() {
                         onChange={() =>
                           handleHealthCoverChange("hospitalBillCover", field.value)
                         }
-                        disabled={watchedValues.healthCovers?.surgeryCover && !field.value}
                       />
                     )}
                   />
