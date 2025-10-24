@@ -7,10 +7,48 @@ import ProgressBar from '@/components/ProgressBar'
 import { Button } from '@/components/ui/button'
 import FormNavButton from '@/components/FormNavButton'
 import { useRouter } from 'next/navigation'
+import * as z from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+
 
 export default function Form3Page() {
   const router = useRouter()
   const handleBack = () => router.push('/form/step2')
+
+
+  //Zod validation schema
+  const calculationSchema = z.object({
+      fixedMonthlyExpenses : z
+          .number()
+          .min(0, 'fixed monthly expenses is required'),
+      bankInterestRate : z
+          .number()
+          .min(0, 'bank interest rate is required'),
+      
+      //====== optional =========    
+      unsecuredBankLoan : z.number().optional(),
+      cashInHandInsurance : z.number().optional()
+                  
+  })
+
+  // React Hook Form with Zod resolver
+  const {
+    register,
+    handleSubmit,
+    formState: {errors},
+    reset,
+  } = useForm({
+    resolver : zodResolver(calculationSchema),
+    mode: 'onSubmit',
+    defaultValues:{
+      fixedMonthlyExpenses: null,
+      bankInterestRate: null,
+      unsecuredBankLoan:null,
+      cashInHandInsurance: null 
+    },
+  });
+
 
   const [isMobile, setIsMobile] = useState(false)
   const [hlvalue, setHLValue] = useState(0)
@@ -24,6 +62,20 @@ export default function Form3Page() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+
+
+  // handle Calculation
+  const handleCalculation = async (data) =>{
+
+    console.log('Form submission data:', data)
+
+    const fixedExpenses = data.fixedMonthlyExpenses;
+    const interestRate = data.bankInterestRate;
+    const unsecuredLoan = data.unsecuredBankLoan;
+    const cashInsurance = data.cashInHandInsurance;
+
+  }
+  
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
       {/* Mobile view */}
@@ -52,7 +104,10 @@ export default function Form3Page() {
                     <input
                       type="number"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                    />
+                      {...register("fixedMonthlyExpenses",{ valueAsNumber : true })}
+                    />{errors.fixedMonthlyExpenses && (
+                      <p className='text-red-600 text-xs mt-1 ml-4'>{errors.fixedMonthlyExpenses.message}</p>
+                    )}
                   </div>
 
                   <div>
@@ -63,7 +118,10 @@ export default function Form3Page() {
                       type="number"
                       step="0.1"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                    />
+                      {...register("bankInterestRate",{valueAsNumber : true})}
+                    />{errors.bankInterestRate && (
+                      <p className='text-red-600 text-xs mt-1 ml-4'>{errors.bankInterestRate.message}</p>
+                    )}
                   </div>
 
                   <div className="flex flex-col items-center">
@@ -86,6 +144,7 @@ export default function Form3Page() {
                       type="number"
                       placeholder="optional"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                      {...register("unsecuredBankLoan",{valueAsNumber : true})}
                     />
                   </div>
 
@@ -97,6 +156,7 @@ export default function Form3Page() {
                       type="number"
                       placeholder="optional"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                      {...register("cashInHandInsurance",{valueAsNumber : true})}
                     />
                   </div>
 
@@ -122,6 +182,8 @@ export default function Form3Page() {
                 <Button
                   className="rounded-full w-30 h-11 flex items-center justify-center text-center hover:scale-103 active:scale-95"
                   variant="gradient"
+                  type="submit"
+                  onClick={handleSubmit(handleCalculation)}
                 >
                   Submit  
                 </Button>
@@ -155,7 +217,10 @@ export default function Form3Page() {
                     <input
                       type="number"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                    />
+                      {...register("fixedMonthlyExpenses",{ valueAsNumber : true })}
+                    />{errors.fixedMonthlyExpenses && (
+                      <p className='text-red-600 text-xs mt-1 ml-4'>{errors.fixedMonthlyExpenses.message}</p>
+                    )}
                   </div>
 
                   <div className="order-2">
@@ -166,7 +231,10 @@ export default function Form3Page() {
                       type="number"
                       step="0.1"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                    />
+                      {...register("bankInterestRate",{valueAsNumber : true})}
+                      />{errors.bankInterestRate && (
+                      <p className='text-red-600 text-xs mt-1 ml-4'>{errors.bankInterestRate.message}</p>
+                    )}
                   </div>
 
                   <div className="order-4 md:order-3">
@@ -177,6 +245,7 @@ export default function Form3Page() {
                       type="number"
                       placeholder="optional"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                      {...register("unsecuredBankLoan",{valueAsNumber : true})}
                     />
                   </div>
 
@@ -188,6 +257,7 @@ export default function Form3Page() {
                       type="number"
                       placeholder="optional"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
+                      {...register("cashInHandInsurance",{valueAsNumber : true})}
                     />
                   </div>
                 </div>
@@ -225,6 +295,7 @@ export default function Form3Page() {
                 <Button
                   className="rounded-full w-30 h-11 hover:scale-103 active:scale-95"
                   variant="gradient"
+                  onClick={handleSubmit(handleCalculation)}
                 >
                   Submit
                 </Button>
