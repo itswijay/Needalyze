@@ -293,7 +293,7 @@ export function DataTable() {
 
   return (
     <div className=" w-full  p-4 mx-auto max-w-7xl">
-      <div className="flex items-center py-4">
+      <div className="flex items-center py-4 gap-3">
         <Input
           placeholder="Filter need..."
           value={table.getColumn("need")?.getFilterValue() ?? ""}

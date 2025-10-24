@@ -9,7 +9,7 @@ const page = () => {
       <div className="min-h-screen max-w-[95rem] mx-auto  ">
         <Navbar />
         <Cards />
-        <div className="mt-7 p-4 mx-auto max-w-7xl flex  justify-end">
+        <div className=" px-4 mx-auto max-w-7xl flex  justify-end">
           <Button className="bg-gradient-to-r from-[#3EAA66] to-[#189370] px-4 py-5">
             Create New Link
           </Button>
