@@ -9,6 +9,15 @@ import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
 import ProgressBar from "@/components/ProgressBar";
 import FormContainer from "@/components/FormContainer";
 import FormNavButton from "@/components/FormNavButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Zod validation schema
 const step2Schema = z.object({
@@ -41,8 +50,6 @@ const step2Schema = z.object({
 export default function NeedAnalysisFormPage2() {
   const router = useRouter();
   const [showConflictMessage, setShowConflictMessage] = useState(false);
-  const [showInsuranceInfo, setShowInsuranceInfo] = useState(false);
-  const [showHealthInfo, setShowHealthInfo] = useState(false);
   const [showWarningMessage, setShowWarningMessage] = useState(false);
 
   const { 
@@ -76,15 +83,13 @@ export default function NeedAnalysisFormPage2() {
   const handleInsuranceNeedChange = (field, currentValue) => {
     const newValue = !currentValue;
     setValue(`insuranceNeeds.${field}`, newValue, { shouldValidate: true });
-    setShowInsuranceInfo(false);
     setShowWarningMessage(false);
   };
 
   const handleHealthCoverChange = (field, currentValue) => {
     const newValue = !currentValue;
     
-    // Hide info message when selecting
-    setShowHealthInfo(false);
+    // Hide warning message when selecting
     setShowWarningMessage(false);
     
     // Show message when trying to select Surgery Cover while Hospital Bill Cover is selected
@@ -165,22 +170,31 @@ export default function NeedAnalysisFormPage2() {
                   <h2 className="text-gray-700 font-medium text-base">
                     Insurance Need
                   </h2>
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80"
-                    style={{ backgroundColor: "#89acd0" }}
-                    onClick={() => setShowInsuranceInfo(!showInsuranceInfo)}
-                  >
-                    <span className="text-white text-sm font-bold">i</span>
-                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80"
+                        style={{ backgroundColor: "#89acd0" }}
+                      >
+                        <span className="text-white text-sm font-bold">i</span>
+                      </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="w-[95%] sm:w-[85%] md:w-[75%] lg:w-[65%] xl:w-[55%] max-w-lg mx-auto rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
+                      <AlertDialogHeader className="text-center sm:text-left space-y-2 sm:space-y-3">
+                        <AlertDialogTitle className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 leading-tight">
+                          Insurance Need Information
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed">
+                          Select one or more options from the available choices to proceed with your insurance needs assessment.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogAction className="w-full sm:w-auto mt-4 sm:mt-6 text-white py-2 sm:py-3 px-4 sm:px-6 md:px-8 text-sm sm:text-base rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2" style={{ backgroundColor: "#89acd0" }}>
+                        <span className="text-base sm:text-lg">✓</span>
+                        OK
+                      </AlertDialogAction>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
-
-                {showInsuranceInfo && (
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-blue-700 text-sm">
-                      Select one or more.
-                    </p>
-                  </div>
-                )}
 
                 <div className="space-y-3">
                   <Controller
@@ -257,22 +271,32 @@ export default function NeedAnalysisFormPage2() {
                   <h2 className="text-gray-700 font-medium text-base">
                     Health Covers
                   </h2>
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80"
-                    style={{ backgroundColor: "#89acd0" }}
-                    onClick={() => setShowHealthInfo(!showHealthInfo)}
-                  >
-                    <span className="text-white text-sm font-bold">i</span>
-                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80"
+                        style={{ backgroundColor: "#89acd0" }}
+                      >
+                        <span className="text-white text-sm font-bold">i</span>
+                      </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="w-[95%] sm:w-[85%] md:w-[75%] lg:w-[65%] xl:w-[55%] max-w-lg mx-auto rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
+                      <AlertDialogHeader className="text-center sm:text-left space-y-2 sm:space-y-3">
+                        <AlertDialogTitle className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 leading-tight">
+                          Health Covers Information
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed space-y-2">
+                          <div>You can choose a maximum of 3 options from the available health cover choices.</div>
+                          <div className="font-medium text-red-600">Note: Cannot select both Hospital Bill Cover and Surgery Cover at the same time.</div>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogAction className="w-full sm:w-auto mt-4 sm:mt-6 text-white py-2 sm:py-3 px-4 sm:px-6 md:px-8 text-sm sm:text-base rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2" style={{ backgroundColor: "#89acd0" }}>
+                        <span className="text-base sm:text-lg">✓</span>
+                        OK
+                      </AlertDialogAction>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
-
-                {showHealthInfo && (
-                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p className="text-blue-700 text-sm">
-                      Select only Three options.
-                    </p>
-                  </div>
-                )}
 
                 {/* Conflict Warning Message */}
                 {showConflictMessage && (
