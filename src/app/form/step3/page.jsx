@@ -37,27 +37,30 @@ export default function Form3Page() {
       }),
 
     // Optional fields - will be 0 if not provided
-    unsecuredBankLoan: z
-      .number({
-        invalid_type_error: 'Please enter a valid number',
-      })
-      .nonnegative('Cannot be negative')
-      .optional()
-      .transform((val) => val ?? 0),
+    unsecuredBankLoan: z.preprocess(
+      (val) => (val === '' || val === null || val === undefined ? 0 : val),
+      z
+        .number({
+          invalid_type_error: 'Please enter a valid number',
+        })
+        .nonnegative('Cannot be negative')
+    ),
 
-    cashInHandInsurance: z
-      .number({
-        invalid_type_error: 'Please enter a valid number',
-      })
-      .nonnegative('Cannot be negative')
-      .optional()
-      .transform((val) => val ?? 0),
+    cashInHandInsurance: z.preprocess(
+      (val) => (val === '' || val === null || val === undefined ? 0 : val),
+      z
+        .number({
+          invalid_type_error: 'Please enter a valid number',
+        })
+        .nonnegative('Cannot be negative')
+    ),
   })
 
   // React Hook Form with Zod resolver
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
     reset,
   } = useForm({
@@ -71,7 +74,59 @@ export default function Form3Page() {
     },
   })
 
+  // Watch form values for real-time calculation
+  const fixedMonthlyExpenses = watch('fixedMonthlyExpenses')
+  const bankInterestRate = watch('bankInterestRate')
+  const unsecuredBankLoan = watch('unsecuredBankLoan')
+  const cashInHandInsurance = watch('cashInHandInsurance')
+
   const [hlvalue, setHLValue] = useState(0)
+  const [actualHLValue, setActualHLValue] = useState(0)
+
+  // Real-time HLV calculation
+  useEffect(() => {
+    // Only calculate if both required fields have valid values
+    if (
+      fixedMonthlyExpenses &&
+      bankInterestRate &&
+      !isNaN(fixedMonthlyExpenses) &&
+      !isNaN(bankInterestRate) &&
+      fixedMonthlyExpenses > 0 &&
+      bankInterestRate > 0
+    ) {
+      // Formula: HLV = (Fixed Monthly Expenses × 12) / (Bank Interest Rate / 100)
+      const calculatedHLV =
+        (fixedMonthlyExpenses * 12) / (bankInterestRate / 100)
+
+      // Handle edge cases
+      if (isFinite(calculatedHLV) && calculatedHLV >= 0) {
+        setHLValue(Math.round(calculatedHLV)) // Round to nearest whole number
+      } else {
+        setHLValue(0)
+      }
+    } else {
+      setHLValue(0)
+    }
+  }, [fixedMonthlyExpenses, bankInterestRate])
+
+  // Real-time Actual HLV calculation
+  useEffect(() => {
+    // Formula: Actual HLV = HLV + Unsecured Bank Loan - Cash In Hand + Insurance
+    const unsecuredLoan = Number(unsecuredBankLoan) || 0
+    const cashInsurance = Number(cashInHandInsurance) || 0
+
+    const calculatedActualHLV = hlvalue + unsecuredLoan - cashInsurance
+
+    // Ensure the result is valid and non-negative
+    if (isFinite(calculatedActualHLV) && calculatedActualHLV >= 0) {
+      setActualHLValue(Math.round(calculatedActualHLV))
+    } else if (calculatedActualHLV < 0) {
+      // If negative, show 0 (can't have negative life value)
+      setActualHLValue(0)
+    } else {
+      setActualHLValue(0)
+    }
+  }, [hlvalue, unsecuredBankLoan, cashInHandInsurance])
 
   // handle Calculation
   const handleCalculation = async (data) => {
@@ -138,7 +193,7 @@ export default function Form3Page() {
               </div>
 
               {/* HLV - Mobile only */}
-              <div className="md:hidden flex flex-col items-center my-2">
+              <div className="md:hidden flex flex-col items-center mb-6">
                 <label className="block text-gray-700 font-medium mb-2 text-center">
                   Your Human Life Value
                 </label>
@@ -174,12 +229,12 @@ export default function Form3Page() {
               </div>
 
               {/* Actual HLV - Mobile only */}
-              <div className="md:hidden flex flex-col items-center my-2">
+              <div className="md:hidden flex flex-col items-center mb-2">
                 <label className="block text-gray-700 font-medium mb-2 text-center">
                   Your Actual Human Life Value
                 </label>
                 <div className="border border-[#8EABD2] rounded-full px-6 py-2 bg-[#7792b7] w-64 text-white flex items-center justify-center font-bold text-xl sm:text-2xl">
-                  {hlvalue}
+                  {actualHLValue}
                 </div>
               </div>
             </div>
@@ -202,7 +257,7 @@ export default function Form3Page() {
                   Your Actual Human Life Value
                 </label>
                 <div className="border border-[#8EABD2] rounded-full px-6 py-2 bg-[#7792b7] w-64 text-white flex items-center justify-center font-bold text-2xl">
-                  {hlvalue}
+                  {actualHLValue}
                 </div>
               </div>
             </div>
