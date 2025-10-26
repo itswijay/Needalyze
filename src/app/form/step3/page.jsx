@@ -17,28 +17,43 @@ export default function Form3Page() {
 
   // Zod validation schema
   const calculationSchema = z.object({
-    fixedMonthlyExpenses: z
-      .number({
-        required_error: 'Fixed monthly expenses is required',
-        invalid_type_error: 'Please enter a valid number',
-      })
-      .positive('Fixed monthly expenses must be greater than 0')
-      .min(1, 'Fixed monthly expenses must be at least 1'),
+    fixedMonthlyExpenses: z.preprocess(
+      (val) => {
+        if (val === '' || val === null || val === undefined) return undefined
+        const num = Number(val)
+        return isNaN(num) ? undefined : num
+      },
+      z
+        .number({
+          required_error: 'Fixed monthly expenses is required',
+          invalid_type_error: 'Fixed monthly expenses is required',
+        })
+        .positive('Fixed monthly expenses must be greater than 0')
+        .min(1, 'Fixed monthly expenses must be at least 1')
+    ),
 
-    bankInterestRate: z
-      .number({
-        required_error: 'Bank interest rate is required',
-        invalid_type_error: 'Please enter a valid number',
-      })
-      .positive('Bank interest rate must be greater than 0')
-      .max(100, 'Bank interest rate cannot exceed 100%')
-      .refine((val) => val > 0, {
-        message: 'Bank interest rate must be greater than 0',
-      }),
+    bankInterestRate: z.preprocess(
+      (val) => {
+        if (val === '' || val === null || val === undefined) return undefined
+        const num = Number(val)
+        return isNaN(num) ? undefined : num
+      },
+      z
+        .number({
+          required_error: 'Bank interest rate is required',
+          invalid_type_error: 'Bank interest rate is required',
+        })
+        .positive('Bank interest rate must be greater than 0')
+        .max(100, 'Bank interest rate cannot exceed 100%')
+    ),
 
     // Optional fields - will be 0 if not provided
     unsecuredBankLoan: z.preprocess(
-      (val) => (val === '' || val === null || val === undefined ? 0 : val),
+      (val) => {
+        if (val === '' || val === null || val === undefined) return 0
+        const num = Number(val)
+        return isNaN(num) ? 0 : num
+      },
       z
         .number({
           invalid_type_error: 'Please enter a valid number',
@@ -47,7 +62,11 @@ export default function Form3Page() {
     ),
 
     cashInHandInsurance: z.preprocess(
-      (val) => (val === '' || val === null || val === undefined ? 0 : val),
+      (val) => {
+        if (val === '' || val === null || val === undefined) return 0
+        const num = Number(val)
+        return isNaN(num) ? 0 : num
+      },
       z
         .number({
           invalid_type_error: 'Please enter a valid number',
