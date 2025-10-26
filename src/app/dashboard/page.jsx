@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 const page = () => {
   return (
-    <div className="bg-gray-25/5">
+    <div className="bg-[var(--primary-50)]/4">
       <div className="min-h-screen max-w-[95rem] mx-auto  ">
         <Navbar />
         <Cards />
