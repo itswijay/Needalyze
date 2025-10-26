@@ -19,16 +19,17 @@ export default function Form3Page() {
 
   //Zod validation schema
   const calculationSchema = z.object({
-      fixedMonthlyExpenses : z
+      fixedMonthlyExpenses : z.coerce
           .number()
+          .refine(val => !isNaN(val), { message: "fixed monthly expenses is required" })
           .min(0, 'fixed monthly expenses is required'),
       bankInterestRate : z
           .number()
           .min(0, 'bank interest rate is required'),
       
       //====== optional =========    
-      unsecuredBankLoan : z.number().optional(),
-      cashInHandInsurance : z.number().optional()
+      unsecuredBankLoan : z.coerce.number().optional(),
+      cashInHandInsurance : z.coerce.number().optional()
                   
   })
 
@@ -102,9 +103,9 @@ export default function Form3Page() {
                       Fixed Monthly Expenses
                     </label>
                     <input
-                      type="number"
+                      type='number'
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                      {...register("fixedMonthlyExpenses",{ valueAsNumber : true })}
+                      {...register("fixedMonthlyExpenses")}
                     />{errors.fixedMonthlyExpenses && (
                       <p className='text-red-600 text-xs mt-1 ml-4'>{errors.fixedMonthlyExpenses.message}</p>
                     )}
@@ -115,10 +116,10 @@ export default function Form3Page() {
                       Bank Interest Rate
                     </label>
                     <input
-                      type="number"
+                      type='number'
                       step="0.1"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                      {...register("bankInterestRate",{valueAsNumber : true})}
+                      {...register("bankInterestRate")}
                     />{errors.bankInterestRate && (
                       <p className='text-red-600 text-xs mt-1 ml-4'>{errors.bankInterestRate.message}</p>
                     )}
@@ -144,7 +145,7 @@ export default function Form3Page() {
                       type="number"
                       placeholder="optional"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                      {...register("unsecuredBankLoan",{valueAsNumber : true})}
+                      {...register("unsecuredBankLoan")}
                     />
                   </div>
 
@@ -156,7 +157,7 @@ export default function Form3Page() {
                       type="number"
                       placeholder="optional"
                       className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                      {...register("cashInHandInsurance",{valueAsNumber : true})}
+                      {...register("cashInHandInsurance")}
                     />
                   </div>
 
