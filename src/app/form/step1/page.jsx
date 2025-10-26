@@ -22,50 +22,61 @@ import { Button } from "@/components/ui/button";
 
 const formSchema = z
   .object({
+    // Full name validation
     fullName: z.string().min(1, "Full name is required"),
+
+    // Date of birth validation
     dateOfBirth: z.date({ required_error: "Date of birth is required" }),
+
+    // Optional spouse name
     spouseName: z.string().optional(),
+
+    // Address validation
     address: z.string().min(1, "Address is required"),
+
+    // Phone number validation
     phoneNumber: z
       .string()
       .min(1, "Phone number is required")
-      .refine(
-        (val) => /^\+\d{11}$/.test(val),
+      .regex(
+        /^\+\d{11}$/,
         "Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)"
       ),
 
-    // transform numberOfChildren as number
-    numberOfChildren: z
-      .string()
-      .min(1, "Number of children is required")
-      .refine((val) => /^\d+$/.test(val), "Must be a number")
-      .transform((val) => Number(val)),
+    // Number of children 
+    numberOfChildren: z.coerce
+      .number()
+      .min(0, "Number of children is required")
+      .int("Must be a whole number"),
 
+    // Children ages 
     childrenAges: z.string().optional(),
+
+    // Optional occupation
     occupation: z.string().optional(),
 
-    // transform age as number
-    age: z
-      .string()
+    // Age
+    age: z.coerce
+      .number()
       .min(1, "Age is required")
-      .refine((val) => /^\d+$/.test(val), "Must be a number")
-      .transform((val) => Number(val)),
+      .int("Must be a whole number"),
 
-    // transform monthlyIncome as number
-    monthlyIncome: z
-      .string()
+    // Monthly income 
+    monthlyIncome: z.coerce
+      .number()
       .min(1, "Monthly income is required")
-      .refine((val) => /^\d+$/.test(val), "Must be a number")
-      .transform((val) => Number(val)),
+      .int("Must be a valid number"),
   })
+
+  // Custom rule for validating children's ages
   .refine(
     (data) => {
       const numChildren = data.numberOfChildren;
       if (numChildren > 0) {
-        if (!data.childrenAges?.trim()) return false;
+        if (!data.childrenAges?.trim()) return false; 
         const ages = data.childrenAges.split(",").map((a) => a.trim());
-        if (ages.length !== numChildren) return false;
-        if (!ages.every((a) => /^\d+$/.test(a))) return false;
+        if (ages.length !== numChildren) return false; 
+        if (!ages.every((a) => /^\d+$/.test(a))) return false; 
       }
       return true;
     },
@@ -75,7 +86,6 @@ const formSchema = z
       path: ["childrenAges"],
     }
   );
-
 
 export default function Form1Page() {
   const router = useRouter();
