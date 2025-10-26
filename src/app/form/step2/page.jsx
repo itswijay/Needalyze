@@ -9,6 +9,15 @@ import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
 import ProgressBar from "@/components/ProgressBar";
 import FormContainer from "@/components/FormContainer";
 import FormNavButton from "@/components/FormNavButton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Zod validation schema
 const step2Schema = z.object({
@@ -18,12 +27,6 @@ const step2Schema = z.object({
     longTermSavings: z.boolean(),
     shortTermSavings: z.boolean(),
     pensionFund: z.boolean(),
-  }).refine((data) => {
-    const selectedCount = Object.values(data).filter(Boolean).length;
-    return selectedCount >= 1 && selectedCount <= 5;
-  }, {
-    message: "Please select between 1 and 5 insurance need options",
-    path: ["root"]
   }),
   
   healthCovers: z.object({
@@ -35,20 +38,19 @@ const step2Schema = z.object({
     const selectedCount = Object.values(data).filter(Boolean).length;
     return selectedCount <= 3;
   }, {
-    message: "You can select maximum 3 health cover options",
-    path: ["maxSelection"]
+    message: "You can choose only 3 options",
   }).refine((data) => {
     // Cannot select both hospital bill cover and surgery cover
     return !(data.hospitalBillCover && data.surgeryCover);
   }, {
-    message: "You cannot select both Hospital Bill Cover and Surgery Cover at the same time",
-    path: ["mutualExclusion"]
+    message: "Cannot select hospital bill cover and surgery cover at same time",
   })
 });
 
 export default function NeedAnalysisFormPage2() {
   const router = useRouter();
   const [showConflictMessage, setShowConflictMessage] = useState(false);
+  const [showWarningMessage, setShowWarningMessage] = useState(false);
 
   const { 
     control, 
@@ -81,10 +83,14 @@ export default function NeedAnalysisFormPage2() {
   const handleInsuranceNeedChange = (field, currentValue) => {
     const newValue = !currentValue;
     setValue(`insuranceNeeds.${field}`, newValue, { shouldValidate: true });
+    setShowWarningMessage(false);
   };
 
   const handleHealthCoverChange = (field, currentValue) => {
     const newValue = !currentValue;
+    
+    // Hide warning message when selecting
+    setShowWarningMessage(false);
     
     // Show message when trying to select Surgery Cover while Hospital Bill Cover is selected
     if (field === 'surgeryCover' && newValue && watchedValues.healthCovers?.hospitalBillCover) {
@@ -121,7 +127,25 @@ export default function NeedAnalysisFormPage2() {
     router.push("/form/step3");
   };
 
-  const handleBack = () => router.push("/form/step1");
+  const handleBack = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push("/form/step1");
+  };
+
+  const handleNext = () => {
+    // Check if at least one option is selected from either section
+    const insuranceSelected = Object.values(watchedValues.insuranceNeeds || {}).some(Boolean);
+    const healthSelected = Object.values(watchedValues.healthCovers || {}).some(Boolean);
+    
+    if (!insuranceSelected && !healthSelected) {
+      setShowWarningMessage(true);
+      return;
+    }
+    
+    // If at least one option is selected, proceed with form submission
+    handleSubmit(onSubmit)();
+  };
 
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
@@ -130,7 +154,15 @@ export default function NeedAnalysisFormPage2() {
 
       <section className="flex-grow flex justify-center items-start py-8 px-4">
         <FormContainer>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <div>
+            {showWarningMessage && (
+              <div className="mb-6 p-4 bg-red-50 border-2 border-red-300 rounded-lg shadow-lg">
+                <p className="text-red-700 text-sm font-bold">
+                  ⚠️ Select at least one option
+                </p>
+              </div>
+            )}
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 text-sm -mt-4">
               {/* Insurance Need Section */}
               <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-xl border border-gray-100">
@@ -138,12 +170,30 @@ export default function NeedAnalysisFormPage2() {
                   <h2 className="text-gray-700 font-medium text-base">
                     Insurance Need
                   </h2>
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: "#89acd0" }}
-                  >
-                    <span className="text-white text-sm font-bold">i</span>
-                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80"
+                        style={{ backgroundColor: "#89acd0" }}
+                      >
+                        <span className="text-white text-sm font-bold">i</span>
+                      </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="w-[95%] sm:w-[85%] md:w-[75%] lg:w-[65%] xl:w-[55%] max-w-lg mx-auto rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
+                      <AlertDialogHeader className="text-center sm:text-left space-y-2 sm:space-y-3">
+                        <AlertDialogTitle className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 leading-tight">
+                          Insurance Need Information
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed">
+                          Select one or more options from the available choices to proceed with your insurance needs assessment.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogAction className="w-full sm:w-auto mt-4 sm:mt-6 text-white py-2 sm:py-3 px-4 sm:px-6 md:px-8 text-sm sm:text-base rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2" style={{ backgroundColor: "#89acd0" }}>
+                        <span className="text-base sm:text-lg">✓</span>
+                        OK
+                      </AlertDialogAction>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
 
                 <div className="space-y-3">
@@ -213,9 +263,6 @@ export default function NeedAnalysisFormPage2() {
                     )}
                   />
                 </div>
-                {errors.insuranceNeeds?.root && (
-                  <p className="text-red-500 text-xs mt-2">{errors.insuranceNeeds.root.message}</p>
-                )}
               </div>
 
               {/* Health Covers Section */}
@@ -224,12 +271,31 @@ export default function NeedAnalysisFormPage2() {
                   <h2 className="text-gray-700 font-medium text-base">
                     Health Covers
                   </h2>
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: "#89acd0" }}
-                  >
-                    <span className="text-white text-sm font-bold">i</span>
-                  </div>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80"
+                        style={{ backgroundColor: "#89acd0" }}
+                      >
+                        <span className="text-white text-sm font-bold">i</span>
+                      </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="w-[95%] sm:w-[85%] md:w-[75%] lg:w-[65%] xl:w-[55%] max-w-lg mx-auto rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
+                      <AlertDialogHeader className="text-center sm:text-left space-y-2 sm:space-y-3">
+                        <AlertDialogTitle className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 leading-tight">
+                          Health Covers Information
+                        </AlertDialogTitle>
+                        <AlertDialogDescription className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed space-y-2">
+                          <div>You can choose a maximum of 3 options from the available health cover choices.</div>
+                          <div className="font-medium text-red-600">Note: Cannot select both Hospital Bill Cover and Surgery Cover at the same time.</div>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogAction className="w-full sm:w-auto mt-4 sm:mt-6 text-white py-2 sm:py-3 px-4 sm:px-6 md:px-8 text-sm sm:text-base rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2" style={{ backgroundColor: "#89acd0" }}>
+                        <span className="text-base sm:text-lg">✓</span>
+                        OK
+                      </AlertDialogAction>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
 
                 {/* Conflict Warning Message */}
@@ -295,9 +361,9 @@ export default function NeedAnalysisFormPage2() {
                     )}
                   />
                 </div>
-                {(errors.healthCovers?.maxSelection || errors.healthCovers?.mutualExclusion) && (
+                {errors.healthCovers && (
                   <p className="text-red-500 text-xs mt-2">
-                    {errors.healthCovers.maxSelection?.message || errors.healthCovers.mutualExclusion?.message}
+                    {errors.healthCovers.message}
                   </p>
                 )}
               </div>
@@ -315,10 +381,10 @@ export default function NeedAnalysisFormPage2() {
                 label="Next"
                 type="next"
                 variant="gradient"
-                onClick={handleSubmit(onSubmit)}
+                onClick={handleNext}
               />
             </div>
-          </form>
+          </div>
         </FormContainer>
       </section>
     </main>
