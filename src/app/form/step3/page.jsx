@@ -10,10 +10,15 @@ import { useRouter } from 'next/navigation'
 import * as z from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useFormContext } from '@/context/FormContext'
 
 export default function Form3Page() {
   const router = useRouter()
   const handleBack = () => router.push('/form/step2')
+
+  // Get form context
+  const { getStepData, updateStepData, isLoaded } = useFormContext()
+  const step3Data = getStepData('step3')
 
   // Zod validation schema
   const calculationSchema = z.object({
@@ -102,6 +107,21 @@ export default function Form3Page() {
   const [hlvalue, setHLValue] = useState(0)
   const [actualHLValue, setActualHLValue] = useState(0)
 
+  // Load data from context when available
+  useEffect(() => {
+    if (isLoaded && step3Data) {
+      reset({
+        fixedMonthlyExpenses: step3Data.fixedMonthlyExpenses || '',
+        bankInterestRate: step3Data.bankInterestRate || '',
+        unsecuredBankLoan: step3Data.unsecuredBankLoan || '',
+        cashInHandInsurance: step3Data.cashInHandInsurance || '',
+      })
+      // Restore calculated values if they exist
+      if (step3Data.hlvalue) setHLValue(step3Data.hlvalue)
+      if (step3Data.actualHLValue) setActualHLValue(step3Data.actualHLValue)
+    }
+  }, [isLoaded, step3Data, reset])
+
   // Real-time HLV calculation
   useEffect(() => {
     // Only calculate if both required fields have valid values
@@ -151,10 +171,18 @@ export default function Form3Page() {
   const handleCalculation = async (data) => {
     console.log('Form submission data:', data)
 
-    const fixedExpenses = data.fixedMonthlyExpenses
-    const interestRate = data.bankInterestRate
-    const unsecuredLoan = data.unsecuredBankLoan
-    const cashInsurance = data.cashInHandInsurance
+    // Save form inputs and calculated values to context
+    const step3CompleteData = {
+      fixedMonthlyExpenses: data.fixedMonthlyExpenses,
+      bankInterestRate: data.bankInterestRate,
+      unsecuredBankLoan: data.unsecuredBankLoan,
+      cashInHandInsurance: data.cashInHandInsurance,
+      hlvalue: hlvalue,
+      actualHLValue: actualHLValue,
+    }
+
+    updateStepData('step3', step3CompleteData)
+    router.push('/form/step4')
   }
 
   return (
