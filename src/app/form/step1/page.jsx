@@ -1,55 +1,56 @@
-"use client";
+'use client'
 
-import React, { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { format } from "date-fns";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import React, { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+import { format } from 'date-fns'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import * as z from 'zod'
 
-import FormContainer from "@/components/FormContainer";
-import FormNavButton from "@/components/FormNavButton";
-import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
-import ProgressBar from "@/components/ProgressBar";
-import { Calendar } from "@/components/ui/calendar";
+import FormContainer from '@/components/FormContainer'
+import FormNavButton from '@/components/FormNavButton'
+import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
+import ProgressBar from '@/components/ProgressBar'
+import { Calendar } from '@/components/ui/calendar'
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+} from '@/components/ui/popover'
+import { CalendarIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { useFormContext } from '@/context/FormContext'
 
 const formSchema = z
   .object({
     // Full name validation
-    fullName: z.string().min(1, "Full name is required"),
+    fullName: z.string().min(1, 'Full name is required'),
 
     // Date of birth validation
-    dateOfBirth: z.date({ required_error: "Date of birth is required" }),
+    dateOfBirth: z.date({ required_error: 'Date of birth is required' }),
 
     // Optional spouse name
     spouseName: z.string().optional(),
 
     // Address validation
-    address: z.string().min(1, "Address is required"),
+    address: z.string().min(1, 'Address is required'),
 
     // Phone number validation
     phoneNumber: z
       .string()
-      .min(1, "Phone number is required")
+      .min(1, 'Phone number is required')
       .regex(
         /^\+\d{11}$/,
-        "Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)"
+        'Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)'
       ),
 
-    // Number of children 
+    // Number of children
     numberOfChildren: z.coerce
       .number()
-      .min(0, "Number of children is required")
-      .int("Must be a whole number"),
+      .min(0, 'Number of children is required')
+      .int('Must be a whole number'),
 
-    // Children ages 
+    // Children ages
     childrenAges: z.string().optional(),
 
     // Optional occupation
@@ -58,96 +59,110 @@ const formSchema = z
     // Age
     age: z.coerce
       .number()
-      .min(1, "Age is required")
-      .int("Must be a whole number"),
+      .min(1, 'Age is required')
+      .int('Must be a whole number'),
 
-    // Monthly income 
+    // Monthly income
     monthlyIncome: z.coerce
       .number()
-      .min(1, "Monthly income is required")
-      .int("Must be a valid number"),
+      .min(1, 'Monthly income is required')
+      .int('Must be a valid number'),
   })
 
   // Custom rule for validating children's ages
   .refine(
     (data) => {
-      const numChildren = data.numberOfChildren;
+      const numChildren = data.numberOfChildren
       if (numChildren > 0) {
-        if (!data.childrenAges?.trim()) return false; 
-        const ages = data.childrenAges.split(",").map((a) => a.trim());
-        if (ages.length !== numChildren) return false; 
-        if (!ages.every((a) => /^\d+$/.test(a))) return false; 
+        if (!data.childrenAges?.trim()) return false
+        const ages = data.childrenAges.split(',').map((a) => a.trim())
+        if (ages.length !== numChildren) return false
+        if (!ages.every((a) => /^\d+$/.test(a))) return false
       }
-      return true;
+      return true
     },
     {
       message:
         "Enter the exact number of children's ages separated by commas (e.g., 5, 8, 12)",
-      path: ["childrenAges"],
+      path: ['childrenAges'],
     }
-  );
+  )
 
 export default function Form1Page() {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Get form context
+  const { getStepData, updateStepData, isLoaded } = useFormContext()
+  const step1Data = getStepData('step1')
 
   const {
     register,
     handleSubmit,
     control,
     watch,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(formSchema),
-    mode: "onChange",
+    mode: 'onChange',
     defaultValues: {
-      fullName: "",
+      fullName: '',
       dateOfBirth: null,
-      spouseName: "",
-      phoneNumber: "",
-      address: "",
-      numberOfChildren: "",
-      childrenAges: "",
-      occupation: "",
-      age: "",
-      monthlyIncome: "",
+      spouseName: '',
+      phoneNumber: '',
+      address: '',
+      numberOfChildren: '',
+      childrenAges: '',
+      occupation: '',
+      age: '',
+      monthlyIncome: '',
     },
-  });
+  })
 
-  const date = watch("dateOfBirth");
-  const numChildren = watch("numberOfChildren");
+  // Load data from context when available
+  useEffect(() => {
+    if (isLoaded && step1Data) {
+      reset(step1Data)
+    }
+  }, [isLoaded, step1Data, reset])
 
-  useEffect(() => setMounted(true), []);
+  const date = watch('dateOfBirth')
+  const numChildren = watch('numberOfChildren')
+
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 767px)");
-    const handler = (e) => setIsMobile(e.matches);
-    setIsMobile(mq.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 767px)')
+    const handler = (e) => setIsMobile(e.matches)
+    setIsMobile(mq.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   const onKeyDown = useCallback(
     (e) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === 'Escape') setOpen(false)
     },
     [setOpen]
-  );
+  )
 
   useEffect(() => {
-    if (!mounted) return;
-    if (open) window.addEventListener("keydown", onKeyDown);
-    else window.removeEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [open, mounted, onKeyDown]);
+    if (!mounted) return
+    if (open) window.addEventListener('keydown', onKeyDown)
+    else window.removeEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [open, mounted, onKeyDown])
 
   const onSubmit = (data) => {
-    console.log("Form Data:", data);
-    router.push("/form/step2");
-  };
+    console.log('Form Data:', data)
+    // Save to context (which auto-saves to localStorage)
+    updateStepData('step1', data)
+    router.push('/form/step2')
+  }
 
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
@@ -168,12 +183,12 @@ export default function Form1Page() {
                   Full Name
                 </label>
                 <input
-                  {...register("fullName")}
+                  {...register('fullName')}
                   placeholder="Ex: Sunil Nishantha Karunarathna"
                   className={`border ${
                     errors.fullName
-                      ? "border-[var(--error-400)]"
-                      : "border-[#8EABD2]"
+                      ? 'border-[var(--error-400)]'
+                      : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.fullName && (
@@ -195,12 +210,14 @@ export default function Form1Page() {
                     <div className="relative">
                       <input
                         readOnly
-                        value={field.value ? format(field.value, "dd/MM/yyyy") : ""}
+                        value={
+                          field.value ? format(field.value, 'dd/MM/yyyy') : ''
+                        }
                         placeholder="DD/MM/YYYY"
                         className={`border ${
                           errors.dateOfBirth
-                            ? "border-[var(--error-400)]"
-                            : "border-[#8EABD2]"
+                            ? 'border-[var(--error-400)]'
+                            : 'border-[#8EABD2]'
                         } rounded-full px-3 py-2 pr-10 bg-[#DCE7F2] w-full focus:outline-none cursor-pointer`}
                         onClick={() => setOpen(true)}
                       />
@@ -224,8 +241,8 @@ export default function Form1Page() {
                             mode="single"
                             selected={field.value}
                             onSelect={(d) => {
-                              field.onChange(d);
-                              setOpen(false);
+                              field.onChange(d)
+                              setOpen(false)
                             }}
                             fromYear={1950}
                             toYear={2025}
@@ -245,8 +262,8 @@ export default function Form1Page() {
                               mode="single"
                               selected={field.value}
                               onSelect={(d) => {
-                                field.onChange(d);
-                                setOpen(false);
+                                field.onChange(d)
+                                setOpen(false)
                               }}
                               fromYear={1950}
                               toYear={2025}
@@ -272,7 +289,7 @@ export default function Form1Page() {
                   Spouse’s Name
                 </label>
                 <input
-                  {...register("spouseName")}
+                  {...register('spouseName')}
                   placeholder="Ex: Samanthi Ishara Karunarathna"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
                 />
@@ -284,12 +301,12 @@ export default function Form1Page() {
                   Number of Children
                 </label>
                 <input
-                  {...register("numberOfChildren")}
+                  {...register('numberOfChildren')}
                   placeholder="Ex: 3"
                   className={`border ${
                     errors.numberOfChildren
-                      ? "border-[var(--error-400)]"
-                      : "border-[#8EABD2]"
+                      ? 'border-[var(--error-400)]'
+                      : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.numberOfChildren && (
@@ -305,7 +322,7 @@ export default function Form1Page() {
                   Occupation / Business (Optional)
                 </label>
                 <input
-                  {...register("occupation")}
+                  {...register('occupation')}
                   placeholder="Your Job/Business"
                   className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
                 />
@@ -320,12 +337,12 @@ export default function Form1Page() {
                   Address
                 </label>
                 <input
-                  {...register("address")}
+                  {...register('address')}
                   placeholder="Your Address"
                   className={`border ${
                     errors.address
-                      ? "border-[var(--error-400)]"
-                      : "border-[#8EABD2]"
+                      ? 'border-[var(--error-400)]'
+                      : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.address && (
@@ -341,12 +358,12 @@ export default function Form1Page() {
                   Phone Number
                 </label>
                 <input
-                  {...register("phoneNumber")}
+                  {...register('phoneNumber')}
                   placeholder="Ex: +94771234567"
                   className={`border ${
                     errors.phoneNumber
-                      ? "border-[var(--error-400)]"
-                      : "border-[#8EABD2]"
+                      ? 'border-[var(--error-400)]'
+                      : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.phoneNumber && (
@@ -362,12 +379,12 @@ export default function Form1Page() {
                   Age
                 </label>
                 <input
-                  {...register("age")}
+                  {...register('age')}
                   placeholder="Ex: 48"
                   className={`border ${
                     errors.age
-                      ? "border-[var(--error-400)]"
-                      : "border-[#8EABD2]"
+                      ? 'border-[var(--error-400)]'
+                      : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.age && (
@@ -383,12 +400,12 @@ export default function Form1Page() {
                   Children’s Ages
                 </label>
                 <input
-                  {...register("childrenAges")}
+                  {...register('childrenAges')}
                   placeholder="Ex: 5, 8, 12"
                   className={`border ${
                     errors.childrenAges
-                      ? "border-[var(--error-400)]"
-                      : "border-[#8EABD2]"
+                      ? 'border-[var(--error-400)]'
+                      : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.childrenAges && (
@@ -404,12 +421,12 @@ export default function Form1Page() {
                   Monthly Income (LKR)
                 </label>
                 <input
-                  {...register("monthlyIncome")}
+                  {...register('monthlyIncome')}
                   placeholder="Ex: 70000"
                   className={`border ${
                     errors.monthlyIncome
-                      ? "border-[var(--error-400)]"
-                      : "border-[#8EABD2]"
+                      ? 'border-[var(--error-400)]'
+                      : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
                 {errors.monthlyIncome && (
@@ -422,7 +439,12 @@ export default function Form1Page() {
           </form>
 
           <div className="flex justify-between items-center mt-6">
-            <FormNavButton label="Back" type="prev" variant="gradient" disabled />
+            <FormNavButton
+              label="Back"
+              type="prev"
+              variant="gradient"
+              disabled
+            />
             <FormNavButton
               label="Next"
               type="next"
@@ -433,5 +455,5 @@ export default function Form1Page() {
         </FormContainer>
       </section>
     </main>
-  );
+  )
 }
