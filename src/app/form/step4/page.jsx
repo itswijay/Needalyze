@@ -4,15 +4,24 @@ import { useRouter } from 'next/navigation'
 import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
 import ProgressBar from '@/components/ProgressBar'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Download } from 'lucide-react'
+import { CheckCircle2, Download, RotateCcw } from 'lucide-react'
+import { useFormContext } from '@/context/FormContext'
 
 export default function Step4Page() {
   const router = useRouter()
+  const { resetForm } = useFormContext()
 
   const handleDownload = () => {
     // TODO: Implement PDF generation
     // TODO: Access form data from context or Supabase for PDF generation
     console.log('Download PDF functionality - To be implemented')
+  }
+
+  const handleStartNewForm = () => {
+    // Clear all form data and localStorage
+    resetForm()
+    // Navigate back to step 1
+    router.push('/form/step1')
   }
 
   return (
@@ -35,19 +44,37 @@ export default function Step4Page() {
           </div>
 
           {/* Success Message */}
-          <h1 className="text-2xl md:text-xl font-bold text-primary-600 mb-20">
+          <h1 className="text-2xl md:text-xl font-bold text-primary-600 mb-6">
             Form Completed Successfully
           </h1>
 
-          {/* Download Button */}
-          <Button
-            onClick={handleDownload}
-            className="px-3 py-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 mx-auto"
-            variant="gradient"
-          >
-            <Download className="w-5 h-5" />
-            <span>Click to Download Your Form</span>
-          </Button>
+          <p className="text-gray-600 mb-8">
+            Your need analysis has been completed. You can download it as a PDF
+            or fill out the form again from the beginning.
+          </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            {/* Start New Form Button */}
+            <Button
+              onClick={handleStartNewForm}
+              className="px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
+              variant="outline"
+            >
+              <RotateCcw className="w-5 h-5" />
+              <span>Fill Again</span>
+            </Button>
+
+            {/* Download Button */}
+            <Button
+              onClick={handleDownload}
+              className="px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
+              variant="gradient"
+            >
+              <Download className="w-5 h-5" />
+              <span>Download PDF</span>
+            </Button>
+          </div>
         </div>
       </section>
     </main>
