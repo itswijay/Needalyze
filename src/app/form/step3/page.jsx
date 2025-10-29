@@ -181,7 +181,21 @@ export default function Form3Page() {
       actualHLValue: actualHLValue,
     }
 
+    // Mark form as completed
+    const step4CompletionData = {
+      completed: true,
+      completedAt: new Date().toISOString(),
+    }
+
+    // Save both step 3 data and completion status
     updateStepData('step3', step3CompleteData)
+    updateStepData('step4', step4CompletionData)
+
+    // TODO: Future Supabase Integration
+    // Submit all form data to Supabase here before navigating to Step 4
+    // const allFormData = getAllData()
+    // await submitToSupabase(allFormData)
+
     router.push('/form/step4')
   }
 
