@@ -125,7 +125,14 @@ export default function Form1Page() {
   // Load data from context when available
   useEffect(() => {
     if (isLoaded && step1Data) {
-      reset(step1Data)
+      // Convert dateOfBirth string back to Date object if it exists
+      const formDataToLoad = {
+        ...step1Data,
+        dateOfBirth: step1Data.dateOfBirth
+          ? new Date(step1Data.dateOfBirth)
+          : null,
+      }
+      reset(formDataToLoad)
     }
   }, [isLoaded, step1Data, reset])
 
