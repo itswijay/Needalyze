@@ -11,8 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Navbar = () => {
   return (
-    <div>
-      <ul className="flex justify-between items-center border-b p-5 border-gray-300">
+    <div className="mx-auto max-w-7xl ">
+      <ul className="flex justify-between items-center border-b p-5 border-gray-100">
         <li className="flex ">
           <Image
             src="/images/logos/main_favicon.png"
