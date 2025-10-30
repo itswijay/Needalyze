@@ -4,11 +4,12 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
 import ProgressBar from '@/components/ProgressBar'
 import FormContainer from '@/components/FormContainer'
 import FormNavButton from '@/components/FormNavButton'
+import { useFormContext } from '@/context/FormContext'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,11 +63,16 @@ export default function NeedAnalysisFormPage2() {
   const [showConflictMessage, setShowConflictMessage] = useState(false)
   const [showWarningMessage, setShowWarningMessage] = useState(false)
 
+  // Get form context
+  const { getStepData, updateStepData, isLoaded } = useFormContext()
+  const step2Data = getStepData('step2')
+
   const {
     control,
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { errors, isValid },
   } = useForm({
     resolver: zodResolver(step2Schema),
@@ -87,6 +93,13 @@ export default function NeedAnalysisFormPage2() {
     },
     mode: 'onChange',
   })
+
+  // Load data from context when available
+  useEffect(() => {
+    if (isLoaded && step2Data) {
+      reset(step2Data)
+    }
+  }, [isLoaded, step2Data, reset])
 
   const watchedValues = watch()
 
@@ -147,8 +160,8 @@ export default function NeedAnalysisFormPage2() {
   }
 
   const onSubmit = (data) => {
-    // Store form data in localStorage or context for later use
-    localStorage.setItem('step2Data', JSON.stringify(data))
+    // Save to context (which auto-saves to localStorage)
+    updateStepData('step2', data)
     router.push('/form/step3')
   }
 
