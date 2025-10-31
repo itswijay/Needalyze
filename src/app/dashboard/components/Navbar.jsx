@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Navbar = () => {
   return (
-    <div className="mx-auto max-w-7xl ">
+    <div className="">
       <ul className="flex justify-between items-center border-b p-5 border-gray-100">
         <li className="flex ">
           <Image
