@@ -112,10 +112,8 @@ export default function Form1Page() {
 
   const numChildren = watch("numberOfChildren");
 
-  // To avoid hydration issues with Next.js
   useEffect(() => setMounted(true), []);
 
-  // Detect mobile for date picker
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(max-width: 767px)");
@@ -125,7 +123,6 @@ export default function Form1Page() {
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  // Handle Escape key for closing date picker
   const onKeyDown = useCallback(
     (e) => {
       if (e.key === "Escape") setOpen(false);
@@ -179,66 +176,104 @@ export default function Form1Page() {
                 )}
               </div>
 
-              {/* Date of Birth */}
-              <div className="relative">
-                <label className="block text-gray-700 font-medium mb-1">
-                  Date of Birth
-                </label>
-                <Controller
-                  control={control}
-                  name="dateOfBirth"
-                  render={({ field }) => (
-                    <div className="relative">
-                      <input
-                        readOnly
-                        value={field.value ? format(field.value, "dd/MM/yyyy") : ""}
-                        placeholder="DD/MM/YYYY"
-                        className={`border ${
-                          errors.dateOfBirth
-                            ? "border-[var(--error-400)]"
-                            : "border-[#8EABD2]"
-                        } rounded-full px-3 py-2 pr-10 bg-[#DCE7F2] w-full focus:outline-none cursor-pointer`}
-                        onClick={() => setOpen(true)}
-                      />
-                      <Popover open={open && !isMobile} onOpenChange={setOpen}>
-                        <PopoverTrigger asChild>
-                          <Button
-                            type="button"
-                            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 bg-transparent hover:bg-transparent"
-                            onClick={() => setOpen((s) => !s)}
+                {/* Date of Birth */}
+                <div className="relative">
+                  <label className="block text-gray-700 font-medium mb-1">
+                    Date of Birth
+                  </label>
+                  <Controller
+                    control={control}
+                    name="dateOfBirth"
+                    render={({ field }) => (
+                      <div className="relative">
+                        <input
+                          readOnly
+                          value={field.value ? format(field.value, "dd/MM/yyyy") : ""}
+                          placeholder="DD/MM/YYYY"
+                          className={`border ${
+                            errors.dateOfBirth
+                              ? "border-[var(--error-400)]"
+                              : "border-[#8EABD2]"
+                          } rounded-full px-3 py-2 pr-10 bg-[#DCE7F2] w-full focus:outline-none cursor-pointer`}
+                          onClick={() => setOpen(true)}
+                        />
+
+                        <Popover open={open && !isMobile} onOpenChange={setOpen}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 bg-transparent hover:bg-transparent"
+                              onClick={() => setOpen((s) => !s)}
+                            >
+                              <CalendarIcon className="h-4 w-4" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-auto p-0 mt-2 border border-gray-200 rounded-xl shadow-lg"
+                            side="bottom"
+                            align="center"
+                            sideOffset={4}
                           >
-                            <CalendarIcon className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          className="w-auto p-0 mt-2 border border-gray-200 rounded-xl shadow-lg"
-                          side="bottom"
-                          align="center"
-                          sideOffset={4}
-                        >
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={(d) => {
-                              field.onChange(d);
-                              setOpen(false);
-                            }}
-                            fromYear={1950}
-                            toYear={2025}
-                            captionLayout="dropdown"
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={(d) => {
+                                field.onChange(d);
+                                setOpen(false);
+                              }}
+                              fromYear={1950}
+                              toYear={2025}
+                              captionLayout="dropdown"
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+
+                        {mounted && isMobile && open && (
+                          <div className="fixed inset-0 z-50 flex items-center justify-center">
+                            <div
+                              className="absolute inset-0 bg-black/40"
+                              onClick={() => setOpen(false)}
+                            />
+                            <div className="relative z-50 bg-white rounded-2xl p-3 shadow-lg border border-gray-200">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={(d) => {
+                                  field.onChange(d);
+                                  setOpen(false);
+                                }}
+                                fromYear={1950}
+                                toYear={2025}
+                                captionLayout="dropdown"
+                                initialFocus
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  />
+
+                  {errors.dateOfBirth && (
+                    <p className="text-xs mt-1 text-[var(--error-400)]">
+                      {errors.dateOfBirth.message}
+                    </p>
                   )}
-                />
-                {errors.dateOfBirth && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.dateOfBirth.message}
-                  </p>
-                )}
-              </div>
+
+                  {(() => {
+                    const dob = watch("dateOfBirth");
+                    if (dob) {
+                      const today = new Date();
+                      let age = today.getFullYear() - dob.getFullYear();
+                      const m = today.getMonth() - dob.getMonth();
+                      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                        age--;
+                      }
+                      console.log("Calculated Age:", age); 
+                    }
+                  })()}
+                </div>
 
               {/* Spouse Name */}
               <div>
@@ -252,16 +287,23 @@ export default function Form1Page() {
                 />
               </div>
 
-              {/* Occupation */}
+              {/* Children’s Ages */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
-                  Occupation / Business (Optional)
+                  Children’s Ages
                 </label>
                 <input
-                  {...register("occupation")}
-                  placeholder="Your Job/Business"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
+                  {...register("childrenAges")}
+                  placeholder="Ex: 5, 8, 12"
+                  className={`border ${
+                    errors.childrenAges ? "border-[var(--error-400)]" : "border-[#8EABD2]"
+                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
+                {errors.childrenAges && (
+                  <p className="text-xs mt-1 text-[var(--error-400)]">
+                    {errors.childrenAges.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -324,23 +366,16 @@ export default function Form1Page() {
                 )}
               </div>
 
-              {/* Children’s Ages */}
+              {/* Occupation */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
-                  Children’s Ages
+                  Occupation / Business (Optional)
                 </label>
                 <input
-                  {...register("childrenAges")}
-                  placeholder="Ex: 5, 8, 12"
-                  className={`border ${
-                    errors.childrenAges ? "border-[var(--error-400)]" : "border-[#8EABD2]"
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
+                  {...register("occupation")}
+                  placeholder="Your Job/Business"
+                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
                 />
-                {errors.childrenAges && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.childrenAges.message}
-                  </p>
-                )}
               </div>
             </div>
 
