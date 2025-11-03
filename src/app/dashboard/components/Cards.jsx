@@ -1,6 +1,6 @@
 import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
 
-const Cards = () => {
+const Cards = ({ cardData }) => {
   return (
     <div className="mt-3 pt-4">
       {/* grid 1 */}
@@ -15,7 +15,7 @@ const Cards = () => {
 
             <CardAction>
               <span className="text-[var(--primary-200)] sm:text-5xl text-4xl font-semibold">
-                46
+                {cardData.completedForms}
               </span>
             </CardAction>
           </CardHeader>
@@ -28,7 +28,7 @@ const Cards = () => {
 
             <CardAction>
               <span className="text-[var(--primary-200)] sm:text-5xl text-4xl font-semibold">
-                10
+                {cardData.inProgress}
               </span>
             </CardAction>
           </CardHeader>
@@ -44,7 +44,7 @@ const Cards = () => {
 
             <CardAction>
               <span className="text-[var(--primary-200)] sm:text-5xl text-3xl font-semibold">
-                8
+                {cardData.categories.health}
               </span>
             </CardAction>
           </CardHeader>
@@ -57,7 +57,7 @@ const Cards = () => {
 
             <CardAction>
               <span className="text-[var(--primary-200)] sm:text-5xl text-3xl font-semibold">
-                12
+                {cardData.categories.education}
               </span>
             </CardAction>
           </CardHeader>
@@ -70,7 +70,7 @@ const Cards = () => {
 
             <CardAction>
               <span className="text-[var(--primary-200)] sm:text-5xl text-3xl font-semibold">
-                5
+                {cardData.categories.pensionfund}
               </span>
             </CardAction>
           </CardHeader>
@@ -88,7 +88,7 @@ const Cards = () => {
 
             <CardAction>
               <span className="text-[var(--primary-200)] sm:text-5xl text-3xl font-semibold">
-                8
+                {cardData.categories.DependentsCostofLiving}
               </span>
             </CardAction>
           </CardHeader>
@@ -103,7 +103,7 @@ const Cards = () => {
 
             <CardAction>
               <span className="text-[var(--primary-200)] sm:text-5xl text-3xl font-semibold">
-                7
+                {cardData.categories.longTermSavings}
               </span>
             </CardAction>
           </CardHeader>
@@ -118,7 +118,7 @@ const Cards = () => {
 
             <CardAction>
               <span className="text-[var(--primary-200)] sm:text-5xl text-3xl font-semibold">
-                6
+                {cardData.categories.shortTermSavings}
               </span>
             </CardAction>
           </CardHeader>

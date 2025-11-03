@@ -41,7 +41,7 @@ const Customer = [
   {
     id: 1,
     user: "John Doe",
-    need: "Health",
+    need: "Health, Education",
     actualHumanLifeValue: 25000,
     address: "123 Main St, Cityville",
     date: "2023-10-01",
