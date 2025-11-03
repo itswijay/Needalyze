@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Share2Icon } from "lucide-react";
+
 import { useState } from "react";
 
 const CreateLinkDialog = () => {
@@ -31,8 +33,8 @@ const CreateLinkDialog = () => {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Create link</DialogTitle>
-            <DialogDescription>
-              Copy this link to share view access with others.
+            <DialogDescription className="text-sm">
+              Copy this link to share with others.
             </DialogDescription>
           </DialogHeader>
           <div className="flex items-center gap-2">
@@ -43,15 +45,20 @@ const CreateLinkDialog = () => {
               <Input id="link" value={link} readOnly />
             </div>
           </div>
-          <DialogFooter className="inline-flexflex sm:justify-between ">
-            <div className="hidden sm:flex">
-              <DialogClose asChild>
-                <Button type="button" variant="outline" className="">
-                  Close
-                </Button>
-              </DialogClose>
-            </div>
-            <div>
+          <DialogFooter>
+            <div className="flex justify-between w-full ">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
+                    link
+                  )}`;
+                  window.open(whatsappUrl, "_blank");
+                }}
+              >
+                <Share2Icon size={25} className="mr-2" />
+              </Button>
               <Button
                 type="button"
                 variant="primary"
