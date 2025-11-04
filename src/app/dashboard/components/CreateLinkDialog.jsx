@@ -13,9 +13,9 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Share2Icon } from 'lucide-react'
 
 import { useState } from 'react'
+import WhatsappButton from './WhatsappButton'
 
 const CreateLinkDialog = () => {
   const [link, setLink] = useState('https://formlink.com/s/your-generated-link')
@@ -44,19 +44,8 @@ const CreateLinkDialog = () => {
             </div>
           </div>
           <DialogFooter>
-            <div className="flex justify-between w-full ">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
-                    link
-                  )}`
-                  window.open(whatsappUrl, '_blank')
-                }}
-              >
-                <Share2Icon size={25} className="mr-2" />
-              </Button>
+            <div className="flex justify-end w-full ">
+              <WhatsappButton />
               <Button
                 type="button"
                 variant="primary"
