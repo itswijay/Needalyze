@@ -24,7 +24,7 @@ const CreateLinkDialog = () => {
     <div>
       <Dialog>
         <DialogTrigger asChild>
-          <Button className="bg-gradient-to-r from-[#3EAA66] to-[#189370] w-full px-4 py-3 sm:py-5 text-sm sm:text-base">
+          <Button className="bg-gradient-to-r from-[#3EAA66] to-[#189370] w-full px-3 py-3 sm:py-5 text-xs sm:text-sm">
             Create New Link
           </Button>
         </DialogTrigger>
