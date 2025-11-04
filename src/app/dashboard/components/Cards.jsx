@@ -1,76 +1,76 @@
-import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardHeader, CardTitle } from '@/components/ui/card'
 
-const Cards = () => {
+const Cards = ({ cardData }) => {
   return (
-    <div className="mt-3 p-4 mx-auto max-w-7xl">
+    <div className="mt-2 pt-4">
       {/* grid 1 */}
-      <div className="grid  grid-cols-2  justify-items-center gap-x-3">
-        <Card className="lg:border-l-6 border-l-5 border-l-[var(--primary-200)] lg:h-25 lg:w-137 h-22 w-48 ">
+      <div className="grid grid-cols-2 gap-x-4 md:gap-x-5">
+        <Card className="sm:border-l-6 border-l-4 border-l-[var(--primary-200)] h-18 sm:h-20 w-full py-4 sm:py-6">
           <CardHeader>
             <CardTitle>
-              <h1 className="lg:text-lg text-sm font-medium">
+              <h1 className="text-xs sm:text-base font-medium line-clamp-2">
                 Completed Forms
               </h1>
             </CardTitle>
 
             <CardAction>
-              <span className="text-[var(--primary-200)] lg:text-5xl text-4xl font-semibold">
-                46
+              <span className="text-[var(--primary-200)] text-2xl sm:text-4xl font-semibold">
+                {cardData.completedForms}
               </span>
             </CardAction>
           </CardHeader>
         </Card>
-        <Card className="lg:border-l-6 border-l-5 border-l-[var(--primary-200)] lg:h-25 lg:w-137 h-22 w-48">
+        <Card className="sm:border-l-6 border-l-4 border-l-[var(--primary-200)] h-18 sm:h-20 w-full py-4 sm:py-6">
           <CardHeader>
             <CardTitle>
-              <h1 className="lg:text-lg text-sm font-medium">In Progress</h1>
+              <h1 className="text-xs sm:text-base font-medium line-clamp-2">In Progress</h1>
             </CardTitle>
 
             <CardAction>
-              <span className="text-[var(--primary-200)] lg:text-5xl text-4xl font-semibold">
-                10
+              <span className="text-[var(--primary-200)] text-2xl sm:text-4xl font-semibold">
+                {cardData.inProgress}
               </span>
             </CardAction>
           </CardHeader>
         </Card>
       </div>
       {/* grid 2 */}
-      <div className="grid lg:grid-cols-3 grid-cols-2 mt-7 justify-items-center space-y-6 gap-x-3">
-        <Card className="lg:border-l-6 border-l-5 border-l-emerald-500 lg:h-25 lg:w-85 h-22 w-48">
+      <div className="grid sm:grid-cols-3 grid-cols-2 mt-4 sm:mt-6 gap-x-4 gap-y-3 md:gap-x-5 md:gap-y-5">
+        <Card className="sm:border-l-6 border-l-4 border-l-emerald-400 h-18 sm:h-20 w-full py-4 sm:py-6">
           <CardHeader>
             <CardTitle>
-              <h1 className="lg:text-lg text-xs font-medium">Health</h1>
+              <h1 className="text-xs sm:text-base font-medium line-clamp-2">Health</h1>
             </CardTitle>
 
             <CardAction>
-              <span className="text-[var(--primary-200)] lg:text-5xl text-3xl font-semibold">
-                8
+              <span className="text-[var(--primary-200)] text-2xl sm:text-4xl font-semibold">
+                {cardData.categories.health}
               </span>
             </CardAction>
           </CardHeader>
         </Card>
-        <Card className="lg:border-l-6 border-l-5 border-l-emerald-500 lg:h-25 lg:w-85 h-22 w-48">
+        <Card className="sm:border-l-6 border-l-4 border-l-emerald-400 h-18 sm:h-20 w-full py-4 sm:py-6">
           <CardHeader>
             <CardTitle>
-              <h1 className="lg:text-lg text-xs font-medium">Education</h1>
+              <h1 className="text-xs sm:text-base font-medium line-clamp-2">Education</h1>
             </CardTitle>
 
             <CardAction>
-              <span className="text-[var(--primary-200)] lg:text-5xl text-3xl font-semibold">
-                12
+              <span className="text-[var(--primary-200)] text-2xl sm:text-4xl font-semibold">
+                {cardData.categories.education}
               </span>
             </CardAction>
           </CardHeader>
         </Card>
-        <Card className="lg:border-l-6 border-l-5 border-l-emerald-500 lg:h-25 lg:w-85 h-22 w-48">
+        <Card className="sm:border-l-6 border-l-4 border-l-emerald-400 h-18 sm:h-20 w-full py-4 sm:py-6">
           <CardHeader>
             <CardTitle>
-              <h1 className="lg:text-lg text-xs font-medium">Pension Fund</h1>
+              <h1 className="text-xs sm:text-base font-medium line-clamp-2">Pension Fund</h1>
             </CardTitle>
 
             <CardAction>
-              <span className="text-[var(--primary-200)] lg:text-5xl text-3xl font-semibold">
-                5
+              <span className="text-[var(--primary-200)] text-2xl sm:text-4xl font-semibold">
+                {cardData.categories.pensionfund}
               </span>
             </CardAction>
           </CardHeader>
@@ -78,54 +78,54 @@ const Cards = () => {
 
         {/* grid 3 */}
 
-        <Card className="lg:border-l-6 border-l-5  border-l-emerald-500 lg:h-25 lg:w-85 h-22 w-48">
+        <Card className="sm:border-l-6 border-l-4  border-l-emerald-400 h-18 sm:h-20 w-full py-4 sm:py-6">
           <CardHeader>
             <CardTitle className="">
-              <h1 className="lg:text-lg text-xs font-medium">
+              <h1 className="text-xs sm:text-base font-medium line-clamp-2 leading-tight">
                 Dependents Cost of Living
               </h1>
             </CardTitle>
 
             <CardAction>
-              <span className="text-[var(--primary-200)] lg:text-5xl text-3xl font-semibold">
-                8
+              <span className="text-[var(--primary-200)] text-2xl sm:text-4xl font-semibold">
+                {cardData.categories.DependentsCostofLiving}
               </span>
             </CardAction>
           </CardHeader>
         </Card>
-        <Card className="lg:border-l-6 border-l-5 border-l-emerald-500 lg:h-25 lg:w-85 h-22 w-48">
+        <Card className="sm:border-l-6 border-l-4 border-l-emerald-400 h-18 sm:h-20 w-full py-4 sm:py-6">
           <CardHeader>
             <CardTitle>
-              <h1 className="lg:text-lg text-xs font-medium">
+              <h1 className="text-xs sm:text-base font-medium line-clamp-2 leading-tight">
                 Long Term Savings
               </h1>
             </CardTitle>
 
             <CardAction>
-              <span className="text-[var(--primary-200)] lg:text-5xl text-3xl font-semibold">
-                7
+              <span className="text-[var(--primary-200)] text-2xl sm:text-4xl font-semibold">
+                {cardData.categories.longTermSavings}
               </span>
             </CardAction>
           </CardHeader>
         </Card>
-        <Card className="lg:border-l-6 border-l-5 border-l-emerald-500 lg:h-25 lg:w-85 h-22 w-48">
+        <Card className="sm:border-l-6 border-l-4 border-l-emerald-400 h-18 sm:h-20 w-full py-4 sm:py-6">
           <CardHeader>
             <CardTitle>
-              <h1 className="lg:text-lg text-xs font-medium">
+              <h1 className="text-xs sm:text-base font-medium line-clamp-2 leading-tight">
                 Short Term Savings
               </h1>
             </CardTitle>
 
             <CardAction>
-              <span className="text-[var(--primary-200)] lg:text-5xl text-3xl font-semibold">
-                6
+              <span className="text-[var(--primary-200)] text-2xl sm:text-4xl font-semibold">
+                {cardData.categories.shortTermSavings}
               </span>
             </CardAction>
           </CardHeader>
         </Card>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Cards;
+export default Cards

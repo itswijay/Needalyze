@@ -2,28 +2,21 @@
 
 import * as React from "react";
 import {
-  ColumnDef,
-  ColumnFiltersState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  SortingState,
   useReactTable,
-  VisibilityState,
 } from "@tanstack/react-table";
 import { ArrowUpDown, ChevronDown, Eye, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -48,7 +41,7 @@ const Customer = [
   {
     id: 1,
     user: "John Doe",
-    need: "Health",
+    need: "Health, Education",
     actualHumanLifeValue: 25000,
     address: "123 Main St, Cityville",
     date: "2023-10-01",
@@ -415,7 +408,7 @@ export function DataTable() {
   });
 
   return (
-    <div className=" w-full  p-4 mx-auto max-w-7xl">
+    <div className=" w-full ">
       <div className="flex items-center justify-between py-4 gap-3">
         <Input
           placeholder="Filter name..."
@@ -466,7 +459,10 @@ export function DataTable() {
                       : "";
 
                   return (
-                    <TableHead key={header.id} className={hiddenOnMobile}>
+                    <TableHead
+                      key={header.id}
+                      className={` ${hiddenOnMobile} `}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -493,7 +489,7 @@ export function DataTable() {
                         : "";
 
                     return (
-                      <TableCell key={cell.id} className={hiddenOnMobile}>
+                      <TableCell key={cell.id} className={` ${hiddenOnMobile}`}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()

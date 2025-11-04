@@ -1,23 +1,36 @@
-import Cards from "./components/Cards";
-import { DataTable } from "./components/Dashtable";
-import Navbar from "./components/Navbar";
-import { Button } from "@/components/ui/button";
+'use client'
+
+import Cards from './components/Cards'
+import { DataTable } from './components/Dashtable'
+import Navbar from './components/Navbar'
+import CreateLinkDialog from './components/CreateLinkDialog'
+import { useState } from 'react'
 
 const page = () => {
+  const [cardData, setCardData] = useState({
+    completedForms: 40,
+    inProgress: 10,
+    categories: {
+      health: 8,
+      education: 12,
+      pensionfund: 15,
+      DependentsCostofLiving: 8,
+      longTermSavings: 3,
+      shortTermSavings: 5,
+    },
+  })
   return (
     <div className="bg-[var(--primary-50)]/4">
-      <div className="min-h-screen max-w-[95rem] mx-auto  ">
+      <div className="min-h-screen max-w-7xl px-6 py-2 md:px-6 md:py-2 lg:px-10 lg:py-2 mx-auto">
         <Navbar />
-        <Cards />
-        <div className=" px-4 mx-auto max-w-7xl flex  justify-end">
-          <Button className="bg-gradient-to-r from-[#3EAA66] to-[#189370] px-4 py-5">
-            Create New Link
-          </Button>
+        <Cards cardData={cardData} />
+        <div className=" flex justify-end my-4">
+          <CreateLinkDialog />
         </div>
         <DataTable />
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default page;
+export default page
