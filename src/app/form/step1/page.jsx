@@ -74,13 +74,14 @@ export default function Form1Page() {
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const { updateStepData } = useFormContext();
+const { getStepData, updateStepData, isLoaded } = useFormContext();
 
   const {
     register,
     handleSubmit,
     control,
     watch,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(formSchema),
@@ -101,6 +102,20 @@ export default function Form1Page() {
   const numChildren = watch("numberOfChildren");
 
   useEffect(() => setMounted(true), []);
+
+const step1Data = getStepData("step1");
+
+useEffect(() => {
+  if (isLoaded && step1Data) {
+    const formDataToLoad = {
+      ...step1Data,
+      dateOfBirth: step1Data.dateOfBirth
+        ? new Date(step1Data.dateOfBirth)
+        : null,
+    };
+    reset(formDataToLoad);
+  }
+}, [isLoaded, step1Data, reset]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
