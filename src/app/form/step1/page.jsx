@@ -19,23 +19,14 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useFormContext } from "@/context/FormContext";
 
-// Form validation schema using Zod
 const formSchema = z
   .object({
-    // Full name validation
     fullName: z.string().min(1, "Full name is required"),
-
-    // Date of birth validation
     dateOfBirth: z.date({ required_error: "Date of birth is required" }),
-
-    // Optional spouse name
     spouseName: z.string().optional(),
-
-    // Address validation
     address: z.string().min(1, "Address is required"),
-
-    // Phone number validation
     phoneNumber: z
       .string()
       .min(1, "Phone number is required")
@@ -44,26 +35,21 @@ const formSchema = z
         "Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)"
       ),
 
-    // Number of children 
     numberOfChildren: z.coerce
       .number()
       .min(0, "Number of children is required")
       .int("Must be a whole number"),
 
-    // Children ages 
     childrenAges: z.string().optional(),
 
-    // Optional occupation
     occupation: z.string().optional(),
 
-    // Monthly income 
     monthlyIncome: z.coerce
       .number()
       .min(1, "Monthly income is required")
       .int("Must be a valid number"),
   })
 
-  // Custom rule for validating children's ages
   .refine(
     (data) => {
       const numChildren = data.numberOfChildren;
@@ -87,6 +73,8 @@ export default function Form1Page() {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const { updateStepData } = useFormContext();
 
   const {
     register,
@@ -137,10 +125,26 @@ export default function Form1Page() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, mounted, onKeyDown]);
 
-  const onSubmit = (data) => {
-    console.log("Form Data:", data);
-    router.push("/form/step2");
-  };
+const onSubmit = (data) => {
+  const dob = data.dateOfBirth;
+  if (dob) {
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    data.age = age; 
+  } else {
+    data.age = null;
+  }
+
+  console.log("Form Data with Age:", data);
+
+  updateStepData("step1", data);
+
+  router.push("/form/step2");
+};
 
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
@@ -149,259 +153,232 @@ export default function Form1Page() {
 
       <section className="flex-grow flex justify-center items-center py-8 px-4">
         <FormContainer>
-          <form
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            {/* LEFT SIDE */}
-            <div className="flex flex-col space-y-3">
-              {/* Full Name */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Full Name
-                </label>
-                <input
-                  {...register("fullName")}
-                  placeholder="Ex: Sunil Nishantha Karunarathna"
-                  className={`border ${
-                    errors.fullName
-                      ? "border-[var(--error-400)]"
-                      : "border-[#8EABD2]"
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
-                />
-                {errors.fullName && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.fullName.message}
-                  </p>
-                )}
-              </div>
+    <form
+      className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
+      onSubmit={handleSubmit(onSubmit)}
+    >
+  {/* Full Name */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">Full Name</label>
+    <input
+      {...register("fullName")}
+      placeholder="Ex: Sunil Nishantha Karunarathna"
+      className={`border ${
+        errors.fullName ? "border-[var(--error-400)]" : "border-[#8EABD2]"
+      } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
+    />
+    {errors.fullName && (
+      <p className="text-xs mt-1 text-[var(--error-400)]">
+        {errors.fullName.message}
+      </p>
+    )}
+  </div>
 
-                {/* Date of Birth */}
-                <div className="relative">
-                  <label className="block text-gray-700 font-medium mb-1">
-                    Date of Birth
-                  </label>
-                  <Controller
-                    control={control}
-                    name="dateOfBirth"
-                    render={({ field }) => (
-                      <div className="relative">
-                        <input
-                          readOnly
-                          value={field.value ? format(field.value, "dd/MM/yyyy") : ""}
-                          placeholder="DD/MM/YYYY"
-                          className={`border ${
-                            errors.dateOfBirth
-                              ? "border-[var(--error-400)]"
-                              : "border-[#8EABD2]"
-                          } rounded-full px-3 py-2 pr-10 bg-[#DCE7F2] w-full focus:outline-none cursor-pointer`}
-                          onClick={() => setOpen(true)}
-                        />
+  {/* Address */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">Address</label>
+    <input
+      {...register("address")}
+      placeholder="Your Address"
+      className={`border ${
+        errors.address ? "border-[var(--error-400)]" : "border-[#8EABD2]"
+      } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
+    />
+    {errors.address && (
+      <p className="text-xs mt-1 text-[var(--error-400)]">
+        {errors.address.message}
+      </p>
+    )}
+  </div>
 
-                        <Popover open={open && !isMobile} onOpenChange={setOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              type="button"
-                              className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 bg-transparent hover:bg-transparent"
-                              onClick={() => setOpen((s) => !s)}
-                            >
-                              <CalendarIcon className="h-4 w-4" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            className="w-auto p-0 mt-2 border border-gray-200 rounded-xl shadow-lg"
-                            side="bottom"
-                            align="center"
-                            sideOffset={4}
-                          >
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={(d) => {
-                                field.onChange(d);
-                                setOpen(false);
-                              }}
-                              fromYear={1950}
-                              toYear={2025}
-                              captionLayout="dropdown"
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-
-                        {mounted && isMobile && open && (
-                          <div className="fixed inset-0 z-50 flex items-center justify-center">
-                            <div
-                              className="absolute inset-0 bg-black/40"
-                              onClick={() => setOpen(false)}
-                            />
-                            <div className="relative z-50 bg-white rounded-2xl p-3 shadow-lg border border-gray-200">
-                              <Calendar
-                                mode="single"
-                                selected={field.value}
-                                onSelect={(d) => {
-                                  field.onChange(d);
-                                  setOpen(false);
-                                }}
-                                fromYear={1950}
-                                toYear={2025}
-                                captionLayout="dropdown"
-                                initialFocus
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  />
-
-                  {errors.dateOfBirth && (
-                    <p className="text-xs mt-1 text-[var(--error-400)]">
-                      {errors.dateOfBirth.message}
-                    </p>
-                  )}
-
-                  {(() => {
-                    const dob = watch("dateOfBirth");
-                    if (dob) {
-                      const today = new Date();
-                      let age = today.getFullYear() - dob.getFullYear();
-                      const m = today.getMonth() - dob.getMonth();
-                      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-                        age--;
-                      }
-                      console.log("Calculated Age:", age); 
-                    }
-                  })()}
-                </div>
-
-              {/* Spouse Name */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Spouse’s Name
-                </label>
-                <input
-                  {...register("spouseName")}
-                  placeholder="Ex: Samanthi Ishara Karunarathna"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
-                />
-              </div>
-
-              {/* Children’s Ages */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Children’s Ages
-                </label>
-                <input
-                  {...register("childrenAges")}
-                  placeholder="Ex: 5, 8, 12"
-                  className={`border ${
-                    errors.childrenAges ? "border-[var(--error-400)]" : "border-[#8EABD2]"
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
-                />
-                {errors.childrenAges && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.childrenAges.message}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* RIGHT SIDE */}
-            <div className="flex flex-col space-y-3">
-              {/* Address */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Address
-                </label>
-                <input
-                  {...register("address")}
-                  placeholder="Your Address"
-                  className={`border ${
-                    errors.address ? "border-[var(--error-400)]" : "border-[#8EABD2]"
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
-                />
-                {errors.address && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.address.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Phone Number */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Phone Number
-                </label>
-                <input
-                  {...register("phoneNumber")}
-                  placeholder="Ex: +94771234567"
-                  className={`border ${
-                    errors.phoneNumber ? "border-[var(--error-400)]" : "border-[#8EABD2]"
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
-                />
-                {errors.phoneNumber && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.phoneNumber.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Number of Children */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Number of Children
-                </label>
-                <input
-                  {...register("numberOfChildren")}
-                  placeholder="Ex: 3"
-                  className={`border ${
-                    errors.numberOfChildren ? "border-[var(--error-400)]" : "border-[#8EABD2]"
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
-                />
-                {errors.numberOfChildren && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.numberOfChildren.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Occupation */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Occupation / Business (Optional)
-                </label>
-                <input
-                  {...register("occupation")}
-                  placeholder="Your Job/Business"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
-                />
-              </div>
-            </div>
-
-            {/* Monthly Income */}
-            <div
-              className={`${
-                isMobile ? "md:col-span-2" : "md:col-span-2 flex flex-col items-center mt-1"
-              }`}
-            >
-              <label className="block text-gray-700 font-medium mb-1">
-                Monthly Income (LKR)
-              </label>
-              <input
-                {...register("monthlyIncome")}
-                placeholder="Ex: 70000"
-                className={`border ${
-                  errors.monthlyIncome ? "border-[var(--error-400)]" : "border-[#8EABD2]"
-                } rounded-full px-3 py-2 bg-[#DCE7F2] w-full max-w-md focus:outline-none`}
+  {/* Date of Birth */}
+  <div className="relative">
+    <label className="block text-gray-700 font-medium mb-1">Date of Birth</label>
+    <Controller
+      control={control}
+      name="dateOfBirth"
+      render={({ field }) => (
+        <div className="relative">
+          <input
+            readOnly
+            value={field.value ? format(field.value, "dd/MM/yyyy") : ""}
+            placeholder="DD/MM/YYYY"
+            className={`border ${
+              errors.dateOfBirth
+                ? "border-[var(--error-400)]"
+                : "border-[#8EABD2]"
+            } rounded-full px-3 py-2 pr-10 bg-[#DCE7F2] w-full focus:outline-none cursor-pointer`}
+            onClick={() => setOpen(true)}
+          />
+          <Popover open={open && !isMobile} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 bg-transparent hover:bg-transparent"
+                onClick={() => setOpen((s) => !s)}
+              >
+                <CalendarIcon className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 mt-2 border border-gray-200 rounded-xl shadow-lg">
+              <Calendar
+                mode="single"
+                selected={field.value}
+                onSelect={(d) => {
+                  field.onChange(d);
+                  setOpen(false);
+                }}
+                fromYear={1950}
+                toYear={2025}
+                captionLayout="dropdown"
+                initialFocus
               />
-              {errors.monthlyIncome && (
-                <p className="text-xs mt-1 text-[var(--error-400)]">
-                  {errors.monthlyIncome.message}
-                </p>
-              )}
+            </PopoverContent>
+          </Popover>
+          {mounted && isMobile && open && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div
+                className="absolute inset-0 bg-black/40"
+                onClick={() => setOpen(false)}
+              />
+              <div className="relative z-50 bg-white rounded-2xl p-3 shadow-lg border border-gray-200">
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={(d) => {
+                    field.onChange(d);
+                    setOpen(false);
+                  }}
+                  fromYear={1950}
+                  toYear={2025}
+                  captionLayout="dropdown"
+                  initialFocus
+                />
+              </div>
             </div>
-          </form>
+          )}
+        </div>
+      )}
+    />
+    {errors.dateOfBirth && (
+      <p className="text-xs mt-1 text-[var(--error-400)]">
+        {errors.dateOfBirth.message}
+      </p>
+    )}
+  </div>
+
+  {/* Phone Number */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">
+      Phone Number
+    </label>
+    <input
+      {...register("phoneNumber")}
+      placeholder="Ex: +94771234567"
+      className={`border ${
+        errors.phoneNumber ? "border-[var(--error-400)]" : "border-[#8EABD2]"
+      } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
+    />
+    {errors.phoneNumber && (
+      <p className="text-xs mt-1 text-[var(--error-400)]">
+        {errors.phoneNumber.message}
+      </p>
+    )}
+  </div>
+
+  {/* Spouse Name */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">
+      Spouse’s Name
+    </label>
+    <input
+      {...register("spouseName")}
+      placeholder="Ex: Samanthi Ishara Karunarathna"
+      className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
+    />
+  </div>
+
+  {/* Number of Children */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">
+      Number of Children
+    </label>
+    <input
+      {...register("numberOfChildren")}
+      placeholder="Ex: 3"
+      className={`border ${
+        errors.numberOfChildren
+          ? "border-[var(--error-400)]"
+          : "border-[#8EABD2]"
+      } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
+    />
+    {errors.numberOfChildren && (
+      <p className="text-xs mt-1 text-[var(--error-400)]">
+        {errors.numberOfChildren.message}
+      </p>
+    )}
+  </div>
+
+  {/* Children’s Ages */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">
+      Children’s Ages
+    </label>
+    <input
+      {...register("childrenAges")}
+      placeholder="Ex: 5, 8, 12"
+      className={`border ${
+        errors.childrenAges
+          ? "border-[var(--error-400)]"
+          : "border-[#8EABD2]"
+      } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
+    />
+    {errors.childrenAges && (
+      <p className="text-xs mt-1 text-[var(--error-400)]">
+        {errors.childrenAges.message}
+      </p>
+    )}
+  </div>
+
+  {/* Occupation */}
+  <div>
+    <label className="block text-gray-700 font-medium mb-1">
+      Occupation / Business (Optional)
+    </label>
+    <input
+      {...register("occupation")}
+      placeholder="Your Job/Business"
+      className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
+    />
+  </div>
+
+  {/* Monthly Income */}
+    <div
+      className={`${
+        isMobile
+          ? "md:col-span-2 flex flex-col items-start mt-1"
+          : "md:col-span-2 flex flex-col items-center mt-1"
+      }`}
+    >
+      <label className="block text-gray-700 font-medium mb-1">
+        Monthly Income (LKR)
+      </label>
+      <input
+        {...register("monthlyIncome")}
+        placeholder="Ex: 70000"
+        className={`border ${
+          errors.monthlyIncome
+            ? "border-[var(--error-400)]"
+            : "border-[#8EABD2]"
+        } rounded-full px-3 py-2 bg-[#DCE7F2] w-full max-w-md focus:outline-none`}
+      />
+      {errors.monthlyIncome && (
+        <p className="text-xs mt-1 text-[var(--error-400)]">
+          {errors.monthlyIncome.message}
+        </p>
+      )}
+    </div>
+    </form>
 
           {/* Navigation Buttons */}
           <div className="flex justify-between items-center mt-6">
@@ -418,3 +395,6 @@ export default function Form1Page() {
     </main>
   );
 }
+
+
+
