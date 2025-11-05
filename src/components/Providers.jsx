@@ -1,7 +1,12 @@
 'use client'
 
 import { FormProvider } from '@/context/FormContext'
+import { AuthProvider } from '@/context/AuthContext'
 
 export function Providers({ children }) {
-  return <FormProvider>{children}</FormProvider>
+  return (
+    <AuthProvider>
+      <FormProvider>{children}</FormProvider>
+    </AuthProvider>
+  )
 }
