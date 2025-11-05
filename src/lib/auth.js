@@ -65,7 +65,7 @@ export async function signUp(userData) {
     // Step 2: Get role_id based on position
     const roleId = getRoleIdByPosition(position)
 
-    // Step 3: Insert user profile
+    // Step 3: Insert user profile with 'pending' status
     const { error: profileError } = await supabase.from('user_profile').insert({
       user_id: authData.user.id,
       first_name: firstName,
@@ -75,6 +75,7 @@ export async function signUp(userData) {
       position,
       code_number: codeNumber || null,
       role_id: roleId,
+      status: 'pending', // Default status - requires admin approval
     })
 
     if (profileError) {
@@ -88,7 +89,7 @@ export async function signUp(userData) {
       }
     }
 
-    // Step 4: Sign out the user (since we redirect to login page)
+    // Step 4: Sign out the user (since redirect to login page)
     await supabase.auth.signOut()
 
     return {
@@ -113,6 +114,7 @@ export async function signUp(userData) {
  */
 export async function signIn(email, password) {
   try {
+    // Step 1: Authenticate with Supabase Auth
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -127,6 +129,38 @@ export async function signIn(email, password) {
       }
     }
 
+    // Step 2: Check user profile status
+    const { data: profile, error: profileError } = await supabase
+      .from('user_profile')
+      .select('status')
+      .eq('user_id', data.user.id)
+      .single()
+
+    if (profileError) {
+      // Sign out the user if profile check fails
+      await supabase.auth.signOut()
+      return {
+        success: false,
+        error: 'Unable to verify account status. Please contact support.',
+        user: null,
+        session: null,
+      }
+    }
+
+    // Step 3: Verify account is approved
+    if (profile.status !== 'approved') {
+      // Sign out the user if not approved
+      await supabase.auth.signOut()
+      return {
+        success: false,
+        error:
+          'Your account is pending approval. Please wait for admin approval.',
+        user: null,
+        session: null,
+      }
+    }
+
+    // Step 4: Return success with user and session
     return {
       success: true,
       error: null,
