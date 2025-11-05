@@ -223,15 +223,26 @@ export async function signOut() {
  */
 export async function getCurrentUser() {
   try {
+    // Get session from localStorage
     const {
-      data: { user, session },
-    } = await supabase.auth.getUser()
+      data: { session },
+      error,
+    } = await supabase.auth.getSession()
+
+    if (error) {
+      console.error('Error getting session:', error)
+      return {
+        user: null,
+        session: null,
+      }
+    }
 
     return {
-      user,
-      session,
+      user: session?.user || null,
+      session: session,
     }
   } catch (error) {
+    console.error('Error in getCurrentUser:', error)
     return {
       user: null,
       session: null,

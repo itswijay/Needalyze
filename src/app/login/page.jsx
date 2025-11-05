@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useRouter } from 'next/navigation'
 import { signIn } from '@/lib/auth'
+import { useAuth } from '@/context/AuthContext'
 
 // Zod validation schema
 const loginSchema = z.object({
@@ -25,9 +26,17 @@ const loginSchema = z.object({
 
 const page = () => {
   const router = useRouter()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(null) // null initially to prevent hydration mismatch
   const [errorMessage, setErrorMessage] = useState('')
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, authLoading, router])
 
   useEffect(() => {
     const checkMobile = () => {
@@ -64,16 +73,18 @@ const page = () => {
       const result = await signIn(data.email, data.password)
 
       if (result.success) {
-        // Login successful - redirect to dashboard
-        router.push('/dashboard')
+        // Login successful - AuthContext will handle the redirect via useEffect
+        // The onAuthStateChange listener in AuthContext will update the state
+        // and the useEffect above will redirect to dashboard
+        console.log('Login successful, waiting for auth state to update...')
       } else {
         // Login failed - show error message
         setErrorMessage(result.error || 'Login failed. Please try again.')
+        setLoading(false)
       }
     } catch (error) {
       console.error('Login error:', error)
       setErrorMessage('An unexpected error occurred. Please try again.')
-    } finally {
       setLoading(false)
     }
   }

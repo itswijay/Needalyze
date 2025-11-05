@@ -11,16 +11,25 @@ import { useAuth } from '@/context/AuthContext'
  */
 export function ProtectedRoute({ children, requireApproval = false }) {
   const router = useRouter()
-  const { isAuthenticated, isApproved, loading } = useAuth()
+  const { isAuthenticated, isApproved, loading, userProfile } = useAuth()
 
   useEffect(() => {
     if (!loading) {
+      console.log('ProtectedRoute check:', {
+        isAuthenticated,
+        isApproved,
+        requireApproval,
+        userProfile: JSON.stringify(userProfile),
+      })
+
       // If not authenticated, redirect to login
       if (!isAuthenticated) {
+        console.log('Not authenticated - redirecting to login')
         router.push('/login')
       }
       // If authentication is required and user is not approved
       else if (requireApproval && !isApproved) {
+        console.log('Not approved - redirecting to login')
         router.push('/login')
       }
     }

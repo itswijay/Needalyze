@@ -34,9 +34,10 @@ export function AuthProvider({ children }) {
     // Listen for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event)
+        console.log('Auth state changed:', event, session)
 
         if (event === 'SIGNED_IN') {
+          setUser(session?.user || null)
           setSession(session)
           await loadUserProfile(session?.user?.id)
         } else if (event === 'SIGNED_OUT') {
@@ -44,6 +45,7 @@ export function AuthProvider({ children }) {
           setUserProfile(null)
           setSession(null)
         } else if (event === 'TOKEN_REFRESHED') {
+          setUser(session?.user || null)
           setSession(session)
         }
       }
@@ -87,6 +89,11 @@ export function AuthProvider({ children }) {
 
       if (success && profile) {
         setUserProfile(profile)
+        console.log('User profile loaded:', {
+          status: profile.status,
+          isApproved: profile.status === 'approved',
+          profile,
+        })
       }
     } catch (error) {
       console.error('Error loading user profile:', error)
