@@ -8,9 +8,10 @@ import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { useRouter } from 'next/navigation'
+import { signUp } from '@/lib/auth'
 
 // Zod Validation Schema
-
 const registerSchema = z
   .object({
     firstName: z
@@ -57,10 +58,8 @@ const registerSchema = z
   )
 
 export default function Register() {
-  // State for responsive behavior
+  const router = useRouter()
   const [isMobile, setIsMobile] = useState(null)
-  // ====
-
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -68,13 +67,14 @@ export default function Register() {
   const [showPositionDropdown, setShowPositionDropdown] = useState(false)
   const [selectedBranch, setSelectedBranch] = useState('')
   const [selectedPosition, setSelectedPosition] = useState('')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
 
-  // ============= NEW: Desktop dropdowns state =============
+  // ============= Desktop dropdowns state =============
   const [showBranchDropdownDesktop, setShowBranchDropdownDesktop] =
     useState(false)
   const [showPositionDropdownDesktop, setShowPositionDropdownDesktop] =
     useState(false)
-  // ========================================================
 
   const branches = ['Warakapola']
   const positions = ['Branch Manager', 'Advisor', 'Team Leader']
@@ -147,21 +147,49 @@ export default function Register() {
   // handleSubmit with react-hook-form
   const onSubmit = async (data) => {
     setIsLoading(true)
+    setErrorMessage('')
+    setSuccessMessage('')
 
     try {
-      console.log('Form Data Submitted:', data)
+      // Prepare user data for registration
+      const userData = {
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phoneNumber: data.phoneNumber,
+        branch: data.branch,
+        position: data.position,
+        codeNumber: data.regCode || null,
+      }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Call Supabase signUp function
+      const result = await signUp(userData)
 
-      alert('Registration successful! (This is a demo)')
+      if (result.success) {
+        // Registration successful
+        setSuccessMessage(
+          'Registration successful! Your account is pending approval. Redirecting to login...'
+        )
 
-      // Reset form after successful registration
-      reset()
-      setSelectedBranch('')
-      setSelectedPosition('')
+        // Reset form
+        reset()
+        setSelectedBranch('')
+        setSelectedPosition('')
+
+        // Redirect to login page after 2 seconds
+        setTimeout(() => {
+          router.push('/login')
+        }, 2000)
+      } else {
+        // Registration failed - show error
+        setErrorMessage(
+          result.error || 'Registration failed. Please try again.'
+        )
+      }
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Registration error:', error)
+      setErrorMessage('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -173,7 +201,6 @@ export default function Register() {
   }
 
   // Mobile Layout
-
   if (isMobile) {
     return (
       <div className="w-full min-h-screen flex flex-col overflow-hidden">
@@ -210,6 +237,18 @@ export default function Register() {
               Register
             </h1>
             <div className="mx-4">
+              {/* Success Message */}
+              {successMessage && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                  {successMessage}
+                </div>
+              )}
+              {/* Error Message */}
+              {errorMessage && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {errorMessage}
+                </div>
+              )}
               <form onSubmit={handleSubmit(onSubmit)} noValidate>
                 {/* First Name */}
                 <div className="mb-4">
@@ -303,6 +342,7 @@ export default function Register() {
                     </p>
                   )}
                 </div>
+                
                 {/* Position Dropdown */}
                 <div className="mb-4 relative dropdown-container">
                   <input type="hidden" {...register('position')} />
@@ -355,7 +395,7 @@ export default function Register() {
                     </p>
                   )}
                 </div>
-                {/* ============= CHANGED: "Registration Code" to "Code Number" ============= */}
+
                 {/* Code Number - Show only for Advisor and Team Leader */}
                 {(selectedPosition === 'Advisor' ||
                   selectedPosition === 'Team Leader') && (
@@ -373,7 +413,7 @@ export default function Register() {
                     )}
                   </div>
                 )}
-                {/* ========================================================================== */}
+
                 {/* Email */}
                 <div className="mb-4">
                   <input
@@ -389,6 +429,7 @@ export default function Register() {
                     </p>
                   )}
                 </div>
+
                 {/* Password */}
                 <div className="mb-4 relative">
                   <input
@@ -411,6 +452,7 @@ export default function Register() {
                     </p>
                   )}
                 </div>
+
                 {/* Confirm Password */}
                 <div className="mb-4 relative">
                   <input
@@ -437,6 +479,7 @@ export default function Register() {
                     </p>
                   )}
                 </div>
+
                 {/* Register Button */}
                 <Button
                   type="submit"
@@ -488,7 +531,6 @@ export default function Register() {
         </div>
       </div>
 
-      {/* ============= CHANGED: Added py-8 for equal top and bottom spacing ============= */}
       {/* Right Section - Form*/}
       <div className="w-1/2 bg-white flex-1 overflow-y-auto py-8 px-8 flex justify-center">
         <div className="w-full max-w-md my-auto">
@@ -496,11 +538,24 @@ export default function Register() {
             <h1 className="text-center text-2xl font-bold text-gray-900 mb-8">
               Register
             </h1>
+            {/* Success Message */}
+            {successMessage && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
+                {successMessage}
+              </div>
+            )}
+            {/* Error Message */}
+            {errorMessage && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                {errorMessage}
+              </div>
+            )}
             <form
               onSubmit={handleSubmit(onSubmit)}
               noValidate
               className="space-y-4"
             >
+
               {/* First Name */}
               <div>
                 <input
@@ -546,7 +601,6 @@ export default function Register() {
                 )}
               </div>
 
-              {/* ============= CHANGED: Branch Dropdown to match mobile style with rounded corners ============= */}
               {/* Branch Dropdown */}
               <div className="relative dropdown-container">
                 <input type="hidden" {...register('branch')} />
@@ -598,7 +652,6 @@ export default function Register() {
                 )}
               </div>
 
-              {/* ============= CHANGED: Position Dropdown to match mobile style with rounded corners ============= */}
               {/* Position Dropdown */}
               <div className="relative dropdown-container">
                 <input type="hidden" {...register('position')} />
@@ -652,7 +705,6 @@ export default function Register() {
                 )}
               </div>
 
-              {/* ============= CHANGED: "Registration Code" to "Code Number" ============= */}
               {/* Code Number - Show only for Advisor and Team Leader */}
               {(selectedPosition === 'Advisor' ||
                 selectedPosition === 'Team Leader') && (
@@ -670,7 +722,6 @@ export default function Register() {
                   )}
                 </div>
               )}
-              {/* ========================================================================== */}
 
               {/* Email */}
               <div>
