@@ -169,7 +169,7 @@ export default function Register() {
       if (result.success) {
         // Registration successful
         setSuccessMessage(
-          'Registration successful! Your account is pending approval. Redirecting to login...'
+          'Registration successful! Please check your email to verify your account. After email verification, your account will be pending admin approval.'
         )
 
         // Reset form
@@ -177,10 +177,10 @@ export default function Register() {
         setSelectedBranch('')
         setSelectedPosition('')
 
-        // Redirect to login page after 2 seconds
+        // Redirect to login page after 3 seconds
         setTimeout(() => {
           router.push('/login')
-        }, 2000)
+        }, 3000)
       } else {
         // Registration failed - show error
         setErrorMessage(
@@ -342,7 +342,7 @@ export default function Register() {
                     </p>
                   )}
                 </div>
-                
+
                 {/* Position Dropdown */}
                 <div className="mb-4 relative dropdown-container">
                   <input type="hidden" {...register('position')} />

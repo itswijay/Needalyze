@@ -129,7 +129,20 @@ export async function signIn(email, password) {
       }
     }
 
-    // Step 2: Check user profile status
+    // Step 2: Check if email is confirmed
+    if (data.user && !data.user.email_confirmed_at) {
+      // Sign out the user if email is not confirmed
+      await supabase.auth.signOut()
+      return {
+        success: false,
+        error:
+          'Please verify your email address before logging in. Check your inbox for the confirmation link.',
+        user: null,
+        session: null,
+      }
+    }
+
+    // Step 3: Check user profile status
     const { data: profile, error: profileError } = await supabase
       .from('user_profile')
       .select('status')
@@ -147,7 +160,7 @@ export async function signIn(email, password) {
       }
     }
 
-    // Step 3: Verify account is approved
+    // Step 4: Verify account is approved
     if (profile.status !== 'approved') {
       // Sign out the user if not approved
       await supabase.auth.signOut()
@@ -160,7 +173,7 @@ export async function signIn(email, password) {
       }
     }
 
-    // Step 4: Return success with user and session
+    // Step 5: Return success with user and session
     return {
       success: true,
       error: null,
