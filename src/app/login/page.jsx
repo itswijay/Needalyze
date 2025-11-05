@@ -8,6 +8,8 @@ import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
+import { useRouter } from 'next/navigation'
+import { signIn } from '@/lib/auth'
 
 // Zod validation schema
 const loginSchema = z.object({
@@ -22,8 +24,10 @@ const loginSchema = z.object({
 })
 
 const page = () => {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(null) // null initially to prevent hydration mismatch
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     const checkMobile = () => {
@@ -54,18 +58,21 @@ const page = () => {
   const handleLogin = async (data) => {
     try {
       setLoading(true)
-      console.log('Form submitted successfully with data:', data)
+      setErrorMessage('')
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Call Supabase signIn function
+      const result = await signIn(data.email, data.password)
 
-      console.log('Login successful!')
-      // Your actual login logic here
-
-      // Reset form after successful login if needed
-      // reset()
+      if (result.success) {
+        // Login successful - redirect to dashboard
+        router.push('/dashboard')
+      } else {
+        // Login failed - show error message
+        setErrorMessage(result.error || 'Login failed. Please try again.')
+      }
     } catch (error) {
       console.error('Login error:', error)
+      setErrorMessage('An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -111,6 +118,12 @@ const page = () => {
                   Login
                 </h1>
                 <div className="mx-4">
+                  {/* Error Message */}
+                  {errorMessage && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                      {errorMessage}
+                    </div>
+                  )}
                   <form onSubmit={handleSubmit(handleLogin)} noValidate>
                     <div className="mb-4">
                       <Input
@@ -150,7 +163,7 @@ const page = () => {
                   </form>
                   <div className="space-y-2">
                     <Link
-                      href="#"
+                      href="/forget-password"
                       className="w-full block text-primary-900 hover:text-primary-700 text-sm font-semibold text-center mt-4"
                     >
                       Forget Password
@@ -158,7 +171,7 @@ const page = () => {
                     <p className="text-center text-primary-900 text-sm mt-2">
                       Don't have account?{' '}
                       <Link
-                        href="#"
+                        href="/register"
                         className="text-primary-900 hover:text-primary-700 font-semibold inline"
                       >
                         Signup
@@ -174,6 +187,12 @@ const page = () => {
                   <CardTitle className="text-center text-2xl">Login</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {/* Error Message */}
+                  {errorMessage && (
+                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                      {errorMessage}
+                    </div>
+                  )}
                   <form onSubmit={handleSubmit(handleLogin)} noValidate>
                     <div className="mb-4">
                       <Input
@@ -211,7 +230,7 @@ const page = () => {
                       {loading ? 'Loading...' : 'Login'}
                     </Button>
                     <Link
-                      href="#"
+                      href="/forget-password"
                       className="w-full block text-primary-600 hover:text-primary-400 text-xs font-semibold text-center mt-4 mb-2"
                     >
                       Forget Password
@@ -219,7 +238,7 @@ const page = () => {
                     <p className="text-center text-primary-600 text-xs mt-2">
                       Don't have account?{' '}
                       <Link
-                        href="#"
+                        href="/register"
                         className="text-primary-400 hover:text-primary-200 font-semibold inline"
                       >
                         Signup
