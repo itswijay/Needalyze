@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useRouter } from 'next/navigation'
 import { signUp } from '@/lib/auth'
+import { useAuth } from '@/context/AuthContext'
 
 // Zod Validation Schema
 const registerSchema = z
@@ -59,6 +60,7 @@ const registerSchema = z
 
 export default function Register() {
   const router = useRouter()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const [isMobile, setIsMobile] = useState(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -78,6 +80,27 @@ export default function Register() {
 
   const branches = ['Warakapola']
   const positions = ['Branch Manager', 'Advisor', 'Team Leader']
+
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/dashboard')
+    }
+  }, [isAuthenticated, authLoading, router])
+
+  // Show loading state while checking authentication or if already authenticated
+  if (authLoading || isAuthenticated) {
+    return (
+      <div className="w-full h-screen flex justify-center items-center bg-[linear-gradient(to_bottom,_#24456e_0%,_#04182f_80%)]">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>
+            {isAuthenticated ? 'Redirecting to dashboard...' : 'Loading...'}
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   // Check mobile viewport
   useEffect(() => {
@@ -555,7 +578,6 @@ export default function Register() {
               noValidate
               className="space-y-4"
             >
-
               {/* First Name */}
               <div>
                 <input

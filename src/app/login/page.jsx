@@ -49,6 +49,20 @@ const page = () => {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  // Show loading state while checking authentication or if already authenticated
+  if (authLoading || isAuthenticated) {
+    return (
+      <div className="w-full h-screen flex justify-center items-center bg-[linear-gradient(to_bottom,_#24456e_0%,_#04182f_80%)]">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+          <p>
+            {isAuthenticated ? 'Redirecting to dashboard...' : 'Loading...'}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   // React Hook Form with Zod resolver
   const {
     register,
