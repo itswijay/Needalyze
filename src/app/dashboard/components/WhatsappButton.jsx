@@ -1,17 +1,20 @@
 import { Button } from '@/components/ui/button'
 import React from 'react'
 
-const WhatsappButton = () => {
+const WhatsappButton = ({ link }) => {
+  const shareToWhatsApp = () => {
+    const message = `Hi! Please fill out this Need Analysis Form: ${link}`
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`
+    window.open(whatsappUrl, '_blank')
+  }
   return (
     <div>
       <Button
         type="button"
         variant="ghost"
         className="p-2 hover:bg-transparent cursor-pointer active:scale-95 mr-1"
-        onClick={() => {
-          const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(link)}`
-          window.open(whatsappUrl, '_blank')
-        }}
+        onClick={shareToWhatsApp}
+        disabled={!link}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
