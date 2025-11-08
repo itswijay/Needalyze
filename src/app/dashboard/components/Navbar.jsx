@@ -72,7 +72,7 @@ const Navbar = () => {
             <DropdownMenuSeparator />
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuItem
-              onClick={handleSignOut}
+              onSelect={handleSignOut}
               className="text-red-600 focus:text-red-600 cursor-pointer"
             >
               Logout
