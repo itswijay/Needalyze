@@ -49,7 +49,7 @@ const Navbar = () => {
         <DropdownMenu>
           <DropdownMenuTrigger>
             <li>
-              <Avatar>
+              <Avatar className="cursor-pointer">
                 <AvatarImage src="https://github.com/shadcn.png" />
                 <AvatarFallback>{getUserInitials()}</AvatarFallback>
               </Avatar>

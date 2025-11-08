@@ -31,6 +31,21 @@ const page = () => {
   const [isMobile, setIsMobile] = useState(null) // null initially to prevent hydration mismatch
   const [errorMessage, setErrorMessage] = useState('')
 
+  // React Hook Form with Zod resolver - MUST be called before any early returns
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    mode: 'onSubmit',
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+  })
+
   // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -62,21 +77,6 @@ const page = () => {
       </div>
     )
   }
-
-  // React Hook Form with Zod resolver
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-  } = useForm({
-    resolver: zodResolver(loginSchema),
-    mode: 'onSubmit',
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-  })
 
   const handleLogin = async (data) => {
     try {
