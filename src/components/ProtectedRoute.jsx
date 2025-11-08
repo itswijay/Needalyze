@@ -30,7 +30,7 @@ export function ProtectedRoute({ children, requireApproval = false }) {
       // If authentication is required and user is not approved
       else if (requireApproval && !isApproved) {
         console.log('Not approved - redirecting to login')
-        router.push('/login')
+        router.push('/login?reason=not-approved')
       }
     }
   }, [isAuthenticated, isApproved, loading, requireApproval, router])
