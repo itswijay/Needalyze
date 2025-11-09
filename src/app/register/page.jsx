@@ -206,7 +206,7 @@ export default function Register() {
         // Redirect to login page after 3 seconds
         setTimeout(() => {
           router.push('/login')
-        }, 3000)
+        }, 5000)
       } else {
         // Registration failed - show error
         setErrorMessage(

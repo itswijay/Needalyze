@@ -49,9 +49,22 @@ export async function signUp(userData) {
     })
 
     if (authError) {
+      // Handle specific error cases with user-friendly messages
+      let errorMessage = authError.message
+
+      // Check for duplicate email (user already exists)
+      if (
+        authError.message.includes('User already registered') ||
+        authError.message.includes('already registered') ||
+        authError.code === 'user_already_exists'
+      ) {
+        errorMessage =
+          'This email address is already registered. Please login or use a different email address.'
+      }
+
       return {
         success: false,
-        error: authError.message,
+        error: errorMessage,
         user: null,
       }
     }
@@ -82,9 +95,32 @@ export async function signUp(userData) {
       // If profile creation fails, we should ideally delete the auth user
       // but Supabase doesn't allow this from client side easily
       // You might want to handle this with a database trigger or cloud function
+
+      let errorMessage = profileError.message
+
+      // Handle foreign key constraint error (usually means duplicate email)
+      if (
+        profileError.message.includes('user_profile_user_id_fkey') ||
+        profileError.message.includes('foreign key constraint') ||
+        profileError.code === '23503'
+      ) {
+        errorMessage =
+          'This email address is already registered. Please login or use a different email address.'
+      }
+
+      // Handle duplicate phone number
+      if (
+        profileError.message.includes('user_profile_phone_number_key') ||
+        profileError.message.includes('duplicate key') ||
+        profileError.code === '23505'
+      ) {
+        errorMessage =
+          'This phone number is already registered. Please use a different phone number.'
+      }
+
       return {
         success: false,
-        error: `Profile creation failed: ${profileError.message}`,
+        error: errorMessage,
         user: null,
       }
     }
@@ -98,9 +134,21 @@ export async function signUp(userData) {
       user: authData.user,
     }
   } catch (error) {
+    console.error('Registration error:', error)
+
+    // Provide user-friendly error message
+    let errorMessage =
+      'An unexpected error occurred during registration. Please try again.'
+
+    // Check if it's a network error
+    if (error.message && error.message.includes('fetch')) {
+      errorMessage =
+        'Network error. Please check your internet connection and try again.'
+    }
+
     return {
       success: false,
-      error: error.message || 'An unexpected error occurred',
+      error: errorMessage,
       user: null,
     }
   }
