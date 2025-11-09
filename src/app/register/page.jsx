@@ -26,7 +26,10 @@ const registerSchema = z
     phoneNumber: z
       .string()
       .min(1, 'Phone number is required')
-      .regex(/^[0-9]{10}$/, 'Phone number must be 10 digits'),
+      .regex(
+        /^\+\d{11}$/,
+        'Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)'
+      ),
     branch: z.string().min(1, 'Please select a branch'),
     position: z.string().min(1, 'Please select a position'),
     regCode: z.string().optional(),
