@@ -211,7 +211,12 @@ export async function signIn(email, password) {
     // Step 4: Verify account is approved
     if (profile.status !== 'approved') {
       // Sign out the user if not approved
+      console.log('User not approved, status:', profile.status)
       await supabase.auth.signOut()
+
+      // Add a small delay to ensure signOut completes
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
       return {
         success: false,
         error:
@@ -229,6 +234,7 @@ export async function signIn(email, password) {
       session: data.session,
     }
   } catch (error) {
+    console.error('SignIn error:', error)
     return {
       success: false,
       error: error.message || 'An unexpected error occurred',

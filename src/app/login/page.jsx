@@ -109,8 +109,17 @@ const page = () => {
       // Clear stored message when user attempts login
       sessionStorage.removeItem('loginInfoMessage')
 
+      console.log('Attempting login for:', data.email)
+
       // Call Supabase signIn function
       const result = await signIn(data.email, data.password)
+
+      console.log('Login result:', {
+        success: result.success,
+        error: result.error,
+        hasUser: !!result.user,
+        hasSession: !!result.session
+      })
 
       if (result.success) {
         // Login successful - AuthContext will handle the redirect via useEffect
@@ -119,6 +128,7 @@ const page = () => {
         console.log('Login successful, waiting for auth state to update...')
       } else {
         // Login failed - show error message
+        console.log('Setting error message:', result.error)
         setErrorMessage(result.error || 'Login failed. Please try again.')
         setLoading(false)
       }
