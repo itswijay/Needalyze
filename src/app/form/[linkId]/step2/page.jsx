@@ -1,15 +1,15 @@
-'use client'
+"use client";
 
-import { useForm, Controller } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
-import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
-import ProgressBar from '@/components/ProgressBar'
-import FormContainer from '@/components/FormContainer'
-import FormNavButton from '@/components/FormNavButton'
-import { useFormContext } from '@/context/FormContext'
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
+import ProgressBar from "@/components/ProgressBar";
+import FormContainer from "@/components/FormContainer";
+import FormNavButton from "@/components/FormNavButton";
+import { useFormContext } from "@/context/FormContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
+} from "@/components/ui/alert-dialog";
 
 // Zod validation schema
 const step2Schema = z.object({
@@ -39,33 +39,33 @@ const step2Schema = z.object({
     })
     .refine(
       (data) => {
-        const selectedCount = Object.values(data).filter(Boolean).length
-        return selectedCount <= 3
+        const selectedCount = Object.values(data).filter(Boolean).length;
+        return selectedCount <= 3;
       },
       {
-        message: 'You can choose only 3 options',
+        message: "You can choose only 3 options",
       }
     )
     .refine(
       (data) => {
         // Cannot select both hospital bill cover and surgery cover
-        return !(data.hospitalBillCover && data.surgeryCover)
+        return !(data.hospitalBillCover && data.surgeryCover);
       },
       {
         message:
-          'Cannot select hospital bill cover and surgery cover at same time',
+          "Cannot select hospital bill cover and surgery cover at same time",
       }
     ),
-})
+});
 
 export default function NeedAnalysisFormPage2() {
-  const router = useRouter()
-  const [showConflictMessage, setShowConflictMessage] = useState(false)
-  const [showWarningMessage, setShowWarningMessage] = useState(false)
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConflictMessage, setShowConflictMessage] = useState(false);
+  const [showWarningMessage, setShowWarningMessage] = useState(false);
 
   // Get form context
-  const { getStepData, updateStepData, isLoaded } = useFormContext()
-  const step2Data = getStepData('step2')
+  const { getStepData, updateStepData, isLoaded, linkId } = useFormContext();
 
   const {
     control,
@@ -91,103 +91,115 @@ export default function NeedAnalysisFormPage2() {
         criticalIllness: false,
       },
     },
-    mode: 'onChange',
-  })
+    mode: "onChange",
+  });
+
+  const step2Data = getStepData("step2");
 
   // Load data from context when available
   useEffect(() => {
     if (isLoaded && step2Data) {
-      reset(step2Data)
+      reset(step2Data);
     }
-  }, [isLoaded, step2Data, reset])
+  }, [isLoaded, step2Data, reset]);
 
-  const watchedValues = watch()
+  const watchedValues = watch();
 
   const handleInsuranceNeedChange = (field, currentValue) => {
-    const newValue = !currentValue
-    setValue(`insuranceNeeds.${field}`, newValue, { shouldValidate: true })
-    setShowWarningMessage(false)
-  }
+    const newValue = !currentValue;
+    setValue(`insuranceNeeds.${field}`, newValue, { shouldValidate: true });
+    setShowWarningMessage(false);
+  };
 
   const handleHealthCoverChange = (field, currentValue) => {
-    const newValue = !currentValue
+    const newValue = !currentValue;
 
     // Hide warning message when selecting
-    setShowWarningMessage(false)
+    setShowWarningMessage(false);
 
     // Show message when trying to select Surgery Cover while Hospital Bill Cover is selected
     if (
-      field === 'surgeryCover' &&
+      field === "surgeryCover" &&
       newValue &&
       watchedValues.healthCovers?.hospitalBillCover
     ) {
-      setShowConflictMessage(true)
-      return
+      setShowConflictMessage(true);
+      return;
     }
 
     // Show message when trying to select Hospital Bill Cover while Surgery Cover is selected
     if (
-      field === 'hospitalBillCover' &&
+      field === "hospitalBillCover" &&
       newValue &&
       watchedValues.healthCovers?.surgeryCover
     ) {
-      setShowConflictMessage(true)
-      return
+      setShowConflictMessage(true);
+      return;
     }
 
     // Hide message when deselecting conflicting options
     if (
       !newValue &&
-      (field === 'surgeryCover' || field === 'hospitalBillCover')
+      (field === "surgeryCover" || field === "hospitalBillCover")
     ) {
-      setShowConflictMessage(false)
+      setShowConflictMessage(false);
     }
 
     // Check validation for max selections
     const currentHealthCovers = {
       ...watchedValues.healthCovers,
       [field]: newValue,
-    }
+    };
     const selectedCount =
-      Object.values(currentHealthCovers).filter(Boolean).length
+      Object.values(currentHealthCovers).filter(Boolean).length;
 
     // Prevent selection if more than 3 options
     if (newValue && selectedCount > 3) {
-      return
+      return;
     }
 
-    setValue(`healthCovers.${field}`, newValue, { shouldValidate: true })
-  }
+    setValue(`healthCovers.${field}`, newValue, { shouldValidate: true });
+  };
 
-  const onSubmit = (data) => {
-    // Save to context (which auto-saves to localStorage)
-    updateStepData('step2', data)
-    router.push('/form/step3')
-  }
+  const onSubmit = async (data) => {
+    setIsSubmitting(true);
 
-  const handleBack = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    router.push('/form/step1')
-  }
+    try {
+      // Save to both localStorage and database
+      await updateStepData("step2", data, true);
+
+      // Navigate to next step
+      router.push(`/form/${linkId}/step3`);
+    } catch (error) {
+      console.error("Error saving step 2:", error);
+      // Still navigate to next step since data is saved locally
+      router.push(`/form/${linkId}/step3`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBack = () => {
+    router.push(`/form/${linkId}/step1`);
+  };
 
   const handleNext = () => {
     // Check if at least one option is selected from either section
     const insuranceSelected = Object.values(
       watchedValues.insuranceNeeds || {}
-    ).some(Boolean)
+    ).some(Boolean);
     const healthSelected = Object.values(watchedValues.healthCovers || {}).some(
       Boolean
-    )
+    );
 
     if (!insuranceSelected && !healthSelected) {
-      setShowWarningMessage(true)
-      return
+      setShowWarningMessage(true);
+      return;
     }
 
     // If at least one option is selected, proceed with form submission
-    handleSubmit(onSubmit)()
-  }
+    handleSubmit(onSubmit)();
+  };
 
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
@@ -216,7 +228,7 @@ export default function NeedAnalysisFormPage2() {
                     <AlertDialogTrigger asChild>
                       <div
                         className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80"
-                        style={{ backgroundColor: '#89acd0' }}
+                        style={{ backgroundColor: "#89acd0" }}
                       >
                         <span className="text-white text-sm font-bold">i</span>
                       </div>
@@ -233,7 +245,7 @@ export default function NeedAnalysisFormPage2() {
                       </AlertDialogHeader>
                       <AlertDialogAction
                         className="w-full sm:w-auto mt-4 sm:mt-6 text-white py-2 sm:py-3 px-4 sm:px-6 md:px-8 text-sm sm:text-base rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-                        style={{ backgroundColor: '#89acd0' }}
+                        style={{ backgroundColor: "#89acd0" }}
                       >
                         <span className="text-base sm:text-lg">✓</span>
                         OK
@@ -252,7 +264,7 @@ export default function NeedAnalysisFormPage2() {
                         checked={field.value}
                         onChange={() =>
                           handleInsuranceNeedChange(
-                            'dependentCostOfLiving',
+                            "dependentCostOfLiving",
                             field.value
                           )
                         }
@@ -268,7 +280,7 @@ export default function NeedAnalysisFormPage2() {
                         checked={field.value}
                         onChange={() =>
                           handleInsuranceNeedChange(
-                            'higherEducationChildren',
+                            "higherEducationChildren",
                             field.value
                           )
                         }
@@ -284,7 +296,7 @@ export default function NeedAnalysisFormPage2() {
                         checked={field.value}
                         onChange={() =>
                           handleInsuranceNeedChange(
-                            'longTermSavings',
+                            "longTermSavings",
                             field.value
                           )
                         }
@@ -300,7 +312,7 @@ export default function NeedAnalysisFormPage2() {
                         checked={field.value}
                         onChange={() =>
                           handleInsuranceNeedChange(
-                            'shortTermSavings',
+                            "shortTermSavings",
                             field.value
                           )
                         }
@@ -315,7 +327,7 @@ export default function NeedAnalysisFormPage2() {
                         label="Pension Fund"
                         checked={field.value}
                         onChange={() =>
-                          handleInsuranceNeedChange('pensionFund', field.value)
+                          handleInsuranceNeedChange("pensionFund", field.value)
                         }
                       />
                     )}
@@ -333,7 +345,7 @@ export default function NeedAnalysisFormPage2() {
                     <AlertDialogTrigger asChild>
                       <div
                         className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80"
-                        style={{ backgroundColor: '#89acd0' }}
+                        style={{ backgroundColor: "#89acd0" }}
                       >
                         <span className="text-white text-sm font-bold">i</span>
                       </div>
@@ -356,7 +368,7 @@ export default function NeedAnalysisFormPage2() {
                       </AlertDialogHeader>
                       <AlertDialogAction
                         className="w-full sm:w-auto mt-4 sm:mt-6 text-white py-2 sm:py-3 px-4 sm:px-6 md:px-8 text-sm sm:text-base rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-                        style={{ backgroundColor: '#89acd0' }}
+                        style={{ backgroundColor: "#89acd0" }}
                       >
                         <span className="text-base sm:text-lg">✓</span>
                         OK
@@ -385,7 +397,7 @@ export default function NeedAnalysisFormPage2() {
                         checked={field.value}
                         onChange={() =>
                           handleHealthCoverChange(
-                            'dailyHospitalizationExpenses',
+                            "dailyHospitalizationExpenses",
                             field.value
                           )
                         }
@@ -400,7 +412,7 @@ export default function NeedAnalysisFormPage2() {
                         label="Surgery Cover"
                         checked={field.value}
                         onChange={() =>
-                          handleHealthCoverChange('surgeryCover', field.value)
+                          handleHealthCoverChange("surgeryCover", field.value)
                         }
                       />
                     )}
@@ -414,7 +426,7 @@ export default function NeedAnalysisFormPage2() {
                         checked={field.value}
                         onChange={() =>
                           handleHealthCoverChange(
-                            'hospitalBillCover',
+                            "hospitalBillCover",
                             field.value
                           )
                         }
@@ -430,7 +442,7 @@ export default function NeedAnalysisFormPage2() {
                         checked={field.value}
                         onChange={() =>
                           handleHealthCoverChange(
-                            'criticalIllness',
+                            "criticalIllness",
                             field.value
                           )
                         }
@@ -459,13 +471,14 @@ export default function NeedAnalysisFormPage2() {
                 type="next"
                 variant="gradient"
                 onClick={handleNext}
+                disabled={isSubmitting}
               />
             </div>
           </div>
         </FormContainer>
       </section>
     </main>
-  )
+  );
 }
 
 // Checkbox Card Component
@@ -475,24 +488,24 @@ function CheckboxCard({ label, checked, onChange, disabled = false }) {
       className={`flex items-center px-3 py-2 sm:px-4 sm:py-3 bg-white rounded-full shadow-xl border border-gray-200 
                  transition-all duration-300 ${
                    disabled
-                     ? 'cursor-not-allowed opacity-50'
-                     : 'cursor-pointer hover:shadow-2xl hover:scale-105'
+                     ? "cursor-not-allowed opacity-50"
+                     : "cursor-pointer hover:shadow-2xl hover:scale-105"
                  }`}
       onClick={disabled ? undefined : onChange}
       style={{
         boxShadow:
-          '0 4px 15px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
+          "0 4px 15px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)",
       }}
     >
       <div
         className={`w-4 h-4 sm:w-5 sm:h-5 rounded border-2 mr-2 sm:mr-3 flex items-center justify-center transition-colors flex-shrink-0`}
         style={{
           backgroundColor: checked
-            ? '#1b477f'
+            ? "#1b477f"
             : disabled
-            ? '#d1d5db'
-            : '#89acd0',
-          borderColor: checked ? '#1b477f' : disabled ? '#d1d5db' : '#89acd0',
+            ? "#d1d5db"
+            : "#89acd0",
+          borderColor: checked ? "#1b477f" : disabled ? "#d1d5db" : "#89acd0",
         }}
       >
         {checked && (
@@ -514,11 +527,11 @@ function CheckboxCard({ label, checked, onChange, disabled = false }) {
       </div>
       <span
         className={`font-medium text-sm sm:text-base ${
-          disabled ? 'text-gray-400' : 'text-gray-700'
+          disabled ? "text-gray-400" : "text-gray-700"
         }`}
       >
         {label}
       </span>
     </div>
-  )
+  );
 }
