@@ -20,46 +20,47 @@ const Profile = ({ open, onOpenChange }) => {
   const [branch, setBranch] = useState('')
   const [position, setPosition] = useState('')
 
-  const branches = ['warakapola', 'galle', 'matara','awissawella','hambantota','monaragala','anuradhapura','colombo'];
-  const positions = ['branch manager 1','branch manager 2','branch manager 3'];
+  const branches = ['Warakapola'];
+  const positions = ['Branch Manager','Team Leader','Advisor'];
 
 
   const handleSubmit = () => {
     
   }
 
-
   return (
 
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl">
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Edit Your Details</DialogTitle>
         </DialogHeader>
-        
-        {/* update first name */}
-        <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
-            <Label htmlFor="first_name">First Name</Label>
-            <Input
-              id="first_name"
-              placeholder="Enter first name"
-              value={first_name}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
+
+           {/* First & Last Name in one row */}
+          <div className="flex flex-col sm:flex-row gap-4 py-2">
+            <div className="flex-1 grid gap-2">
+              <Label htmlFor="first_name">First Name</Label>
+              <Input
+                id="first_name"
+                placeholder="Enter first name"
+                value={first_name}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="rounded-full"
+              />
+            </div>
+
+            <div className="flex-1 grid gap-2">
+              <Label htmlFor="last_name">Last Name</Label>
+              <Input
+                id="last_name"
+                placeholder="Enter last name"
+                value={last_name}
+                onChange={(e) => setLastName(e.target.value)}
+                className="rounded-full"
+              />
+            </div>
           </div>
 
-          {/* update last name */}
-          <div className="grid gap-2">
-            <Label htmlFor="last_name">Last Name</Label>
-            <Input
-              id="last_name"
-              placeholder="Enter last name"
-              value={last_name}
-              onChange={(e) => setLastName(e.target.value)}
-            />
-          </div>
-          
           {/* phone number */}
           <div className="grid gap-2">
             <Label htmlFor="phone_number">Phone Number</Label>
@@ -68,6 +69,7 @@ const Profile = ({ open, onOpenChange }) => {
               placeholder="Enter phone number"
               value={phone_number}
               onChange={(e) => setPhoneNumber(e.target.value)}
+              className="rounded-full"
             />
           </div>
 
@@ -80,7 +82,7 @@ const Profile = ({ open, onOpenChange }) => {
                   id="branch"
                   value={branch}
                   onChange={(e) => setBranch(e.target.value)}
-                  className="border border-gray-300 rounded-md p-1.5 text-gray-700 text-sm focus:outline-none"
+                  className="border border-gray-300 rounded-full p-1.5 text-gray-700 text-sm focus:outline-none"
                 >
                   <option value="" disabled>
                     Select a branch
@@ -98,30 +100,48 @@ const Profile = ({ open, onOpenChange }) => {
             <Label htmlFor="branch" className="text-sm font-medium text-gray-700">
               Position
             </Label>
-            <select
-              id="position"
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-              className="border border-gray-300 rounded-md p-1.5 text-gray-700 text-sm focus:outline-none"
-            >
-              <option value="" disabled>
-                Select your position
-              </option>
-              {positions.map((b) => (
-                <option key={b} value={b}>
-                  {b}
+              <select
+                id="position"
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+                className="border border-gray-300 rounded-full p-2 text-gray-700 text-sm focus:outline-none right-4"
+              >
+                <option value="" disabled className='right-4'>
+                  Select your position
                 </option>
-              ))}
-            </select>
+                {positions.map((b) => (
+                  <option key={b} value={b}>
+                    {b}
+                  </option>
+                ))}
+              </select>
           </div>
           
           {/* save details or delete account */}
-          <div className='flex justify-center gap-3 pt-4'>
-            <Button onClick={handleSubmit} className="bg-red-600 hover:bg-red-800">Delete account</Button>
-            <Button onClick={handleSubmit} >Save your details</Button>
+          <div className='flex flex-col pt-4'>
+
+            <div className='flex justify-end'>
+              <Button onClick={handleSubmit} className="bg-sky-800 hover:bg-sky-700">Save your details</Button>
+            </div>
+
+            <div className='mt-5'>
+              <Label className="text-base text-red-600">Delete Account</Label>
+
+              <hr className="border-t border-gray-300" />
+
+              <p className='text-xs mt-2'>
+                 Your account is currently an owner in these organizations wijehq
+                 You must remove yourself, transfer ownership, or delete these organizations before you can delete your user.
+              </p>
+
+              <div className='flex justify-end'>
+                <Button onClick={handleSubmit} className="bg-red-600 hover:bg-red-800 mt-2">Delete account</Button>
+              </div>
+            </div>
+
           </div>
           
-        </div>
+     
       </DialogContent>
     </Dialog>
   )
