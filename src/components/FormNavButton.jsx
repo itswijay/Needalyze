@@ -1,33 +1,31 @@
-import React from 'react'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
-export default function FormNavButton({
+const FormNavButton = ({
   label,
-  type = 'next',
+  type,
+  variant = "gradient",
   onClick,
-  variant = 'default',
-  className = '',
-}) {
-  const isNext = type === 'next'
+  disabled = false,
+}) => {
+  const baseClasses = "px-6 py-2 rounded-md font-medium transition-all";
+  const gradientClasses = disabled
+    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+    : "bg-gradient-to-r from-[#3EAA66] to-[#189370] text-white hover:opacity-90";
 
   return (
     <Button
+      type="button"
       onClick={onClick}
-      variant={variant}
-      className={`flex items-center justify-center rounded-full w-30 h-11 transition-transform duration-200 hover:scale-103 active:scale-95 ${className}`}
+      disabled={disabled}
+      className={`${baseClasses} ${
+        variant === "gradient" ? gradientClasses : ""
+      }`}
     >
-      {isNext ? (
-        <>
-          {label}
-          <ArrowRight size={18} className="ml-1" />
-        </>
-      ) : (
-        <>
-          <ArrowLeft size={18} className="mr-1" />
-          {label}
-        </>
-      )}
+      {label}
     </Button>
-  )
-}
+  );
+};
+
+export default FormNavButton;

@@ -1,28 +1,26 @@
-'use client'
-import React from 'react'
-import { useRouter } from 'next/navigation'
-import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
-import ProgressBar from '@/components/ProgressBar'
-import { Button } from '@/components/ui/button'
-import { CheckCircle2, Download, RotateCcw } from 'lucide-react'
-import { useFormContext } from '@/context/FormContext'
+"use client";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
+import ProgressBar from "@/components/ProgressBar";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, Download, RotateCcw } from "lucide-react";
+import { useFormContext } from "@/context/FormContext";
 
 export default function Step4Page() {
-  const router = useRouter()
-  const { resetForm } = useFormContext()
+  const router = useRouter();
+  const [isMarkingComplete, setIsMarkingComplete] = useState(false);
+  const { updateStepData, getAllData, linkId } = useFormContext();
 
   const handleDownload = () => {
     // TODO: Implement PDF generation
     // TODO: Access form data from context or Supabase for PDF generation
-    console.log('Download PDF functionality - To be implemented')
-  }
+    console.log("Download PDF functionality - To be implemented");
+  };
 
-  const handleStartNewForm = () => {
-    // Clear all form data and localStorage
-    resetForm()
-    // Navigate back to step 1
-    router.push('/form/step1')
-  }
+  const handleStartOver = () => {
+    router.push(`/form/${linkId}/step1`);
+  };
 
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
@@ -44,6 +42,7 @@ export default function Step4Page() {
           </div>
 
           {/* Success Message */}
+
           <h1 className="text-2xl md:text-xl font-bold text-primary-600 mb-6">
             Form Completed Successfully
           </h1>
@@ -57,7 +56,7 @@ export default function Step4Page() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {/* Start New Form Button */}
             <Button
-              onClick={handleStartNewForm}
+              onClick={handleStartOver}
               className="px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
               variant="outline"
             >
@@ -78,5 +77,5 @@ export default function Step4Page() {
         </div>
       </section>
     </main>
-  )
+  );
 }
