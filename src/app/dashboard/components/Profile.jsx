@@ -31,7 +31,7 @@ const Profile = ({ open, onOpenChange }) => {
   return (
 
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl">
+      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
         <DialogHeader>
           <DialogTitle>Edit Your Details</DialogTitle>
         </DialogHeader>
@@ -130,8 +130,7 @@ const Profile = ({ open, onOpenChange }) => {
               <hr className="border-t border-gray-300" />
 
               <p className='text-xs mt-2'>
-                 Your account is currently an owner in these organizations wijehq
-                 You must remove yourself, transfer ownership, or delete these organizations before you can delete your user.
+               Delete Account, your account will be scheduled for permanent deletion. You can recover your account within 7 days
               </p>
 
               <div className='flex justify-end'>
