@@ -11,6 +11,8 @@ import {
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ChevronDown } from "lucide-react";
+import DeleteAccountVerify from './DeleteAccountVerify'
 
 const Profile = ({ open, onOpenChange }) => {
 
@@ -19,6 +21,7 @@ const Profile = ({ open, onOpenChange }) => {
   const [phone_number, setPhoneNumber] = useState('')
   const [branch, setBranch] = useState('')
   const [position, setPosition] = useState('')
+  const [isDelVerifyOpen, setIsDelVerifyOpen] = useState(false)
 
   const branches = ['Warakapola'];
   const positions = ['Branch Manager','Team Leader','Advisor'];
@@ -29,6 +32,9 @@ const Profile = ({ open, onOpenChange }) => {
   }
 
   return (
+
+  <>
+    <DeleteAccountVerify open={isDelVerifyOpen} onOpenChange={setIsDelVerifyOpen} />
 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
@@ -73,41 +79,54 @@ const Profile = ({ open, onOpenChange }) => {
             />
           </div>
 
-          {/* choose branch */}
-          <div className="grid gap-2">
+
+          {/* select branch */}
+          <div className="grid gap-2 relative">
+
             <Label htmlFor="branch" className="text-sm font-medium text-gray-700">
               Branch
             </Label>
-                <select
-                  id="branch"
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
-                  className="border border-gray-300 rounded-full p-1.5 text-gray-700 text-sm focus:outline-none"
-                >
-                  <option value="" disabled>
-                    Select a branch
+
+            <div className="relative">
+              <select
+                id="branch"
+                value={branch}
+                onChange={(e) => setBranch(e.target.value)}
+                className="appearance-none w-full border border-gray-300 rounded-full py-2 px-2.5 pr-8 text-gray-700 text-sm focus:outline-none"
+              >
+                <option value="" disabled>
+                  Select a branch
+                </option>
+                {branches.map((b) => (
+                  <option key={b} value={b}>
+                    {b}
                   </option>
-                  {branches.map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
-                  ))}
-                </select>
+                ))}
+              </select>
+
+              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </div>
+            </div>
           </div>
 
-          {/* choose position */}
-          <div className="grid gap-2">
+
+          {/* select position */}
+          <div className="grid gap-2 relative">
+
             <Label htmlFor="branch" className="text-sm font-medium text-gray-700">
               Position
             </Label>
+
+            <div className="relative">
               <select
                 id="position"
                 value={position}
                 onChange={(e) => setPosition(e.target.value)}
-                className="border border-gray-300 rounded-full p-2 text-gray-700 text-sm focus:outline-none right-4"
+                className="appearance-none w-full border border-gray-300 rounded-full py-2 px-2.5 pr-8 text-gray-700 text-sm focus:outline-none"
               >
-                <option value="" disabled className='right-4'>
-                  Select your position
+                <option value="" disabled>
+                  Select Position
                 </option>
                 {positions.map((b) => (
                   <option key={b} value={b}>
@@ -115,7 +134,13 @@ const Profile = ({ open, onOpenChange }) => {
                   </option>
                 ))}
               </select>
+
+              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </div>
+            </div>
           </div>
+
           
           {/* save details or delete account */}
           <div className='flex flex-col pt-4'>
@@ -133,16 +158,16 @@ const Profile = ({ open, onOpenChange }) => {
                Delete Account, your account will be scheduled for permanent deletion. You can recover your account within 7 days
               </p>
 
-              <div className='flex justify-end'>
-                <Button onClick={handleSubmit} className="bg-red-600 hover:bg-red-800 mt-2">Delete account</Button>
+              <div className='flex'>
+                <Button onClick={() => setIsDelVerifyOpen(true)} className="bg-red-600 hover:bg-red-800 mt-2">Delete account</Button>
               </div>
-            </div>
 
+            </div>
           </div>
-          
-     
       </DialogContent>
     </Dialog>
+
+  </>
   )
 }
 
