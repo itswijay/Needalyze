@@ -116,7 +116,7 @@ export async function POST(request, { params }) {
         };
       } else if (step === "step3") {
         updateData = {
-          human_life_value: data.hlvalue || 0,
+          human_life_value: data.actualHLValue || 0,
           status: data.completed ? "completed" : "pending",
         };
       } else if (step === "step4") {
