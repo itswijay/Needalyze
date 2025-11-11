@@ -14,7 +14,8 @@ import {
 const DeleteAccountVerify = ({ open, onOpenChange }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
+      <DialogContent className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-3xl mx-auto px-2 sm:px-4 md:px-6
+">
         <DialogHeader>
           <DialogTitle>Delete account</DialogTitle>
           <DialogDescription>

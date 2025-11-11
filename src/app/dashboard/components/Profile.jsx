@@ -37,7 +37,7 @@ const Profile = ({ open, onOpenChange }) => {
     <DeleteAccountVerify open={isDelVerifyOpen} onOpenChange={setIsDelVerifyOpen} />
 
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
+      <DialogContent className="w-[95%] sm:w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
         <DialogHeader>
           <DialogTitle>Edit Your Details</DialogTitle>
         </DialogHeader>
