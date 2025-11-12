@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,27 +22,46 @@ const Profile = ({ open, onOpenChange }) => {
   const [branch, setBranch] = useState('')
   const [position, setPosition] = useState('')
   const [isDelVerifyOpen, setIsDelVerifyOpen] = useState(false)
+  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState('');
+  const [showPositionDropdown, setShowPositionDropdown] = useState(false);
 
   const branches = ['Warakapola'];
   const positions = ['Branch Manager','Team Leader','Advisor'];
 
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.dropdown-container')) {
+        setShowBranchDropdown(false)
+        setShowPositionDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+
+  
+  // For Future Work
   const handleSubmit = () => {
     
   }
 
-  return (
 
+
+  return (
   <>
     <DeleteAccountVerify open={isDelVerifyOpen} onOpenChange={setIsDelVerifyOpen} />
 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95%] sm:w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-4xl mx-auto px-3 sm:px-4 md:px-6">
+        
         <DialogHeader>
           <DialogTitle>Edit Your Details</DialogTitle>
         </DialogHeader>
 
-           {/* First & Last Name in one row */}
+           {/* First Name*/}
           <div className="flex flex-col sm:flex-row gap-4 py-2">
             <div className="flex-1 grid gap-2">
               <Label htmlFor="first_name">First Name</Label>
@@ -54,7 +73,8 @@ const Profile = ({ open, onOpenChange }) => {
                 className="rounded-full"
               />
             </div>
-
+ 
+            {/* Last Name */}
             <div className="flex-1 grid gap-2">
               <Label htmlFor="last_name">Last Name</Label>
               <Input
@@ -79,66 +99,106 @@ const Profile = ({ open, onOpenChange }) => {
             />
           </div>
 
-
-          {/* select branch */}
-          <div className="grid gap-2 relative">
-
+ 
+          {/* Select Branch */}
+          <div className="grid gap-2 relative dropdown-container">
             <Label htmlFor="branch" className="text-sm font-medium text-gray-700">
               Branch
             </Label>
 
-            <div className="relative">
-              <select
-                id="branch"
-                value={branch}
-                onChange={(e) => setBranch(e.target.value)}
-                className="appearance-none w-full border border-gray-300 rounded-full py-2 px-2.5 pr-8 text-gray-700 text-sm focus:outline-none"
-              >
-                <option value="" disabled>
-                  Select a branch
-                </option>
-                {branches.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
-              </select>
-
-              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
-                <ChevronDown className="w-4 h-4 text-gray-500" />
-              </div>
+            <div
+              className="w-full rounded-full border border-gray-300 py-2 px-3 text-sm text-left cursor-pointer flex items-center justify-between bg-white"
+              onClick={() => setShowBranchDropdown(!showBranchDropdown)}
+            >
+              <span className={selectedBranch ? 'text-gray-900' : 'text-gray-500'}>
+                {selectedBranch || 'Select Branch'}
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 text-gray-500 transition-transform ${
+                  showBranchDropdown ? 'rotate-180' : ''
+                }`}
+              />
             </div>
+
+            {showBranchDropdown && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto mt-1">
+                {selectedBranch && (
+                  <div
+                    className="px-4 py-2 hover:bg-red-50 text-red-600 text-sm cursor-pointer border-b border-gray-200"
+                    onClick={() => {
+                      setSelectedBranch('')
+                      setBranch('')
+                      setShowBranchDropdown(false)
+                    }}
+                  >
+                    ✕ Clear Selection
+                  </div>
+                )}
+                {branches.map((b) => (
+                  <div
+                    key={b}
+                    className="px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm cursor-pointer"
+                    onClick={() => {
+                      setSelectedBranch(b)
+                      setBranch(b)
+                      setShowBranchDropdown(false)
+                    }}
+                  >
+                    {b}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
 
-          {/* select position */}
-          <div className="grid gap-2 relative">
-
-            <Label htmlFor="branch" className="text-sm font-medium text-gray-700">
+          {/* Select Position */}
+          <div className="grid gap-2 relative dropdown-container">
+            <Label htmlFor="position" className="text-sm font-medium text-gray-700">
               Position
             </Label>
 
-            <div className="relative">
-              <select
-                id="position"
-                value={position}
-                onChange={(e) => setPosition(e.target.value)}
-                className="appearance-none w-full border border-gray-300 rounded-full py-2 px-2.5 pr-8 text-gray-700 text-sm focus:outline-none"
-              >
-                <option value="" disabled>
-                  Select Position
-                </option>
-                {positions.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
-              </select>
-
-              <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center">
-                <ChevronDown className="w-4 h-4 text-gray-500" />
-              </div>
+            <div
+              className="w-full rounded-full border border-gray-300 py-2 px-3 text-sm text-left cursor-pointer flex items-center justify-between bg-white"
+              onClick={() => setShowPositionDropdown(!showPositionDropdown)}
+            >
+              <span className={position ? 'text-gray-900' : 'text-gray-500'}>
+                {position || 'Select Position'}
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 text-gray-500 transition-transform ${
+                  showPositionDropdown ? 'rotate-180' : ''
+                }`}
+              />
             </div>
+
+            {showPositionDropdown && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto mt-1">
+                {position && (
+                  <div
+                    className="px-4 py-2 hover:bg-red-50 text-red-600 text-sm cursor-pointer border-b border-gray-200"
+                    onClick={() => {
+                      setPosition('')
+                      setShowPositionDropdown(false)
+                    }}
+                  >
+                    ✕ Clear Selection
+                  </div>
+                )}
+                {positions.map((p) => (
+                  <div
+                    key={p}
+                    className="px-4 py-2 hover:bg-gray-100 text-gray-700 text-sm cursor-pointer"
+                    onClick={() => {
+                      setPosition(p)
+                      setShowPositionDropdown(false)
+                    }}
+                  >
+                    {p}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           
