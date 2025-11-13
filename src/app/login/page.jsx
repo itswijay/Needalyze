@@ -1,4 +1,5 @@
 'use client'
+import toast from 'react-hot-toast'
 import Image from 'next/image'
 import React, { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
@@ -102,57 +103,54 @@ const page = () => {
   }
 
   const handleLogin = async (data) => {
-    try {
-      setLoading(true)
-      setErrorMessage('')
-      setInfoMessage('') // Clear info message on login attempt
-      // Clear stored message when user attempts login
-      sessionStorage.removeItem('loginInfoMessage')
+  try {
+    setLoading(true)
+    setErrorMessage('')
+    setInfoMessage('')
+    sessionStorage.removeItem('loginInfoMessage')
 
-      console.log('Attempting login for:', data.email)
+    console.log('Attempting login for:', data.email)
 
-      // Call Supabase signIn function
-      const result = await signIn(data.email, data.password)
+    const result = await signIn(data.email, data.password)
 
-      console.log('Login result:', {
-        success: result.success,
-        error: result.error,
-        hasUser: !!result.user,
-        hasSession: !!result.session
-      })
+    console.log('Login result:', {
+      success: result.success,
+      error: result.error,
+      hasUser: !!result.user,
+      hasSession: !!result.session
+    })
 
-      if (result.success) {
-        // Login successful - AuthContext will handle the redirect via useEffect
-        // The onAuthStateChange listener in AuthContext will update the state
-        // and the useEffect above will redirect to dashboard
-        console.log('Login successful, waiting for auth state to update...')
-      } else {
-        // Login failed - show error message
-        console.log('Setting error message:', result.error)
-        setErrorMessage(result.error || 'Login failed. Please try again.')
-        setLoading(false)
-      }
-    } catch (error) {
-      console.error('Login error:', error)
-      setErrorMessage('An unexpected error occurred. Please try again.')
+    if (result.success) {
+      toast.success('Login successful!')
+      console.log('Login successful, waiting for auth state to update...')
+    } else {
+      toast.error(result.error || 'Login failed. Please try again.')
+      setErrorMessage(result.error || 'Login failed. Please try again.')
       setLoading(false)
     }
+  } catch (error) {
+    console.error('Login error:', error)
+    toast.error('An unexpected error occurred. Please try again.')
+    setErrorMessage('An unexpected error occurred. Please try again.')
+    setLoading(false)
   }
+}
 
   const handleLogout = async () => {
-    try {
-      setLoading(true)
-      setInfoMessage('')
-      sessionStorage.removeItem('loginInfoMessage')
-      await signOut()
-      setLoading(false)
-      // Force reload to clear any cached state
-      window.location.reload()
-    } catch (error) {
-      console.error('Logout error:', error)
-      setLoading(false)
-    }
+  try {
+    setLoading(true)
+    setInfoMessage('')
+    sessionStorage.removeItem('loginInfoMessage')
+    await signOut()
+    toast.success('Logged out successfully!')
+    setLoading(false)
+    window.location.reload()
+  } catch (error) {
+    toast.error('Logout failed, please try again.') 
+    console.error('Logout error:', error)
+    setLoading(false)
   }
+}
 
   return (
     <>

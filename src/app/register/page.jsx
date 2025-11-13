@@ -1,5 +1,5 @@
 'use client'
-
+import toast from 'react-hot-toast'
 import React, { useState, useEffect } from 'react'
 import { Eye, EyeOff, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -194,9 +194,7 @@ export default function Register() {
 
       if (result.success) {
         // Registration successful
-        setSuccessMessage(
-          'Registration successful! Please check your email to verify your account. After email verification, your account will be pending admin approval.'
-        )
+        toast.success('Registration successful! Please check your email for verification.')
 
         // Reset form
         reset()
@@ -209,13 +207,10 @@ export default function Register() {
         }, 5000)
       } else {
         // Registration failed - show error
-        setErrorMessage(
-          result.error || 'Registration failed. Please try again.'
-        )
+        toast.error(result.error || 'Registration failed. Please try again.')
       }
     } catch (error) {
-      console.error('Registration error:', error)
-      setErrorMessage('An unexpected error occurred. Please try again.')
+      toast.error('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)
     }
