@@ -1,89 +1,89 @@
-"use client";
+'use client'
 
-import React, { useState, useEffect } from "react";
-import FormContainer from "@/components/FormContainer";
-import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
-import ProgressBar from "@/components/ProgressBar";
-import { Button } from "@/components/ui/button";
-import FormNavButton from "@/components/FormNavButton";
-import { useRouter } from "next/navigation";
-import * as z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useFormContext } from "@/context/FormContext";
+import React, { useState, useEffect } from 'react'
+import FormContainer from '@/components/FormContainer'
+import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
+import ProgressBar from '@/components/ProgressBar'
+import { Button } from '@/components/ui/button'
+import FormNavButton from '@/components/FormNavButton'
+import { useRouter } from 'next/navigation'
+import * as z from 'zod'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useFormContext } from '@/context/FormContext'
 
 export default function Form3Page() {
-  const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isMarkingComplete, setIsMarkingComplete] = useState(false);
+  const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isMarkingComplete, setIsMarkingComplete] = useState(false)
   const handleBack = () => {
-    router.push(`/form/${linkId}/step2`);
-  };
+    router.push(`/form/${linkId}/step2`)
+  }
 
   // Get form context
   const { getStepData, updateStepData, isLoaded, linkId, getAllData } =
-    useFormContext();
-  const step3Data = getStepData("step3");
+    useFormContext()
+  const step3Data = getStepData('step3')
 
   // Zod validation schema
   const calculationSchema = z.object({
     fixedMonthlyExpenses: z.preprocess(
       (val) => {
-        if (val === "" || val === null || val === undefined) return undefined;
-        const num = Number(val);
-        return isNaN(num) ? undefined : num;
+        if (val === '' || val === null || val === undefined) return undefined
+        const num = Number(val)
+        return isNaN(num) ? undefined : num
       },
       z
         .number({
-          required_error: "Fixed monthly expenses is required",
-          invalid_type_error: "Fixed monthly expenses is required",
+          required_error: 'Fixed monthly expenses is required',
+          invalid_type_error: 'Fixed monthly expenses is required',
         })
-        .positive("Fixed monthly expenses must be greater than 0")
-        .min(1, "Fixed monthly expenses must be at least 1")
+        .positive('Fixed monthly expenses must be greater than 0')
+        .min(1, 'Fixed monthly expenses must be at least 1')
     ),
 
     bankInterestRate: z.preprocess(
       (val) => {
-        if (val === "" || val === null || val === undefined) return undefined;
-        const num = Number(val);
-        return isNaN(num) ? undefined : num;
+        if (val === '' || val === null || val === undefined) return undefined
+        const num = Number(val)
+        return isNaN(num) ? undefined : num
       },
       z
         .number({
-          required_error: "Bank interest rate is required",
-          invalid_type_error: "Bank interest rate is required",
+          required_error: 'Bank interest rate is required',
+          invalid_type_error: 'Bank interest rate is required',
         })
-        .positive("Bank interest rate must be greater than 0")
-        .max(100, "Bank interest rate cannot exceed 100%")
+        .positive('Bank interest rate must be greater than 0')
+        .max(100, 'Bank interest rate cannot exceed 100%')
     ),
 
     // Optional fields - will be 0 if not provided
     unsecuredBankLoan: z.preprocess(
       (val) => {
-        if (val === "" || val === null || val === undefined) return 0;
-        const num = Number(val);
-        return isNaN(num) ? 0 : num;
+        if (val === '' || val === null || val === undefined) return 0
+        const num = Number(val)
+        return isNaN(num) ? 0 : num
       },
       z
         .number({
-          invalid_type_error: "Please enter a valid number",
+          invalid_type_error: 'Please enter a valid number',
         })
-        .nonnegative("Cannot be negative")
+        .nonnegative('Cannot be negative')
     ),
 
     cashInHandInsurance: z.preprocess(
       (val) => {
-        if (val === "" || val === null || val === undefined) return 0;
-        const num = Number(val);
-        return isNaN(num) ? 0 : num;
+        if (val === '' || val === null || val === undefined) return 0
+        const num = Number(val)
+        return isNaN(num) ? 0 : num
       },
       z
         .number({
-          invalid_type_error: "Please enter a valid number",
+          invalid_type_error: 'Please enter a valid number',
         })
-        .nonnegative("Cannot be negative")
+        .nonnegative('Cannot be negative')
     ),
-  });
+  })
 
   // React Hook Form with Zod resolver
   const {
@@ -94,38 +94,38 @@ export default function Form3Page() {
     reset,
   } = useForm({
     resolver: zodResolver(calculationSchema),
-    mode: "onChange",
+    mode: 'onChange',
     defaultValues: {
-      fixedMonthlyExpenses: "",
-      bankInterestRate: "",
-      unsecuredBankLoan: "",
-      cashInHandInsurance: "",
+      fixedMonthlyExpenses: '',
+      bankInterestRate: '',
+      unsecuredBankLoan: '',
+      cashInHandInsurance: '',
     },
-  });
+  })
 
   // Watch form values for real-time calculation
-  const fixedMonthlyExpenses = watch("fixedMonthlyExpenses");
-  const bankInterestRate = watch("bankInterestRate");
-  const unsecuredBankLoan = watch("unsecuredBankLoan");
-  const cashInHandInsurance = watch("cashInHandInsurance");
+  const fixedMonthlyExpenses = watch('fixedMonthlyExpenses')
+  const bankInterestRate = watch('bankInterestRate')
+  const unsecuredBankLoan = watch('unsecuredBankLoan')
+  const cashInHandInsurance = watch('cashInHandInsurance')
 
-  const [hlvalue, setHLValue] = useState(0);
-  const [actualHLValue, setActualHLValue] = useState(0);
+  const [hlvalue, setHLValue] = useState(0)
+  const [actualHLValue, setActualHLValue] = useState(0)
 
   // Load data from context when available
   useEffect(() => {
     if (isLoaded && step3Data) {
       reset({
-        fixedMonthlyExpenses: step3Data.fixedMonthlyExpenses || "",
-        bankInterestRate: step3Data.bankInterestRate || "",
-        unsecuredBankLoan: step3Data.unsecuredBankLoan || "",
-        cashInHandInsurance: step3Data.cashInHandInsurance || "",
-      });
+        fixedMonthlyExpenses: step3Data.fixedMonthlyExpenses || '',
+        bankInterestRate: step3Data.bankInterestRate || '',
+        unsecuredBankLoan: step3Data.unsecuredBankLoan || '',
+        cashInHandInsurance: step3Data.cashInHandInsurance || '',
+      })
       // Restore calculated values if they exist
-      if (step3Data.hlvalue) setHLValue(step3Data.hlvalue);
-      if (step3Data.actualHLValue) setActualHLValue(step3Data.actualHLValue);
+      if (step3Data.hlvalue) setHLValue(step3Data.hlvalue)
+      if (step3Data.actualHLValue) setActualHLValue(step3Data.actualHLValue)
     }
-  }, [isLoaded, step3Data, reset]);
+  }, [isLoaded, step3Data, reset])
 
   // Real-time HLV calculation
   useEffect(() => {
@@ -140,41 +140,43 @@ export default function Form3Page() {
     ) {
       // Formula: HLV = (Fixed Monthly Expenses × 12) / (Bank Interest Rate / 100)
       const calculatedHLV =
-        (fixedMonthlyExpenses * 12) / (bankInterestRate / 100);
+        (fixedMonthlyExpenses * 12) / (bankInterestRate / 100)
 
       // Handle edge cases
       if (isFinite(calculatedHLV) && calculatedHLV >= 0) {
-        setHLValue(Math.round(calculatedHLV)); // Round to nearest whole number
+        setHLValue(Math.round(calculatedHLV)) // Round to nearest whole number
       } else {
-        setHLValue(0);
+        setHLValue(0)
       }
     } else {
-      setHLValue(0);
+      setHLValue(0)
     }
-  }, [fixedMonthlyExpenses, bankInterestRate]);
+  }, [fixedMonthlyExpenses, bankInterestRate])
 
   // Real-time Actual HLV calculation
   useEffect(() => {
     // Formula: Actual HLV = HLV + Unsecured Bank Loan - Cash In Hand + Insurance
-    const unsecuredLoan = Number(unsecuredBankLoan) || 0;
-    const cashInsurance = Number(cashInHandInsurance) || 0;
+    const unsecuredLoan = Number(unsecuredBankLoan) || 0
+    const cashInsurance = Number(cashInHandInsurance) || 0
 
-    const calculatedActualHLV = hlvalue + unsecuredLoan - cashInsurance;
+    const calculatedActualHLV = hlvalue + unsecuredLoan - cashInsurance
 
     // Ensure the result is valid and non-negative
     if (isFinite(calculatedActualHLV) && calculatedActualHLV >= 0) {
-      setActualHLValue(Math.round(calculatedActualHLV));
+      setActualHLValue(Math.round(calculatedActualHLV))
     } else if (calculatedActualHLV < 0) {
       // If negative, show 0 (can't have negative life value)
-      setActualHLValue(0);
+      setActualHLValue(0)
     } else {
-      setActualHLValue(0);
+      setActualHLValue(0)
     }
-  }, [hlvalue, unsecuredBankLoan, cashInHandInsurance]);
+  }, [hlvalue, unsecuredBankLoan, cashInHandInsurance])
 
   // handle Calculation
   const onSubmit = async (data) => {
-    setIsSubmitting(true);
+    if (isSubmitting) return // Prevent multiple submissions
+
+    setIsSubmitting(true)
 
     try {
       // Save form inputs and calculated values to context
@@ -187,18 +189,19 @@ export default function Form3Page() {
         actualHLValue: actualHLValue,
         completed: true,
         completedAt: new Date(),
-      };
+      }
 
-      await updateStepData("step3", step3CompleteData, true);
+      await updateStepData('step3', step3CompleteData, true)
 
-      // Navigate to final step
-      router.push(`/form/${linkId}/step4`);
+      // Navigate to final step (keep button disabled during navigation)
+      router.push(`/form/${linkId}/step4`)
+      // Don't reset isSubmitting - let it stay disabled during navigation
     } catch (error) {
-      console.error("Error marking form as complete:", error);
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error marking form as complete:', error)
+      // Only reset on error
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
@@ -230,7 +233,7 @@ export default function Form3Page() {
                 <input
                   type="number"
                   className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                  {...register("fixedMonthlyExpenses", { valueAsNumber: true })}
+                  {...register('fixedMonthlyExpenses', { valueAsNumber: true })}
                 />
                 {errors.fixedMonthlyExpenses && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -248,7 +251,7 @@ export default function Form3Page() {
                   type="number"
                   step="0.1"
                   className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                  {...register("bankInterestRate", { valueAsNumber: true })}
+                  {...register('bankInterestRate', { valueAsNumber: true })}
                 />
                 {errors.bankInterestRate && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -276,7 +279,7 @@ export default function Form3Page() {
                   type="number"
                   placeholder="optional"
                   className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                  {...register("unsecuredBankLoan", { valueAsNumber: true })}
+                  {...register('unsecuredBankLoan', { valueAsNumber: true })}
                 />
               </div>
 
@@ -289,7 +292,7 @@ export default function Form3Page() {
                   type="number"
                   placeholder="optional"
                   className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                  {...register("cashInHandInsurance", { valueAsNumber: true })}
+                  {...register('cashInHandInsurance', { valueAsNumber: true })}
                 />
               </div>
 
@@ -337,7 +340,7 @@ export default function Form3Page() {
               onClick={handleBack}
             />
             <FormNavButton
-              label={isSubmitting ? "Submitting..." : "Submit"}
+              label={isSubmitting ? 'Submitting...' : 'Submit'}
               type="next"
               variant="gradient"
               onClick={handleSubmit(onSubmit)}
@@ -347,5 +350,5 @@ export default function Form3Page() {
         </FormContainer>
       </section>
     </main>
-  );
+  )
 }
