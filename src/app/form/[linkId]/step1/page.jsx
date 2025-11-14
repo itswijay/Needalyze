@@ -75,7 +75,14 @@ export default function Form1Page() {
   const [isMobile, setIsMobile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { getStepData, updateStepData, isLoaded, linkId } = useFormContext();
+  const {
+    getStepData,
+    updateStepData,
+    isLoaded,
+    linkId,
+    apiError,
+    clearApiError,
+  } = useFormContext();
 
   const {
     register,
@@ -101,6 +108,20 @@ export default function Form1Page() {
   });
 
   const numChildren = watch("numberOfChildren");
+
+  useEffect(() => {
+    if (apiError) {
+      if (apiError.status === 410) {
+        router.replace("/form/expired");
+      } else if (apiError.status === 404) {
+        router.replace("/form/invalid");
+      } else {
+        alert(apiError.message || "Something went wrong");
+      }
+    }
+  }, [apiError]);
+
+  console.log("apiError in Step 1 Page:", apiError);
 
   useEffect(() => setMounted(true), []);
 
@@ -423,19 +444,23 @@ export default function Form1Page() {
 
           {/* Navigation Buttons */}
           <div className="flex justify-between items-center mt-6">
-            <FormNavButton
-              label="Back"
-              type="prev"
-              variant="gradient"
-              disabled
-            />
-            <FormNavButton
-              label={isSubmitting ? "Saving..." : "Next"}
-              type="next"
-              variant="gradient"
-              onClick={handleSubmit(onSubmit)}
-              disabled={isSubmitting}
-            />
+            <div className="hidden">
+              <FormNavButton
+                label="Back"
+                type="prev"
+                variant="gradient"
+                disabled
+              />
+            </div>
+            <div className="flex-grow flex justify-end">
+              <FormNavButton
+                label={isSubmitting ? "Saving..." : "Next"}
+                type="next"
+                variant="gradient"
+                onClick={handleSubmit(onSubmit)}
+                disabled={isSubmitting}
+              />
+            </div>
           </div>
         </FormContainer>
       </section>

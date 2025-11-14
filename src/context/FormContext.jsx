@@ -58,18 +58,30 @@ export function FormProvider({ children }) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [linkId, setLinkId] = useState(null);
   const [advisorUserId, setAdvisorUserId] = useState(null);
+  const [apiError, setApiError] = useState(null);
   const params = useParams();
 
   // Initialize form data from database or localStorage
   useEffect(() => {
     const initializeFormData = async () => {
       if (params?.linkId) {
-        setLinkId(params.linkId);
+        setLinkId(params?.linkId);
+
+        console.log("Initializing form data for link ID:", params.linkId);
 
         try {
           // Try to get data from database first
+
           const response = await fetch(`/api/form/${params.linkId}`);
           const result = await response.json();
+          setApiError(
+            result.success
+              ? null
+              : {
+                  status: response.status,
+                  message: result?.error || "Failed to load data",
+                }
+          );
 
           console.log("Form data fetched from API:", result);
 
@@ -140,7 +152,7 @@ export function FormProvider({ children }) {
             setFormData(convertedData);
             setAdvisorUserId(result.linkData.user_id);
 
-            console.log("Advisor User ID set to:", result.linkData.user_id);
+            // console.log("Advisor User ID set to:", result.linkData.user_id);
 
             // Update localStorage with database data
             const dataToSave = { ...convertedData };
@@ -149,26 +161,36 @@ export function FormProvider({ children }) {
                 dataToSave.step1.dateOfBirth.toISOString();
             }
             localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-          } else {
-            // No database data, try localStorage
-            const savedData = localStorage.getItem(STORAGE_KEY);
-            if (savedData) {
-              const parsedData = JSON.parse(savedData);
-              if (parsedData.step1?.dateOfBirth) {
-                parsedData.step1.dateOfBirth = new Date(
-                  parsedData.step1.dateOfBirth
-                );
-              }
-              setFormData(parsedData);
-              setAdvisorUserId(result.linkData.user_id);
-              console.log(
-                "Advisor User ID set to from else:",
-                result.linkData.user_id
-              );
-            }
           }
+          // else {
+          //   // No database data, try localStorage
+          //   const savedData = localStorage.getItem(STORAGE_KEY);
+          //   if (savedData) {
+          //     const parsedData = JSON.parse(savedData);
+          //     if (parsedData.step1?.dateOfBirth) {
+          //       parsedData.step1.dateOfBirth = new Date(
+          //         parsedData.step1.dateOfBirth
+          //       );
+          //     }
+          //     setFormData(parsedData);
+          //     setAdvisorUserId(result.linkData.user_id);
+          //     console.log(
+          //       "Advisor User ID set to from else:",
+          //       result.linkData.user_id
+          //     );
+          //   }
+          // console.log(
+          //   "No form data found in database for link ID:",
+          //   params.linkId
+          // );
+          // console.log("Result from API else part:", result);
+          // }
         } catch (error) {
           console.error("Error loading form data:", error);
+          setApiError({
+            status: 500,
+            message: error.message || "Unknown error",
+          });
           // Fallback to localStorage
           const savedData = localStorage.getItem(STORAGE_KEY);
           if (savedData) {
@@ -223,6 +245,7 @@ export function FormProvider({ children }) {
       });
 
       const result = await response.json();
+
       if (!result.success) {
         throw new Error(result.error);
       }
@@ -233,57 +256,6 @@ export function FormProvider({ children }) {
       throw error;
     }
   };
-
-  // Load data from localStorage on mount
-  // useEffect(() => {
-  //   if (typeof window !== "undefined") {
-  //     try {
-  //       const savedData = localStorage.getItem(STORAGE_KEY);
-  //       if (savedData) {
-  //         const parsedData = JSON.parse(savedData);
-  //         // Convert dateOfBirth string back to Date object if exists
-  //         if (parsedData.step1?.dateOfBirth) {
-  //           parsedData.step1.dateOfBirth = new Date(
-  //             parsedData.step1.dateOfBirth
-  //           );
-  //         }
-  //         setFormData(parsedData);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error loading form data from localStorage:", error);
-  //     } finally {
-  //       setIsLoaded(true);
-  //     }
-  //   }
-  // }, []);
-
-  // Save data to localStorage whenever formData changes
-  // useEffect(() => {
-  //   if (isLoaded && typeof window !== "undefined") {
-  //     try {
-  //       // Create a copy for storage, converting Date to string
-  //       const dataToSave = { ...formData };
-  //       if (dataToSave.step1?.dateOfBirth instanceof Date) {
-  //         dataToSave.step1.dateOfBirth =
-  //           dataToSave.step1.dateOfBirth.toISOString();
-  //       }
-  //       localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-  //     } catch (error) {
-  //       console.error("Error saving form data to localStorage:", error);
-  //     }
-  //   }
-  // }, [formData, isLoaded]);
-
-  // Update data for a specific step
-  // const updateStepData = (step, data) => {
-  //   setFormData((prev) => ({
-  //     ...prev,
-  //     [step]: {
-  //       ...prev[step],
-  //       ...data,
-  //     },
-  //   }));
-  // };
 
   // Update step data (both localStorage and database)
   const updateStepData = async (step, data, saveToDb = false) => {
@@ -372,6 +344,8 @@ export function FormProvider({ children }) {
     linkId,
     saveStepToDatabase,
     loadFromDatabase,
+    apiError,
+    clearApiError: () => setApiError(null),
   };
 
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
