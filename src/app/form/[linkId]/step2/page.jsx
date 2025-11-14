@@ -60,12 +60,12 @@ const step2Schema = z.object({
 
 export default function NeedAnalysisFormPage2() {
   const router = useRouter()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [showConflictMessage, setShowConflictMessage] = useState(false)
   const [showWarningMessage, setShowWarningMessage] = useState(false)
 
   // Get form context
-  const { getStepData, updateStepData, isLoaded } = useFormContext()
-  const step2Data = getStepData('step2')
+  const { getStepData, updateStepData, isLoaded, linkId } = useFormContext()
 
   const {
     control,
@@ -93,6 +93,8 @@ export default function NeedAnalysisFormPage2() {
     },
     mode: 'onChange',
   })
+
+  const step2Data = getStepData('step2')
 
   // Load data from context when available
   useEffect(() => {
@@ -159,16 +161,28 @@ export default function NeedAnalysisFormPage2() {
     setValue(`healthCovers.${field}`, newValue, { shouldValidate: true })
   }
 
-  const onSubmit = (data) => {
-    // Save to context (which auto-saves to localStorage)
-    updateStepData('step2', data)
-    router.push('/form/step3')
+  const onSubmit = async (data) => {
+    if (isSubmitting) return // Prevent multiple submissions
+
+    setIsSubmitting(true)
+
+    try {
+      // Save to both localStorage and database
+      await updateStepData('step2', data, true)
+
+      // Navigate to next step (keep button disabled during navigation)
+      router.push(`/form/${linkId}/step3`)
+      // Don't reset isSubmitting - let it stay disabled during navigation
+    } catch (error) {
+      console.error('Error saving step 2:', error)
+      // Only reset on error, but still navigate
+      setIsSubmitting(false)
+      router.push(`/form/${linkId}/step3`)
+    }
   }
 
-  const handleBack = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    router.push('/form/step1')
+  const handleBack = () => {
+    router.push(`/form/${linkId}/step1`)
   }
 
   const handleNext = () => {
@@ -189,10 +203,19 @@ export default function NeedAnalysisFormPage2() {
     handleSubmit(onSubmit)()
   }
 
+  const handleStepNavigation = (stepNumber) => {
+    // Navigate to the selected step
+    router.push(`/form/${linkId}/step${stepNumber}`)
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
       <NeedAnalysisFormHeader />
-      <ProgressBar currentStep={2} totalSteps={4} />
+      <ProgressBar
+        currentStep={2}
+        totalSteps={4}
+        onStepClick={handleStepNavigation}
+      />
 
       <section className="flex-grow flex justify-center items-start py-8 px-4">
         <FormContainer>
@@ -459,6 +482,7 @@ export default function NeedAnalysisFormPage2() {
                 type="next"
                 variant="gradient"
                 onClick={handleNext}
+                disabled={isSubmitting}
               />
             </div>
           </div>

@@ -1,33 +1,49 @@
-import React from 'react'
-import { Button } from '@/components/ui/button'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
-export default function FormNavButton({
+const FormNavButton = ({
   label,
-  type = 'next',
+  type,
+  variant = "default",
   onClick,
-  variant = 'default',
-  className = '',
-}) {
-  const isNext = type === 'next'
+  disabled = false,
+}) => {
+  const baseClasses = "px-6 py-2 rounded-md font-medium transition-all";
+  const gradientClasses = disabled
+    ? "bg-gray-300 text-gray-500 cursor-not-allowed rounded-full py-1"
+    : "bg-[var(--primary-200)] rounded-full py-2";
 
   return (
-    <Button
-      onClick={onClick}
-      variant={variant}
-      className={`flex items-center justify-center rounded-full w-30 h-11 transition-transform duration-200 hover:scale-103 active:scale-95 ${className}`}
-    >
-      {isNext ? (
-        <>
+    <div>
+      {type === "prev" ? (
+        <Button
+          type="button"
+          onClick={onClick}
+          disabled={disabled}
+          className={`flex items-center  ${baseClasses} ${
+            variant === "gradient" ? gradientClasses : ""
+          }`}
+        >
+          <ArrowLeft className="mr-1 w-4 h-4" />
           {label}
-          <ArrowRight size={18} className="ml-1" />
-        </>
+        </Button>
       ) : (
-        <>
-          <ArrowLeft size={18} className="mr-1" />
+        <Button
+          type="button"
+          onClick={onClick}
+          disabled={disabled}
+          className={`flex items-center  ${baseClasses} ${
+            variant === "gradient" ? gradientClasses : ""
+          }`}
+        >
           {label}
-        </>
+
+          <ArrowRight className="ml-1 w-4 h-4" />
+        </Button>
       )}
-    </Button>
-  )
-}
+    </div>
+  );
+};
+
+export default FormNavButton;

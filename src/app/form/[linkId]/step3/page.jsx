@@ -14,10 +14,15 @@ import { useFormContext } from '@/context/FormContext'
 
 export default function Form3Page() {
   const router = useRouter()
-  const handleBack = () => router.push('/form/step2')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isMarkingComplete, setIsMarkingComplete] = useState(false)
+  const handleBack = () => {
+    router.push(`/form/${linkId}/step2`)
+  }
 
   // Get form context
-  const { getStepData, updateStepData, isLoaded } = useFormContext()
+  const { getStepData, updateStepData, isLoaded, linkId, getAllData } =
+    useFormContext()
   const step3Data = getStepData('step3')
 
   // Zod validation schema
@@ -168,41 +173,49 @@ export default function Form3Page() {
   }, [hlvalue, unsecuredBankLoan, cashInHandInsurance])
 
   // handle Calculation
-  const handleCalculation = async (data) => {
-    console.log('Form submission data:', data)
+  const onSubmit = async (data) => {
+    if (isSubmitting) return // Prevent multiple submissions
 
-    // Save form inputs and calculated values to context
-    const step3CompleteData = {
-      fixedMonthlyExpenses: data.fixedMonthlyExpenses,
-      bankInterestRate: data.bankInterestRate,
-      unsecuredBankLoan: data.unsecuredBankLoan,
-      cashInHandInsurance: data.cashInHandInsurance,
-      hlvalue: hlvalue,
-      actualHLValue: actualHLValue,
+    setIsSubmitting(true)
+
+    try {
+      // Save form inputs and calculated values to context
+      const step3CompleteData = {
+        fixedMonthlyExpenses: data.fixedMonthlyExpenses,
+        bankInterestRate: data.bankInterestRate,
+        unsecuredBankLoan: data.unsecuredBankLoan,
+        cashInHandInsurance: data.cashInHandInsurance,
+        hlvalue: hlvalue,
+        actualHLValue: actualHLValue,
+        completed: true,
+        completedAt: new Date(),
+      }
+
+      await updateStepData('step3', step3CompleteData, true)
+
+      // Navigate to final step (keep button disabled during navigation)
+      router.push(`/form/${linkId}/step4`)
+      // Don't reset isSubmitting - let it stay disabled during navigation
+    } catch (error) {
+      console.error('Error marking form as complete:', error)
+      // Only reset on error
+      setIsSubmitting(false)
     }
+  }
 
-    // Mark form as completed
-    const step4CompletionData = {
-      completed: true,
-      completedAt: new Date().toISOString(),
-    }
-
-    // Save both step 3 data and completion status
-    updateStepData('step3', step3CompleteData)
-    updateStepData('step4', step4CompletionData)
-
-    // TODO: Future Supabase Integration
-    // Submit all form data to Supabase here before navigating to Step 4
-    // const allFormData = getAllData()
-    // await submitToSupabase(allFormData)
-
-    router.push('/form/step4')
+  const handleStepNavigation = (stepNumber) => {
+    // Navigate to the selected step
+    router.push(`/form/${linkId}/step${stepNumber}`)
   }
 
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
       <NeedAnalysisFormHeader />
-      <ProgressBar currentStep={3} totalSteps={4} />
+      <ProgressBar
+        currentStep={3}
+        totalSteps={4}
+        onStepClick={handleStepNavigation}
+      />
 
       <section className="flex-grow flex justify-center items-start py-8 px-4">
         <FormContainer>
@@ -215,7 +228,10 @@ export default function Form3Page() {
             </p>
           </div>
 
-          <form className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
+          >
             {/* Left column - Input fields */}
             <div className="flex flex-col space-y-3 sm:space-y-4">
               {/* Fixed Monthly Expenses */}
@@ -332,13 +348,13 @@ export default function Form3Page() {
               variant="gradient"
               onClick={handleBack}
             />
-            <Button
-              className="rounded-full w-30 h-11 hover:scale-103 active:scale-95"
+            <FormNavButton
+              label={isSubmitting ? 'Submitting...' : 'Submit'}
+              type="next"
               variant="gradient"
-              onClick={handleSubmit(handleCalculation)}
-            >
-              Submit
-            </Button>
+              onClick={handleSubmit(onSubmit)}
+              disabled={isSubmitting}
+            />
           </div>
         </FormContainer>
       </section>
