@@ -206,10 +206,19 @@ export default function Form1Page() {
     }
   }
 
+  const handleStepNavigation = (stepNumber) => {
+    // Navigate to the selected step
+    router.push(`/form/${linkId}/step${stepNumber}`)
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
       <NeedAnalysisFormHeader />
-      <ProgressBar currentStep={1} totalSteps={4} />
+      <ProgressBar
+        currentStep={1}
+        totalSteps={4}
+        onStepClick={handleStepNavigation}
+      />
 
       {isLoadingData ? (
         <section className="flex-grow flex justify-center items-center py-8 px-4">
