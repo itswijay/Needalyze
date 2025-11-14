@@ -465,7 +465,7 @@ export default function Register() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
                   >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                   </button>
                   {errors.password && (
                     <p className="text-red-600 text-xs mt-1 ml-4">
@@ -489,9 +489,9 @@ export default function Register() {
                     className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     {showConfirmPassword ? (
-                      <EyeOff size={20} />
-                    ) : (
                       <Eye size={20} />
+                    ) : (
+                      <EyeOff size={20} />
                     )}
                   </button>
                   {errors.confirmPassword && (
@@ -773,7 +773,7 @@ export default function Register() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                 </button>
                 {errors.password && (
                   <p className="text-red-600 text-xs mt-1 ml-4">
@@ -797,9 +797,9 @@ export default function Register() {
                   className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
                 >
                   {showConfirmPassword ? (
-                    <EyeOff size={20} />
-                  ) : (
                     <Eye size={20} />
+                  ) : (
+                    <EyeOff size={20} />
                   )}
                 </button>
                 {errors.confirmPassword && (
