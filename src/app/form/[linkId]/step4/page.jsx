@@ -1,44 +1,48 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import NeedAnalysisFormHeader from "@/components/NeedAnalysisFormHeader";
-import ProgressBar from "@/components/ProgressBar";
-import { Button } from "@/components/ui/button";
-import { CheckCircle2, Download, RotateCcw } from "lucide-react";
-import { useFormContext } from "@/context/FormContext";
+'use client'
+import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
+import ProgressBar from '@/components/ProgressBar'
+import { Button } from '@/components/ui/button'
+import { CheckCircle2, Download, RotateCcw } from 'lucide-react'
+import { useFormContext } from '@/context/FormContext'
 
 export default function Step4Page() {
-  const router = useRouter();
-  const [isMarkingComplete, setIsMarkingComplete] = useState(false);
-  const { updateStepData, getAllData, linkId } = useFormContext();
+  const router = useRouter()
+  const [isMarkingComplete, setIsMarkingComplete] = useState(false)
+  const [isRestarting, setIsRestarting] = useState(false)
+  const { updateStepData, getAllData, linkId } = useFormContext()
 
   const handleDownload = () => {
     // TODO: Implement PDF generation
     // TODO: Access form data from context or Supabase for PDF generation
-    console.log("Download PDF functionality - To be implemented");
-  };
+    console.log('Download PDF functionality - To be implemented')
+  }
 
   const handleStartOver = () => {
-    router.push(`/form/${linkId}/step1`);
+    if (isRestarting) return // Prevent multiple clicks
+
+    setIsRestarting(true)
+    router.push(`/form/${linkId}/step1`)
     // Reset form data in context
-    [
+    ;[
       {
-        step: "step1",
+        step: 'step1',
         data: {
-          fullName: "",
+          fullName: '',
           dateOfBirth: null,
-          spouseName: "",
-          phoneNumber: "",
-          address: "",
+          spouseName: '',
+          phoneNumber: '',
+          address: '',
           numberOfChildren: null,
-          childrenAges: "",
-          occupation: "",
+          childrenAges: '',
+          occupation: '',
           monthlyIncome: null,
           age: null,
         },
       },
       {
-        step: "step2",
+        step: 'step2',
         data: {
           insuranceNeeds: {
             dependentCostOfLiving: false,
@@ -56,11 +60,12 @@ export default function Step4Page() {
         },
       },
       {
-        step: "step3",
+        step: 'step3',
         data: { actualHLValue: null, completed: false },
       },
-    ].forEach((step) => updateStepData(step.step, step.data, true));
-  };
+    ].forEach((step) => updateStepData(step.step, step.data, true))
+    // Don't reset isRestarting - let it stay disabled during navigation
+  }
 
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
@@ -99,9 +104,10 @@ export default function Step4Page() {
               onClick={handleStartOver}
               className="px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
               variant="outline"
+              disabled={isRestarting}
             >
               <RotateCcw className="w-5 h-5" />
-              <span>Fill Again</span>
+              <span>{isRestarting ? 'Starting...' : 'Fill Again'}</span>
             </Button>
 
             {/* Download Button */}
@@ -117,5 +123,5 @@ export default function Step4Page() {
         </div>
       </section>
     </main>
-  );
+  )
 }
