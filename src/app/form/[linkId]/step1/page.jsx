@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { useFormContext } from "@/context/FormContext";
 
 const formSchema = z
@@ -74,6 +75,7 @@ export default function Form1Page() {
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   const {
     getStepData,
@@ -136,6 +138,14 @@ export default function Form1Page() {
           : null,
       };
       reset(formDataToLoad);
+      
+      // Add a small delay to ensure form fields are populated before hiding loading
+      setTimeout(() => {
+        setIsLoadingData(false);
+      }, 300);
+    } else if (isLoaded && !step1Data) {
+      // No existing data, just hide loading
+      setIsLoadingData(false);
     }
   }, [isLoaded, step1Data, reset]);
 
@@ -199,17 +209,25 @@ export default function Form1Page() {
       <NeedAnalysisFormHeader />
       <ProgressBar currentStep={1} totalSteps={4} />
 
-      <section className="flex-grow flex justify-center items-center py-8 px-4">
-        <FormContainer>
-          <form
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
-            onSubmit={handleSubmit(onSubmit)}
-          >
-            {/* Full Name */}
-            <div>
-              <label className="block text-gray-700 font-medium mb-1">
-                Full Name
-              </label>
+      {isLoadingData ? (
+        <section className="flex-grow flex justify-center items-center py-8 px-4">
+          <div className="flex flex-col items-center gap-4">
+            <Spinner className="w-12 h-12 text-[#0C407C]" />
+            <p className="text-gray-600 text-sm">Loading form data...</p>
+          </div>
+        </section>
+      ) : (
+        <section className="flex-grow flex justify-center items-center py-8 px-4">
+          <FormContainer>
+            <form
+              className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
+              onSubmit={handleSubmit(onSubmit)}
+            >
+              {/* Full Name */}
+              <div>
+                <label className="block text-gray-700 font-medium mb-1">
+                  Full Name
+                </label>
               <input
                 {...register("fullName")}
                 placeholder="Ex: Sunil Nishantha Karunarathna"
@@ -464,6 +482,7 @@ export default function Form1Page() {
           </div>
         </FormContainer>
       </section>
+      )}
     </main>
   );
 }
