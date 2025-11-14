@@ -19,7 +19,11 @@ export async function GET(request, { params }) {
 
     if (linkError || !linkData) {
       return Response.json(
-        { success: false, error: "Invalid or expired link" },
+        {
+          success: false,
+          error: "Invalid or expired link",
+          linkError,
+        },
         { status: 404 }
       );
     }
@@ -27,7 +31,14 @@ export async function GET(request, { params }) {
     // Check if link is expired
     if (new Date(linkData.expiry_date) < new Date()) {
       return Response.json(
-        { success: false, error: "Link has expired" },
+        {
+          success: false,
+          error: "Link has expired",
+
+          linkData,
+          ex: new Date(linkData.expiry_date),
+          now: new Date(),
+        },
         { status: 410 }
       );
     }
@@ -39,11 +50,15 @@ export async function GET(request, { params }) {
       .eq("link_id", linkId)
       .single();
 
-    return Response.json({
-      success: true,
-      linkData,
-      formData: formData || null,
-    });
+    return Response.json(
+      {
+        success: true,
+        linkError,
+        linkData,
+        formData: formData || null,
+      },
+      { status: 200 }
+    );
   } catch (error) {
     return Response.json(
       { success: false, error: error.message },
