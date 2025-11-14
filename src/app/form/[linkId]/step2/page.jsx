@@ -203,10 +203,19 @@ export default function NeedAnalysisFormPage2() {
     handleSubmit(onSubmit)()
   }
 
+  const handleStepNavigation = (stepNumber) => {
+    // Navigate to the selected step
+    router.push(`/form/${linkId}/step${stepNumber}`)
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
       <NeedAnalysisFormHeader />
-      <ProgressBar currentStep={2} totalSteps={4} />
+      <ProgressBar
+        currentStep={2}
+        totalSteps={4}
+        onStepClick={handleStepNavigation}
+      />
 
       <section className="flex-grow flex justify-center items-start py-8 px-4">
         <FormContainer>
