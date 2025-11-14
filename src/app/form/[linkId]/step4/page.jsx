@@ -67,10 +67,19 @@ export default function Step4Page() {
     // Don't reset isRestarting - let it stay disabled during navigation
   }
 
+  const handleStepNavigation = (stepNumber) => {
+    // Navigate to the selected step
+    router.push(`/form/${linkId}/step${stepNumber}`)
+  }
+
   return (
     <main className="min-h-screen bg-gray-100 flex flex-col">
       <NeedAnalysisFormHeader />
-      <ProgressBar currentStep={4} totalSteps={4} />
+      <ProgressBar
+        currentStep={4}
+        totalSteps={4}
+        onStepClick={handleStepNavigation}
+      />
 
       <section className="flex-grow flex justify-center items-center pb-10 px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-3xl shadow-lg p-8 md:p-12 max-w-2xl w-full text-center">
