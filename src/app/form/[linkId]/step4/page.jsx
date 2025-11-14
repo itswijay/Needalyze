@@ -20,6 +20,46 @@ export default function Step4Page() {
 
   const handleStartOver = () => {
     router.push(`/form/${linkId}/step1`);
+    // Reset form data in context
+    [
+      {
+        step: "step1",
+        data: {
+          fullName: "",
+          dateOfBirth: null,
+          spouseName: "",
+          phoneNumber: "",
+          address: "",
+          numberOfChildren: null,
+          childrenAges: "",
+          occupation: "",
+          monthlyIncome: null,
+          age: null,
+        },
+      },
+      {
+        step: "step2",
+        data: {
+          insuranceNeeds: {
+            dependentCostOfLiving: false,
+            higherEducationChildren: false,
+            longTermSavings: false,
+            shortTermSavings: false,
+            pensionFund: false,
+          },
+          healthCovers: {
+            dailyHospitalizationExpenses: false,
+            surgeryCover: false,
+            hospitalBillCover: false,
+            criticalIllness: false,
+          },
+        },
+      },
+      {
+        step: "step3",
+        data: { actualHLValue: null, completed: false },
+      },
+    ].forEach((step) => updateStepData(step.step, step.data, true));
   };
 
   return (
