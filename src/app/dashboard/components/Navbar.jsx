@@ -11,11 +11,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useState } from 'react'
+import Profile from './Profile' // import Profile 
+
 
 const Navbar = () => {
   const router = useRouter()
   const { userProfile, signOut, loading } = useAuth()
+  const [isProfileOpen, setIsProfileOpen] = useState(false) // useState for Profile
 
   const handleSignOut = async () => {
     const { success } = await signOut()
@@ -70,7 +75,12 @@ const Navbar = () => {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Profile</DropdownMenuItem>
+            
+            {/* Clicking this opens Profile dialog */}
+            <DropdownMenuItem onSelect={() => setIsProfileOpen(true)}>
+              Profile
+            </DropdownMenuItem>
+
             <DropdownMenuItem
               onSelect={handleSignOut}
               className="text-red-600 focus:text-red-600 cursor-pointer"
@@ -80,6 +90,10 @@ const Navbar = () => {
           </DropdownMenuContent>
         </DropdownMenu>
       </ul>
+
+      {/* Profile Dialog Mounted Here */}
+      <Profile open={isProfileOpen} onOpenChange={setIsProfileOpen} />
+    
     </div>
   )
 }
