@@ -6,17 +6,37 @@ import ProgressBar from '@/components/ProgressBar'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, Download, RotateCcw } from 'lucide-react'
 import { useFormContext } from '@/context/FormContext'
+import { generatePDF } from '@/lib/pdfGenerator'
 
 export default function Step4Page() {
   const router = useRouter()
   const [isMarkingComplete, setIsMarkingComplete] = useState(false)
   const [isRestarting, setIsRestarting] = useState(false)
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const { updateStepData, getAllData, linkId } = useFormContext()
 
-  const handleDownload = () => {
-    // TODO: Implement PDF generation
-    // TODO: Access form data from context or Supabase for PDF generation
-    console.log('Download PDF functionality - To be implemented')
+  const handleDownload = async () => {
+    if (isGeneratingPDF) return // Prevent multiple clicks
+    
+    setIsGeneratingPDF(true)
+    try {
+      // Get all form data from context
+      const formData = getAllData()
+      console.log('Form data for PDF generation:', formData)
+      
+      // Generate and download PDF
+      const result = await generatePDF(formData)
+      console.log('PDF generated successfully:', result.filename)
+      
+      // Optional: Show success message
+      // You could add a toast notification here if you have one implemented
+      
+    } catch (error) {
+      console.error('Failed to generate PDF:', error)
+      alert('Failed to generate PDF. Please try again.')
+    } finally {
+      setIsGeneratingPDF(false)
+    }
   }
 
   const handleStartOver = () => {
@@ -124,9 +144,10 @@ export default function Step4Page() {
               onClick={handleDownload}
               className="px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
               variant="gradient"
+              disabled={isGeneratingPDF}
             >
               <Download className="w-5 h-5" />
-              <span>Download PDF</span>
+              <span>{isGeneratingPDF ? 'Generating PDF...' : 'Download PDF'}</span>
             </Button>
           </div>
         </div>
