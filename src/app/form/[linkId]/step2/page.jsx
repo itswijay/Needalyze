@@ -1,5 +1,6 @@
 'use client'
 
+import toast from 'react-hot-toast'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -117,46 +118,26 @@ export default function NeedAnalysisFormPage2() {
     // Hide warning message when selecting
     setShowWarningMessage(false)
 
-    // Show message when trying to select Surgery Cover while Hospital Bill Cover is selected
-    if (
-      field === 'surgeryCover' &&
-      newValue &&
-      watchedValues.healthCovers?.hospitalBillCover
-    ) {
-      setShowConflictMessage(true)
-      return
-    }
+  if (
+    field === 'surgeryCover' &&
+    newValue &&
+    watchedValues.healthCovers?.hospitalBillCover
+  ) {
+    setShowConflictMessage(true)
+    toast.error("You cannot select Hospital Bill Cover and Surgery Cover together");
+    return;
+  }
 
-    // Show message when trying to select Hospital Bill Cover while Surgery Cover is selected
-    if (
-      field === 'hospitalBillCover' &&
-      newValue &&
-      watchedValues.healthCovers?.surgeryCover
-    ) {
-      setShowConflictMessage(true)
-      return
-    }
+  if (
+    field === 'hospitalBillCover' &&
+    newValue &&
+    watchedValues.healthCovers?.surgeryCover
+  ) {
+    setShowConflictMessage(true)
+    toast.error("You cannot select Hospital Bill Cover and Surgery Cover together");
+    return;
+  }
 
-    // Hide message when deselecting conflicting options
-    if (
-      !newValue &&
-      (field === 'surgeryCover' || field === 'hospitalBillCover')
-    ) {
-      setShowConflictMessage(false)
-    }
-
-    // Check validation for max selections
-    const currentHealthCovers = {
-      ...watchedValues.healthCovers,
-      [field]: newValue,
-    }
-    const selectedCount =
-      Object.values(currentHealthCovers).filter(Boolean).length
-
-    // Prevent selection if more than 3 options
-    if (newValue && selectedCount > 3) {
-      return
-    }
 
     setValue(`healthCovers.${field}`, newValue, { shouldValidate: true })
   }
@@ -185,23 +166,29 @@ export default function NeedAnalysisFormPage2() {
     router.push(`/form/${linkId}/step1`)
   }
 
-  const handleNext = () => {
-    // Check if at least one option is selected from either section
-    const insuranceSelected = Object.values(
-      watchedValues.insuranceNeeds || {}
-    ).some(Boolean)
-    const healthSelected = Object.values(watchedValues.healthCovers || {}).some(
-      Boolean
-    )
+const handleNext = () => {
+  const insuranceSelected = Object.values(watchedValues.insuranceNeeds || {}).some(Boolean);
+  const healthSelected = Object.values(watchedValues.healthCovers || {}).some(Boolean);
 
-    if (!insuranceSelected && !healthSelected) {
-      setShowWarningMessage(true)
-      return
-    }
-
-    // If at least one option is selected, proceed with form submission
-    handleSubmit(onSubmit)()
+  // If nothing selected → toast
+  if (!insuranceSelected && !healthSelected) {
+    toast.error("Select at least one option to continue");
+    return;
   }
+
+  // FIX: Read Zod refine errors correctly
+  const zodError =
+    errors.healthCovers?._errors?.[0] ||
+    errors.healthCovers?.root?.message;
+
+  if (zodError) {
+    toast.error(zodError);
+    return;
+  }
+
+  handleSubmit(onSubmit)();
+};
+
 
   const handleStepNavigation = (stepNumber) => {
     // Navigate to the selected step
@@ -220,13 +207,7 @@ export default function NeedAnalysisFormPage2() {
       <section className="flex-grow flex justify-center items-start py-8 px-4">
         <FormContainer>
           <div>
-            {showWarningMessage && (
-              <div className="mb-6 p-4 bg-red-50 border-2 border-red-300 rounded-lg shadow-lg">
-                <p className="text-red-700 text-sm font-bold">
-                  ⚠️ Select at least one option
-                </p>
-              </div>
-            )}
+
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 text-sm -mt-4">
               {/* Insurance Need Section */}
@@ -388,15 +369,6 @@ export default function NeedAnalysisFormPage2() {
                   </AlertDialog>
                 </div>
 
-                {/* Conflict Warning Message */}
-                {showConflictMessage && (
-                  <div className="mb-4 p-3 bg-red-50 border-2 border-red-300 rounded-lg shadow-lg">
-                    <p className="text-red-700 text-sm font-bold">
-                      ⚠️ You cannot select both Hospital Bill Cover and Surgery
-                      Cover at the same time
-                    </p>
-                  </div>
-                )}
 
                 <div className="space-y-3">
                   <Controller
@@ -461,11 +433,7 @@ export default function NeedAnalysisFormPage2() {
                     )}
                   />
                 </div>
-                {errors.healthCovers && (
-                  <p className="text-red-500 text-xs mt-2">
-                    {errors.healthCovers.message}
-                  </p>
-                )}
+
               </div>
             </div>
 
