@@ -152,6 +152,12 @@ const page = () => {
   }
 }
 
+const handleValidationErrors = (errors) => {
+  Object.values(errors).forEach((err) => {
+    toast.error(err.message);
+  });
+};
+
   return (
     <>
       <div className="w-full h-screen flex flex-col md:flex-row overflow-hidden">
@@ -220,7 +226,7 @@ const page = () => {
                       {errorMessage}
                     </div>
                   )}
-                  <form onSubmit={handleSubmit(handleLogin)} noValidate>
+                  <form onSubmit={handleSubmit(handleLogin, handleValidationErrors)} noValidate>
                     <div className="mb-4">
                       <Input
                         className="rounded-full placeholder:text-xs p-5 bg-gray-200 border-0"
@@ -229,11 +235,7 @@ const page = () => {
                         autoComplete="email"
                         {...register('email')}
                       />
-                      {errors.email && (
-                        <p className="text-red-600 text-xs mt-1 ml-4">
-                          {errors.email.message}
-                        </p>
-                      )}
+
                     </div>
                     <div className="mb-4">
                       <Input
@@ -243,11 +245,7 @@ const page = () => {
                         autoComplete="current-password"
                         {...register('password')}
                       />
-                      {errors.password && (
-                        <p className="text-red-600 text-xs mt-1 ml-4">
-                          {errors.password.message}
-                        </p>
-                      )}
+
                     </div>
                     <Button
                       type="submit"
@@ -311,7 +309,7 @@ const page = () => {
                       {errorMessage}
                     </div>
                   )}
-                  <form onSubmit={handleSubmit(handleLogin)} noValidate>
+                  <form onSubmit={handleSubmit(handleLogin, handleValidationErrors)} noValidate>
                     <div className="mb-4">
                       <Input
                         className="rounded-full placeholder:text-xs p-5"
@@ -320,11 +318,7 @@ const page = () => {
                         autoComplete="email"
                         {...register('email')}
                       />
-                      {errors.email && (
-                        <p className="text-red-600 text-xs mt-1 ml-4">
-                          {errors.email.message}
-                        </p>
-                      )}
+                      
                     </div>
                     <div className="mb-4">
                       <Input
@@ -334,11 +328,7 @@ const page = () => {
                         autoComplete="current-password"
                         {...register('password')}
                       />
-                      {errors.password && (
-                        <p className="text-red-600 text-xs mt-1 ml-4">
-                          {errors.password.message}
-                        </p>
-                      )}
+
                     </div>
                     <Button
                       type="submit"

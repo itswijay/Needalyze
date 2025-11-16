@@ -107,6 +107,12 @@ export default function Register() {
     },
   })
 
+const handleValidationErrors = (errors) => {
+  Object.values(errors).forEach((err) => {
+    toast.error(err.message);
+  });
+};
+
   // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
@@ -270,7 +276,7 @@ export default function Register() {
                   {errorMessage}
                 </div>
               )}
-              <form onSubmit={handleSubmit(onSubmit)} noValidate>
+              <form onSubmit={handleSubmit(onSubmit, handleValidationErrors)}>
                 {/* First Name */}
                 <div className="mb-4">
                   <input
@@ -279,11 +285,7 @@ export default function Register() {
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
                     {...register('firstName')}
                   />
-                  {errors.firstName && (
-                    <p className="text-red-600 text-xs mt-1 ml-4">
-                      {errors.firstName.message}
-                    </p>
-                  )}
+
                 </div>
                 {/* Last Name */}
                 <div className="mb-4">
@@ -293,11 +295,7 @@ export default function Register() {
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
                     {...register('lastName')}
                   />
-                  {errors.lastName && (
-                    <p className="text-red-600 text-xs mt-1 ml-4">
-                      {errors.lastName.message}
-                    </p>
-                  )}
+
                 </div>
                 {/* Phone Number */}
                 <div className="mb-4">
@@ -307,11 +305,7 @@ export default function Register() {
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
                     {...register('phoneNumber')}
                   />
-                  {errors.phoneNumber && (
-                    <p className="text-red-600 text-xs mt-1 ml-4">
-                      {errors.phoneNumber.message}
-                    </p>
-                  )}
+
                 </div>
                 {/* Branch Dropdown */}
                 <div className="mb-4 relative dropdown-container">
@@ -357,11 +351,7 @@ export default function Register() {
                       ))}
                     </div>
                   )}
-                  {errors.branch && (
-                    <p className="text-red-600 text-xs mt-1 ml-4">
-                      {errors.branch.message}
-                    </p>
-                  )}
+
                 </div>
 
                 {/* Position Dropdown */}
@@ -410,11 +400,7 @@ export default function Register() {
                       ))}
                     </div>
                   )}
-                  {errors.position && (
-                    <p className="text-red-600 text-xs mt-1 ml-4">
-                      {errors.position.message}
-                    </p>
-                  )}
+
                 </div>
 
                 {/* Code Number - Show only for Advisor and Team Leader */}
@@ -427,11 +413,7 @@ export default function Register() {
                       className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
                       {...register('regCode')}
                     />
-                    {errors.regCode && (
-                      <p className="text-red-600 text-xs mt-1 ml-4">
-                        {errors.regCode.message}
-                      </p>
-                    )}
+
                   </div>
                 )}
 
@@ -444,11 +426,7 @@ export default function Register() {
                     className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
                     {...register('email')}
                   />
-                  {errors.email && (
-                    <p className="text-red-600 text-xs mt-1 ml-4">
-                      {errors.email.message}
-                    </p>
-                  )}
+
                 </div>
 
                 {/* Password */}
@@ -467,11 +445,7 @@ export default function Register() {
                   >
                     {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                   </button>
-                  {errors.password && (
-                    <p className="text-red-600 text-xs mt-1 ml-4">
-                      {errors.password.message}
-                    </p>
-                  )}
+
                 </div>
 
                 {/* Confirm Password */}
@@ -494,11 +468,7 @@ export default function Register() {
                       <EyeOff size={20} />
                     )}
                   </button>
-                  {errors.confirmPassword && (
-                    <p className="text-red-600 text-xs mt-1 ml-4">
-                      {errors.confirmPassword.message}
-                    </p>
-                  )}
+
                 </div>
 
                 {/* Register Button */}
@@ -571,9 +541,7 @@ export default function Register() {
                 {errorMessage}
               </div>
             )}
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              noValidate
+<form onSubmit={handleSubmit(onSubmit, handleValidationErrors)}
               className="space-y-4"
             >
               {/* First Name */}
@@ -584,11 +552,7 @@ export default function Register() {
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
                   {...register('firstName')}
                 />
-                {errors.firstName && (
-                  <p className="text-red-600 text-xs mt-1 ml-4">
-                    {errors.firstName.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Last Name */}
@@ -599,11 +563,7 @@ export default function Register() {
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
                   {...register('lastName')}
                 />
-                {errors.lastName && (
-                  <p className="text-red-600 text-xs mt-1 ml-4">
-                    {errors.lastName.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Phone Number */}
@@ -614,11 +574,7 @@ export default function Register() {
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
                   {...register('phoneNumber')}
                 />
-                {errors.phoneNumber && (
-                  <p className="text-red-600 text-xs mt-1 ml-4">
-                    {errors.phoneNumber.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Branch Dropdown */}
@@ -665,11 +621,7 @@ export default function Register() {
                     ))}
                   </div>
                 )}
-                {errors.branch && (
-                  <p className="text-red-600 text-xs mt-1 ml-4">
-                    {errors.branch.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Position Dropdown */}
@@ -718,11 +670,7 @@ export default function Register() {
                     ))}
                   </div>
                 )}
-                {errors.position && (
-                  <p className="text-red-600 text-xs mt-1 ml-4">
-                    {errors.position.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Code Number - Show only for Advisor and Team Leader */}
@@ -735,11 +683,7 @@ export default function Register() {
                     className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
                     {...register('regCode')}
                   />
-                  {errors.regCode && (
-                    <p className="text-red-600 text-xs mt-1 ml-4">
-                      {errors.regCode.message}
-                    </p>
-                  )}
+ 
                 </div>
               )}
 
@@ -752,11 +696,7 @@ export default function Register() {
                   className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
                   {...register('email')}
                 />
-                {errors.email && (
-                  <p className="text-red-600 text-xs mt-1 ml-4">
-                    {errors.email.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Password */}
@@ -775,11 +715,7 @@ export default function Register() {
                 >
                   {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                 </button>
-                {errors.password && (
-                  <p className="text-red-600 text-xs mt-1 ml-4">
-                    {errors.password.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Confirm Password */}
@@ -802,11 +738,7 @@ export default function Register() {
                     <EyeOff size={20} />
                   )}
                 </button>
-                {errors.confirmPassword && (
-                  <p className="text-red-600 text-xs mt-1 ml-4">
-                    {errors.confirmPassword.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Register Button */}
