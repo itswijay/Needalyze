@@ -14,9 +14,11 @@ import { Label } from '@/components/ui/label'
 import { ChevronDown } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/context/AuthContext'
 import DeleteAccountVerify from './DeleteAccountVerify'
 
 const Profile = ({ open, onOpenChange }) => {
+  const { user, refreshUserProfile } = useAuth()
   const [first_name, setFirstName] = useState('')
   const [last_name, setLastName] = useState('')
   const [phone_number, setPhoneNumber] = useState('')
@@ -127,10 +129,14 @@ const Profile = ({ open, onOpenChange }) => {
       }
 
       setSuccessMessage('Profile updated successfully!')
+
+      // Refresh user profile in context to update navbar
+      await refreshUserProfile()
+
       setTimeout(() => {
         setSuccessMessage('')
         onOpenChange(false)
-      }, 2000)
+      }, 500)
     } catch (err) {
       setError('An error occurred while saving profile')
       console.error('Error saving profile:', err)
