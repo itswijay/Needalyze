@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog'
 
 import { Input } from '@/components/ui/input'
@@ -169,6 +170,10 @@ const Profile = ({ open, onOpenChange }) => {
             <DialogTitle className="text-base sm:text-lg">
               Edit Your Details
             </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              Update your profile information including name, phone number,
+              branch, and position.
+            </DialogDescription>
           </DialogHeader>
 
           {isLoading ? (
