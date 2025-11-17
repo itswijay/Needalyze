@@ -375,3 +375,47 @@ export async function updateUserProfile(userId, updates) {
     }
   }
 }
+
+/**
+ * Delete user account (soft delete - marks status as deleted)
+ * @param {string} userId - User's UUID
+ * @returns {Object} { success, error }
+ */
+export async function deleteUserAccount(userId) {
+  try {
+    // Soft delete: mark user as deleted instead of hard delete
+    const { error: profileError } = await supabase
+      .from('user_profile')
+      .update({
+        status: 'deleted',
+        updated_at: new Date(),
+      })
+      .eq('user_id', userId)
+
+    if (profileError) {
+      return {
+        success: false,
+        error: profileError.message || 'Failed to delete profile',
+      }
+    }
+
+    // Sign out the user
+    const { error: signOutError } = await supabase.auth.signOut()
+
+    if (signOutError) {
+      console.warn('Sign out warning:', signOutError)
+      // Continue anyway, user will be logged out
+    }
+
+    return {
+      success: true,
+      error: null,
+    }
+  } catch (error) {
+    console.error('Delete account error:', error)
+    return {
+      success: false,
+      error: error.message || 'An unexpected error occurred',
+    }
+  }
+}
