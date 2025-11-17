@@ -160,10 +160,7 @@ const PDFTemplate = ({ formData }) => {
             </div>
           </div>
 
-          <div className="text-right mb-4">
-            <span className="text-blue-600 font-bold">+2 Buttons for calculations</span>
-          </div>
-
+         
           {/* Health Covers */}
           <div className="mb-4">
             <span className="font-bold">6. Health Covers</span>
@@ -295,21 +292,7 @@ const PDFTemplate = ({ formData }) => {
             </div>
           </div>
         </div>
-
-        {/* Signatures */}
-        <div className="grid grid-cols-2 gap-8 mt-8">
-          <div className="text-center">
-            <div className="border-t-2 border-black pt-2">
-              <span className="font-bold">Signature of Customer</span>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="border-t-2 border-black pt-2">
-              <span className="font-bold">Signature of Insurance Advisor</span>
-            </div>
-          </div>
         </div>
-      </div>
     </div>
   )
 }
