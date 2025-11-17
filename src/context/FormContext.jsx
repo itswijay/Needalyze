@@ -83,6 +83,8 @@ export function FormProvider({ children }) {
                 }
           );
 
+          setAdvisorUserId(result.linkData.user_id);
+
           console.log("Form data fetched from API:", result);
 
           if (result.success && result.formData) {
@@ -152,7 +154,7 @@ export function FormProvider({ children }) {
             setFormData(convertedData);
             setAdvisorUserId(result.linkData.user_id);
 
-            // console.log("Advisor User ID set to:", result.linkData.user_id);
+            console.log("Advisor User ID set to:", result.linkData.user_id);
 
             // Update localStorage with database data
             const dataToSave = { ...convertedData };
