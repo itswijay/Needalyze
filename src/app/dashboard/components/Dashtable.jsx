@@ -37,117 +37,6 @@ import {
 } from "@/components/ui/dialog";
 import Image from "next/image";
 
-const Customer = [
-  {
-    id: 1,
-    user: "John Doe",
-    need: "Health, Education",
-    actualHumanLifeValue: 25000,
-    address: "123 Main St, Cityville",
-    date: "2023-10-01",
-    status: "In Progress",
-  },
-  {
-    id: 2,
-    user: "Jane Smith",
-    need: "Education",
-    actualHumanLifeValue: 30000,
-    address: "456 Elm St, Townsville",
-    date: "2023-09-15",
-    status: "Pending",
-  },
-  {
-    id: 3,
-    user: "Alex Brown",
-    need: "Pension Fund",
-    actualHumanLifeValue: 45000,
-    address: "789 Oak Ave, Villageton",
-    date: "2023-08-20",
-    status: "Completed",
-  },
-  {
-    id: 4,
-    user: "Maria Garcia",
-    need: "Dependents Cost of Living",
-    actualHumanLifeValue: 20000,
-    address: "12 Pine Rd, Hamlet",
-    date: "2023-11-05",
-    status: "In Progress",
-  },
-  {
-    id: 5,
-    user: "Liam Nguyen",
-    need: "Long Term Savings",
-    actualHumanLifeValue: 60000,
-    address: "34 Cedar Ln, Metro City",
-    date: "2023-07-30",
-    status: "On Hold",
-  },
-  {
-    id: 6,
-    user: "Emily Johnson",
-    need: "Short Term Savings",
-    actualHumanLifeValue: 15000,
-    address: "56 Birch Blvd, Uptown",
-    date: "2023-10-10",
-    status: "Pending",
-  },
-  {
-    id: 7,
-    user: "Noah Patel",
-    need: "Health",
-    actualHumanLifeValue: 32000,
-    address: "78 Walnut St, Lakeside",
-    date: "2023-06-18",
-    status: "Completed",
-  },
-  {
-    id: 8,
-    user: "Olivia Martinez",
-    need: "Education",
-    actualHumanLifeValue: 28000,
-    address: "90 Spruce Dr, Greenfield",
-    date: "2023-12-02",
-    status: "In Progress",
-  },
-  {
-    id: 9,
-    user: "Ethan Wilson",
-    need: "Pension Fund",
-    actualHumanLifeValue: 52000,
-    address: "11 Maple Ct, Riverbend",
-    date: "2023-05-22",
-    status: "On Hold",
-  },
-  {
-    id: 10,
-    user: "Ava Kim",
-    need: "Dependents Cost of Living",
-    actualHumanLifeValue: 27000,
-    address: "202 Chestnut Ave, Harborview",
-    date: "2023-09-03",
-    status: "Pending",
-  },
-  {
-    id: 11,
-    user: "Michael Lee",
-    need: "Long Term Savings",
-    actualHumanLifeValue: 75000,
-    address: "305 Poplar Rd, Springvale",
-    date: "2023-04-12",
-    status: "Completed",
-  },
-  {
-    id: 12,
-    user: "Sophia Turner",
-    need: "Short Term Savings",
-    actualHumanLifeValue: 18000,
-    address: "47 Aspen Loop, Hillcrest",
-    date: "2023-11-20",
-    status: "Reviewed",
-  },
-];
-
 export const columns = [
   {
     accessorKey: "user",
@@ -166,7 +55,16 @@ export const columns = [
   {
     accessorKey: "need",
     header: "Need",
-    cell: ({ row }) => <div className="capitalize">{row.getValue("need")}</div>,
+    cell: ({ row }) => {
+      const need = row.getValue("need");
+      const displayNeed =
+        need.length > 30 ? `${need.substring(0, 30)}...` : need;
+      return (
+        <div className="capitalize" title={need}>
+          {displayNeed}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "address",
@@ -247,7 +145,7 @@ export const columns = [
               <Eye />
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl sm:max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-2xl font-bold text-center mb-4">
                 Customer Details
@@ -308,8 +206,8 @@ export const columns = [
                     </h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Need Type:</span>
-                        <span className="font-medium  text-gray-800">
+                        <span className="text-gray-600 mr-2">Need Type:</span>
+                        <span className="font-medium sm:text-sm  text-gray-800">
                           {customer.need}
                         </span>
                       </div>
@@ -382,11 +280,30 @@ export const columns = [
   },
 ];
 
-export function DataTable() {
+export function DataTable({ formData }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
+  // console.log("Form Data in Dashtable:", formData);
+
+  const Customer = React.useMemo(() => {
+    if (!formData || !Array.isArray(formData)) {
+      return [];
+    }
+
+    return formData.map((form) => ({
+      id: form.form_id || form.id,
+      user: form.full_name || "Unknown",
+      need:
+        form.insurance_needs?.concat(form.health_covers || []).join(", ") ||
+        "Not specified",
+      actualHumanLifeValue: form.human_life_value || 0,
+      address: form.address || "Not provided",
+      date: form.created_at ? form.created_at.split("T")[0] : "Unknown",
+      status: form.status || "Unknown",
+    }));
+  }, [formData]);
 
   const table = useReactTable({
     data: Customer,
