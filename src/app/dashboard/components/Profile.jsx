@@ -7,14 +7,19 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog'
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ChevronDown } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/context/AuthContext'
 import DeleteAccountVerify from './DeleteAccountVerify'
 
 const Profile = ({ open, onOpenChange }) => {
+  const { user, refreshUserProfile } = useAuth()
   const [first_name, setFirstName] = useState('')
   const [last_name, setLastName] = useState('')
   const [phone_number, setPhoneNumber] = useState('')
@@ -24,9 +29,122 @@ const Profile = ({ open, onOpenChange }) => {
   const [showBranchDropdown, setShowBranchDropdown] = useState(false)
   const [selectedBranch, setSelectedBranch] = useState('')
   const [showPositionDropdown, setShowPositionDropdown] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
 
   const branches = ['Warakapola']
   const positions = ['Branch Manager', 'Team Leader', 'Advisor']
+
+  // Fetch user profile on dialog open
+  useEffect(() => {
+    if (open) {
+      fetchUserProfile()
+    }
+  }, [open])
+
+  const fetchUserProfile = async () => {
+    try {
+      setIsLoading(true)
+      setError('')
+
+      // Get current user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+
+      if (userError || !user) {
+        setError('Failed to get user information')
+        return
+      }
+
+      // Fetch user profile from user_profile table
+      const { data: profileData, error: profileError } = await supabase
+        .from('user_profile')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+
+      if (profileError) {
+        setError('Failed to fetch profile data')
+        return
+      }
+
+      if (profileData) {
+        setFirstName(profileData.first_name || '')
+        setLastName(profileData.last_name || '')
+        setPhoneNumber(profileData.phone_number || '')
+        setBranch(profileData.branch || '')
+        setPosition(profileData.position || '')
+        setSelectedBranch(profileData.branch || '')
+      }
+    } catch (err) {
+      setError('An error occurred while fetching profile')
+      console.error('Error fetching profile:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSubmit = async () => {
+    try {
+      setIsSaving(true)
+      setError('')
+      setSuccessMessage('')
+
+      // Validate required fields
+      if (!first_name || !last_name || !phone_number || !branch || !position) {
+        setError('Please fill in all required fields')
+        return
+      }
+
+      // Get current user
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+
+      if (userError || !user) {
+        setError('Failed to get user information')
+        return
+      }
+
+      // Update user profile
+      const { error: updateError } = await supabase
+        .from('user_profile')
+        .update({
+          first_name,
+          last_name,
+          phone_number,
+          branch,
+          position,
+          updated_at: new Date(),
+        })
+        .eq('user_id', user.id)
+
+      if (updateError) {
+        setError(updateError.message || 'Failed to update profile')
+        return
+      }
+
+      setSuccessMessage('Profile updated successfully!')
+
+      // Refresh user profile in context to update navbar
+      await refreshUserProfile()
+
+      setTimeout(() => {
+        setSuccessMessage('')
+        onOpenChange(false)
+      }, 500)
+    } catch (err) {
+      setError('An error occurred while saving profile')
+      console.error('Error saving profile:', err)
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -38,9 +156,6 @@ const Profile = ({ open, onOpenChange }) => {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  // For Future Work
-  const handleSubmit = () => {}
 
   return (
     <>
@@ -55,193 +170,225 @@ const Profile = ({ open, onOpenChange }) => {
             <DialogTitle className="text-base sm:text-lg">
               Edit Your Details
             </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm">
+              Update your profile information including name, phone number,
+              branch, and position.
+            </DialogDescription>
           </DialogHeader>
 
-          {/* First Name*/}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
-            <div className="flex-1 grid gap-1.5 sm:gap-2">
-              <Label htmlFor="first_name" className="text-xs sm:text-sm">
-                First Name
-              </Label>
-              <Input
-                id="first_name"
-                placeholder="Enter first name"
-                value={first_name}
-                onChange={(e) => setFirstName(e.target.value)}
-                className="rounded-full h-9 sm:h-10 text-sm"
-              />
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-8 gap-3">
+              <Spinner className="w-10 h-10 text-[#0C407C]" />
+              <p className="text-gray-600 text-sm">Loading your profile...</p>
             </div>
+          ) : (
+            <>
+              {error && (
+                <div className="p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-700 text-xs sm:text-sm">{error}</p>
+                </div>
+              )}
 
-            {/* Last Name */}
-            <div className="flex-1 grid gap-1.5 sm:gap-2">
-              <Label htmlFor="last_name" className="text-xs sm:text-sm">
-                Last Name
-              </Label>
-              <Input
-                id="last_name"
-                placeholder="Enter last name"
-                value={last_name}
-                onChange={(e) => setLastName(e.target.value)}
-                className="rounded-full h-9 sm:h-10 text-sm"
-              />
-            </div>
-          </div>
+              {successMessage && (
+                <div className="p-3 sm:p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-700 text-xs sm:text-sm">
+                    {successMessage}
+                  </p>
+                </div>
+              )}
 
-          {/* phone number */}
-          <div className="grid gap-1.5 sm:gap-2">
-            <Label htmlFor="phone_number" className="text-xs sm:text-sm">
-              Phone Number
-            </Label>
-            <Input
-              id="phone_number"
-              placeholder="Enter phone number"
-              value={phone_number}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              className="rounded-full h-9 sm:h-10 text-sm"
-            />
-          </div>
+              {/* First Name*/}
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+                <div className="flex-1 grid gap-1.5 sm:gap-2">
+                  <Label htmlFor="first_name" className="text-xs sm:text-sm">
+                    First Name
+                  </Label>
+                  <Input
+                    id="first_name"
+                    placeholder="Enter first name"
+                    value={first_name}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="rounded-full h-9 sm:h-10 text-sm"
+                  />
+                </div>
 
-          {/* Select Branch */}
-          <div className="grid gap-1.5 sm:gap-2 relative dropdown-container">
-            <Label
-              htmlFor="branch"
-              className="text-xs sm:text-sm font-medium text-gray-700"
-            >
-              Branch
-            </Label>
-
-            <div
-              className="w-full rounded-full border border-gray-300 py-1.5 sm:py-2 px-3 text-xs sm:text-sm text-left cursor-pointer flex items-center justify-between bg-white"
-              onClick={() => setShowBranchDropdown(!showBranchDropdown)}
-            >
-              <span
-                className={selectedBranch ? 'text-gray-900' : 'text-gray-500'}
-              >
-                {selectedBranch || 'Select Branch'}
-              </span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 transition-transform ${
-                  showBranchDropdown ? 'rotate-180' : ''
-                }`}
-              />
-            </div>
-
-            {showBranchDropdown && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-32 sm:max-h-40 overflow-y-auto mt-1">
-                {selectedBranch && (
-                  <div
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-red-50 text-red-600 text-xs sm:text-sm cursor-pointer border-b border-gray-200"
-                    onClick={() => {
-                      setSelectedBranch('')
-                      setBranch('')
-                      setShowBranchDropdown(false)
-                    }}
-                  >
-                    ✕ Clear Selection
-                  </div>
-                )}
-                {branches.map((b) => (
-                  <div
-                    key={b}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-gray-100 text-gray-700 text-xs sm:text-sm cursor-pointer"
-                    onClick={() => {
-                      setSelectedBranch(b)
-                      setBranch(b)
-                      setShowBranchDropdown(false)
-                    }}
-                  >
-                    {b}
-                  </div>
-                ))}
+                {/* Last Name */}
+                <div className="flex-1 grid gap-1.5 sm:gap-2">
+                  <Label htmlFor="last_name" className="text-xs sm:text-sm">
+                    Last Name
+                  </Label>
+                  <Input
+                    id="last_name"
+                    placeholder="Enter last name"
+                    value={last_name}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="rounded-full h-9 sm:h-10 text-sm"
+                  />
+                </div>
               </div>
-            )}
-          </div>
 
-          {/* Select Position */}
-          <div className="grid gap-1.5 sm:gap-2 relative dropdown-container">
-            <Label
-              htmlFor="position"
-              className="text-xs sm:text-sm font-medium text-gray-700"
-            >
-              Position
-            </Label>
-
-            <div
-              className="w-full rounded-full border border-gray-300 py-1.5 sm:py-2 px-3 text-xs sm:text-sm text-left cursor-pointer flex items-center justify-between bg-white"
-              onClick={() => setShowPositionDropdown(!showPositionDropdown)}
-            >
-              <span className={position ? 'text-gray-900' : 'text-gray-500'}>
-                {position || 'Select Position'}
-              </span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 transition-transform ${
-                  showPositionDropdown ? 'rotate-180' : ''
-                }`}
-              />
-            </div>
-
-            {showPositionDropdown && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-32 sm:max-h-40 overflow-y-auto mt-1">
-                {position && (
-                  <div
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-red-50 text-red-600 text-xs sm:text-sm cursor-pointer border-b border-gray-200"
-                    onClick={() => {
-                      setPosition('')
-                      setShowPositionDropdown(false)
-                    }}
-                  >
-                    ✕ Clear Selection
-                  </div>
-                )}
-                {positions.map((p) => (
-                  <div
-                    key={p}
-                    className="px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-gray-100 text-gray-700 text-xs sm:text-sm cursor-pointer"
-                    onClick={() => {
-                      setPosition(p)
-                      setShowPositionDropdown(false)
-                    }}
-                  >
-                    {p}
-                  </div>
-                ))}
+              {/* phone number */}
+              <div className="grid gap-1.5 sm:gap-2">
+                <Label htmlFor="phone_number" className="text-xs sm:text-sm">
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone_number"
+                  placeholder="Enter phone number"
+                  value={phone_number}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="rounded-full h-9 sm:h-10 text-sm"
+                />
               </div>
-            )}
-          </div>
 
-          {/* save details or delete account */}
-          <div className="flex flex-col pt-2 sm:pt-4">
-            <div className="flex justify-end">
-              <Button
-                onClick={handleSubmit}
-                className="bg-sky-800 hover:bg-sky-700 h-8 sm:h-10 text-xs sm:text-sm px-3 sm:px-4"
-              >
-                Save your details
-              </Button>
-            </div>
-
-            <div className="mt-3 sm:mt-5">
-              <Label className="text-sm sm:text-base text-red-600">
-                Delete Account
-              </Label>
-
-              <hr className="border-t border-gray-300 my-1.5 sm:my-2" />
-
-              <p className="text-[11px] sm:text-xs mt-1.5 sm:mt-2">
-                Delete Account, your account will be scheduled for permanent
-                deletion. You can recover your account within 7 days
-              </p>
-
-              <div className="flex">
-                <Button
-                  onClick={() => setIsDelVerifyOpen(true)}
-                  className="bg-red-600 hover:bg-red-800 mt-1.5 sm:mt-2 h-8 sm:h-10 text-xs sm:text-sm px-3 sm:px-4"
+              {/* Select Branch */}
+              <div className="grid gap-1.5 sm:gap-2 relative dropdown-container">
+                <Label
+                  htmlFor="branch"
+                  className="text-xs sm:text-sm font-medium text-gray-700"
                 >
-                  Delete account
-                </Button>
+                  Branch
+                </Label>
+
+                <div
+                  className="w-full rounded-full border border-gray-300 py-1.5 sm:py-2 px-3 text-xs sm:text-sm text-left cursor-pointer flex items-center justify-between bg-white"
+                  onClick={() => setShowBranchDropdown(!showBranchDropdown)}
+                >
+                  <span
+                    className={
+                      selectedBranch ? 'text-gray-900' : 'text-gray-500'
+                    }
+                  >
+                    {selectedBranch || 'Select Branch'}
+                  </span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 transition-transform ${
+                      showBranchDropdown ? 'rotate-180' : ''
+                    }`}
+                  />
+                </div>
+
+                {showBranchDropdown && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-32 sm:max-h-40 overflow-y-auto mt-1">
+                    {selectedBranch && (
+                      <div
+                        className="px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-red-50 text-red-600 text-xs sm:text-sm cursor-pointer border-b border-gray-200"
+                        onClick={() => {
+                          setSelectedBranch('')
+                          setBranch('')
+                          setShowBranchDropdown(false)
+                        }}
+                      >
+                        ✕ Clear Selection
+                      </div>
+                    )}
+                    {branches.map((b) => (
+                      <div
+                        key={b}
+                        className="px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-gray-100 text-gray-700 text-xs sm:text-sm cursor-pointer"
+                        onClick={() => {
+                          setSelectedBranch(b)
+                          setBranch(b)
+                          setShowBranchDropdown(false)
+                        }}
+                      >
+                        {b}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
+
+              {/* Select Position */}
+              <div className="grid gap-1.5 sm:gap-2 relative dropdown-container">
+                <Label
+                  htmlFor="position"
+                  className="text-xs sm:text-sm font-medium text-gray-700"
+                >
+                  Position
+                </Label>
+
+                <div
+                  className="w-full rounded-full border border-gray-300 py-1.5 sm:py-2 px-3 text-xs sm:text-sm text-left cursor-pointer flex items-center justify-between bg-white"
+                  onClick={() => setShowPositionDropdown(!showPositionDropdown)}
+                >
+                  <span
+                    className={position ? 'text-gray-900' : 'text-gray-500'}
+                  >
+                    {position || 'Select Position'}
+                  </span>
+                  <ChevronDown
+                    className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-gray-500 transition-transform ${
+                      showPositionDropdown ? 'rotate-180' : ''
+                    }`}
+                  />
+                </div>
+
+                {showPositionDropdown && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-32 sm:max-h-40 overflow-y-auto mt-1">
+                    {position && (
+                      <div
+                        className="px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-red-50 text-red-600 text-xs sm:text-sm cursor-pointer border-b border-gray-200"
+                        onClick={() => {
+                          setPosition('')
+                          setShowPositionDropdown(false)
+                        }}
+                      >
+                        ✕ Clear Selection
+                      </div>
+                    )}
+                    {positions.map((p) => (
+                      <div
+                        key={p}
+                        className="px-3 py-1.5 sm:px-4 sm:py-2 hover:bg-gray-100 text-gray-700 text-xs sm:text-sm cursor-pointer"
+                        onClick={() => {
+                          setPosition(p)
+                          setShowPositionDropdown(false)
+                        }}
+                      >
+                        {p}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* save details or delete account */}
+              <div className="flex flex-col pt-2 sm:pt-4">
+                <div className="flex justify-end">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isSaving || isLoading}
+                    className="bg-sky-800 hover:bg-sky-700 h-8 sm:h-10 text-xs sm:text-sm px-3 sm:px-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSaving ? 'Saving...' : 'Save your details'}
+                  </Button>
+                </div>
+
+                <div className="mt-3 sm:mt-5">
+                  <Label className="text-sm sm:text-base text-red-600">
+                    Delete Account
+                  </Label>
+
+                  <hr className="border-t border-gray-300 my-1.5 sm:my-2" />
+
+                  <p className="text-[11px] sm:text-xs mt-1.5 sm:mt-2">
+                    Delete Account, your account will be scheduled for permanent
+                    deletion. You can recover your account within 7 days
+                  </p>
+
+                  <div className="flex">
+                    <Button
+                      onClick={() => setIsDelVerifyOpen(true)}
+                      className="bg-red-600 hover:bg-red-800 mt-1.5 sm:mt-2 h-8 sm:h-10 text-xs sm:text-sm px-3 sm:px-4"
+                    >
+                      Delete account
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </>
