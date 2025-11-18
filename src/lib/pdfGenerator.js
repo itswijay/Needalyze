@@ -129,14 +129,14 @@ const createPDFHTML = (formData) => {
       position: relative;
     ">
       <!-- Dark Blue Header with Logo -->
-      <div style="background: #1e3a8a; color: white; padding: 15px; margin: -10mm -10mm 20px -10mm; border-bottom: 3px solid #000;">
+      <div style="background: #1e3a8a; color: white; padding: 15px; margin: -10mm -10mm 20px -10mm; border-radius: 6px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
             <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: white;">Need Analysis</h1>
             <h2 style="margin: 0; font-size: 20px; font-weight: bold; color: white;">Form</h2>
           </div>
           <div style="text-align: right;">
-            <div style="background: white; color: #1e3a8a; padding: 8px 16px; border-radius: 8px; font-size: 16px; font-weight: bold;">
+            <div style="background: white; color: #1e3a8a; padding: 8px 16px; border-radius: 6px; font-size: 16px; font-weight: bold;">
               NEEDALYZE
             </div>
           </div>
@@ -144,8 +144,8 @@ const createPDFHTML = (formData) => {
       </div>
 
       <!-- Personal Information Section -->
-      <div style="margin-bottom: 20px;">
-        <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+      <div style="margin-bottom: 20px; margin-left: 0mm; margin-right: 0mm;">
+        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 15px; text-align: center;">
           <h3 style="margin: 0; font-size: 14px; font-weight: bold; color: #333;">Personal Information</h3>
         </div>
         
@@ -220,7 +220,7 @@ const createPDFHTML = (formData) => {
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
         <!-- Insurance Section -->
         <div>
-          <div style="background: #f8f9fa; padding: 8px; border-radius: 5px; margin-bottom: 10px; text-align: center;">
+          <div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin-bottom: 10px; text-align: center;">
             <h4 style="margin: 0; font-size: 13px; font-weight: bold;">Insurance</h4>
           </div>
           <div style="padding: 10px; height: 120px;">
@@ -253,7 +253,7 @@ const createPDFHTML = (formData) => {
 
         <!-- Health Covers Section -->
         <div>
-          <div style="background: #f8f9fa; padding: 8px; border-radius: 5px; margin-bottom: 10px; text-align: center;">
+          <div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin-bottom: 10px; text-align: center;">
             <h4 style="margin: 0; font-size: 13px; font-weight: bold;">Health Covers</h4>
           </div>
           <div style="padding: 10px; height: 120px;">
@@ -287,7 +287,7 @@ const createPDFHTML = (formData) => {
 
       <!-- Life Cover Calculation -->
       <div style="margin-bottom: 20px;">
-        <div style="background: #f8f9fa; padding: 8px; border-radius: 5px; margin-bottom: 10px;">
+        <div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin-bottom: 10px; text-align: center;">
           <h4 style="margin: 0; font-size: 14px; font-weight: bold;">Life Cover</h4>
         </div>
         
