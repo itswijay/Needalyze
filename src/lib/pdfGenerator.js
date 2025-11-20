@@ -96,12 +96,11 @@ const createPDFHTML = (formData) => {
   // Helper function to format currency
   const formatCurrency = (amount) => {
     if (!amount) return ''
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    const formattedAmount = new Intl.NumberFormat('en-IN', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount)
+    return `Rs. ${formattedAmount}`
   }
 
   // Helper function to format date
@@ -117,7 +116,7 @@ const createPDFHTML = (formData) => {
   return `
     <div style="
       background: white; 
-      padding: 10mm; 
+      padding: 10mm;
       font-family: Arial, sans-serif; 
       font-size: 12px; 
       line-height: 1.4; 
@@ -129,87 +128,87 @@ const createPDFHTML = (formData) => {
       position: relative;
     ">
       <!-- Dark Blue Header with Logo -->
-      <div style="background: #1e3a8a; color: white; padding: 15px; margin: -10mm -10mm 20px -10mm; border-radius: 6px;">
+      <div style="background: #1e3a8a; color: white; padding:20px; margin: -10mm -10mm 5px -10mm; border-radius: 5px 5px 5px 5px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
             <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: white;">Need Analysis</h1>
-            <h2 style="margin: 0; font-size: 20px; font-weight: bold; color: white;">Form</h2>
+            <h2 style="margin: 0; font-size: 24px; font-weight: bold; color: white;">Form</h2>
           </div>
           <div style="text-align: right;">
-            <div style="background: white; color: #1e3a8a; padding: 8px 16px; border-radius: 6px; font-size: 16px; font-weight: bold;">
-              NEEDALYZE
+            <div style="background: #1e3a8a ; padding:20px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+              <img src="/images/logos/white_favicon.png" alt="Logo" style="height: 40px; width: auto;" />
             </div>
           </div>
         </div>
       </div>
 
       <!-- Personal Information Section -->
-      <div style="margin-bottom: 20px; margin-left: 0mm; margin-right: 0mm;">
-        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-bottom: 15px; text-align: center;">
-          <h3 style="margin: 0; font-size: 14px; font-weight: bold; color: #333;">Personal Information</h3>
+      <div style="margin-bottom: 30px; margin-left: 0mm; margin-right: 0mm;">
+        <div style="background: darkgrey; padding: 12px 12px 12px 12px; border-radius: 8px 8px 8px 8px; margin-bottom: 15px; text-align: center;">
+          <h3 style="margin: 0; font-size: 20px; font-weight: bold; color: #333;">Personal Information</h3>
         </div>
         
         <!-- Personal Info without borders -->
         <div style="padding: 12px;">
-          <div style="display: flex; margin-bottom: 10px;">
-            <span style="width: 110px; font-weight: bold;">Full Name:</span>
-            <span style="flex: 1; padding-bottom: 3px; margin-left: 8px;">
+          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+            <span style="width: 160px; font-weight: bold; text-align: left;">Full Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.fullName || ''}
             </span>
           </div>
           
-          <div style="display: flex; margin-bottom: 10px;">
-            <span style="width: 110px; font-weight: bold;">Date of Birth:</span>
-            <span style="flex: 1; padding-bottom: 3px; margin-left: 8px;">
+          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+            <span style="width: 160px; font-weight: bold; text-align: left;">Date of Birth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formatDate(formData.step1?.dateOfBirth) || ''}
             </span>
           </div>
           
-          <div style="display: flex; margin-bottom: 10px;">
-            <span style="width: 110px; font-weight: bold;">Spouse's Name:</span>
-            <span style="flex: 1; padding-bottom: 3px; margin-left: 8px;">
+          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+            <span style="width: 160px; font-weight: bold; text-align: left;">Spouse's Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.spouseName || ''}
             </span>
           </div>
           
-          <div style="display: flex; margin-bottom: 10px;">
-            <span style="width: 110px; font-weight: bold;">No of Children:</span>
-            <span style="flex: 1; padding-bottom: 3px; margin-left: 8px;">
+          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+            <span style="width: 160px; font-weight: bold; text-align: left;">No of Children&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.numberOfChildren || ''}
             </span>
           </div>
           
-          <div style="display: flex; margin-bottom: 10px;">
-            <span style="width: 110px; font-weight: bold;">Children's Ages:</span>
-            <span style="flex: 1; padding-bottom: 3px; margin-left: 8px;">
+          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+            <span style="width: 160px; font-weight: bold; text-align: left;">Children's Ages&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.childrenAges || ''}
             </span>
           </div>
           
-          <div style="display: flex; margin-bottom: 10px;">
-            <span style="width: 110px; font-weight: bold;">Address:</span>
-            <span style="flex: 1; padding-bottom: 3px; margin-left: 8px;">
+          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+            <span style="width: 160px; font-weight: bold; text-align: left;">Address&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.address || ''}
             </span>
           </div>
           
-          <div style="display: flex; margin-bottom: 10px;">
-            <span style="width: 110px; font-weight: bold;">Phone Number:</span>
-            <span style="flex: 1; padding-bottom: 3px; margin-left: 8px;">
+          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+            <span style="width: 160px; font-weight: bold; text-align: left;">Phone Number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.phoneNumber || ''}
             </span>
           </div>
           
-          <div style="display: flex; margin-bottom: 10px;">
-            <span style="width: 110px; font-weight: bold;">Occupation:</span>
-            <span style="flex: 1; padding-bottom: 3px; margin-left: 8px;">
+          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+            <span style="width: 160px; font-weight: bold; text-align: left;">Occupation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.occupation || ''}
             </span>
           </div>
           
-          <div style="display: flex;">
-            <span style="width: 110px; font-weight: bold;">Monthly Income:</span>
-            <span style="flex: 1; padding-bottom: 3px; margin-left: 8px;">
+          <div style="display: flex; align-items: center;">
+            <span style="width: 160px; font-weight: bold; text-align: left;">Monthly Income&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formatCurrency(formData.step1?.monthlyIncome) || ''}
             </span>
           </div>
@@ -220,7 +219,7 @@ const createPDFHTML = (formData) => {
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
         <!-- Insurance Section -->
         <div>
-          <div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin-bottom: 10px; text-align: center;">
+          <div style="background: darkgray; padding: 8px; border-radius: 8px 8px 8px 8px; margin-bottom: 10px; text-align: center;">
             <h4 style="margin: 0; font-size: 13px; font-weight: bold;">Insurance</h4>
           </div>
           <div style="padding: 10px; height: 120px;">
@@ -253,7 +252,7 @@ const createPDFHTML = (formData) => {
 
         <!-- Health Covers Section -->
         <div>
-          <div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin-bottom: 10px; text-align: center;">
+          <div style="background: darkgray; padding: 8px; border-radius: 8px 8px 8px 8px; margin-bottom: 10px; text-align: center;">
             <h4 style="margin: 0; font-size: 13px; font-weight: bold;">Health Covers</h4>
           </div>
           <div style="padding: 10px; height: 120px;">
@@ -287,45 +286,45 @@ const createPDFHTML = (formData) => {
 
       <!-- Life Cover Calculation -->
       <div style="margin-bottom: 20px;">
-        <div style="background: #f8f9fa; padding: 8px; border-radius: 6px; margin-bottom: 10px; text-align: center;">
+        <div style="background: darkgray; padding: 8px; border-radius: 8px 8px 8px 8px; margin-bottom: 10px; text-align: center;">
           <h4 style="margin: 0; font-size: 14px; font-weight: bold;">Life Cover</h4>
         </div>
         
         <div style="padding: 12px;">
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
-            <span style="width: 140px; font-weight: bold;">Fixed Monthly Expenses:</span>
-            <div style="width: 130px; height: 28px; margin-left: 8px; display: flex; align-items: center; padding: 0 6px;">
+            <span style="width: 200px; font-weight: bold; text-align: left; white-space: nowrap;">Fixed Monthly Expenses&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formatCurrency(formData.step3?.fixedMonthlyExpenses) || ''}
-            </div>
+            </span>
           </div>
           
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
-            <span style="width: 140px; font-weight: bold;">Bank Interest Rate:</span>
-            <div style="width: 130px; height: 28px; margin-left: 8px; display: flex; align-items: center; padding: 0 6px;">
+            <span style="width: 200px; font-weight: bold; text-align: left; white-space: nowrap;">Bank Interest Rate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step3?.bankInterestRate ? formData.step3.bankInterestRate + '%' : ''}
-            </div>
+            </span>
           </div>
           
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
-            <span style="width: 140px; font-weight: bold;">Unsecured Bank Loans:</span>
-            <div style="width: 130px; height: 28px; margin-left: 8px; display: flex; align-items: center; padding: 0 6px;">
+            <span style="width: 200px; font-weight: bold; text-align: left; white-space: nowrap;">Unsecured Bank Loans&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formatCurrency(formData.step3?.unsecuredBankLoan) || ''}
-            </div>
+            </span>
           </div>
           
           <div style="display: flex; margin-bottom: 15px; align-items: center;">
-            <span style="width: 140px; font-weight: bold;">Cash in Hand + Insurance:</span>
-            <div style="width: 130px; height: 28px; margin-left: 8px; display: flex; align-items: center; padding: 0 6px;">
+            <span style="width: 200px; font-weight: bold; text-align: left; white-space: nowrap;">Cash in Hand + Insurance&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+            <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formatCurrency(formData.step3?.cashInHandInsurance) || ''}
-            </div>
+            </span>
           </div>
           
           <div style="padding-top: 12px; margin-top: 15px;">
             <div style="display: flex; align-items: center;">
-              <span style="width: 140px; font-weight: bold; font-size: 14px;">Actual Human Life Value:</span>
-              <div style="width: 150px; height: 32px; margin-left: 8px; display: flex; align-items: center; padding: 0 6px; font-weight: bold; font-size: 13px;">
+              <span style="width: 200px; font-weight: bold; font-size: 14px; text-align: left; white-space: nowrap;">Actual Human Life Value&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
+              <span style="flex: 1; padding-left: 10px; text-align: left; font-weight: bold; font-size: 13px;">
                 ${formatCurrency(formData.step3?.actualHLValue) || '0'}
-              </div>
+              </span>
             </div>
           </div>
         </div>
