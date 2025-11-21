@@ -27,7 +27,7 @@ export async function POST(request) {
     return Response.json({
       success: true,
       linkId: data.link_id,
-      formUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/form/${data.link_id}/step1`,
+      formUrl: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/form/${data.link_id}/step1`,
     });
   } catch (error) {
     return Response.json(
