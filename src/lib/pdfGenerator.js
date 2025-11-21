@@ -1,5 +1,7 @@
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import { formatCurrency } from './utils'
+import { uploadPDFToStorage } from './pdfStorage'
 
 export const generatePDF = async (formData) => {
   try {
@@ -30,9 +32,9 @@ export const generatePDF = async (formData) => {
       throw new Error('PDF content not rendered properly')
     }
 
-    // Configure html2canvas options for better quality
+    // Configure html2canvas options for optimized file size
     const canvas = await html2canvas(element, {
-      scale: 2, // Higher scale for better quality
+      scale: 1.2, // Reduced scale to decrease file size
       useCORS: true,
       allowTaint: false,
       backgroundColor: '#ffffff',
@@ -42,8 +44,8 @@ export const generatePDF = async (formData) => {
       scrollY: 0,
     })
 
-    // Create PDF
-    const imgData = canvas.toDataURL('image/png', 1.0)
+    // Create PDF with compression
+    const imgData = canvas.toDataURL('image/jpeg', 0.7) // Use JPEG with 70% quality for smaller size
     const pdf = new jsPDF('p', 'mm', 'a4')
     
     // A4 dimensions in mm
@@ -71,21 +73,40 @@ export const generatePDF = async (formData) => {
     const x = (pageWidth - finalWidth) / 2
     const y = (pageHeight - finalHeight) / 2
     
-    // Add image to PDF
-    pdf.addImage(imgData, 'PNG', x, y, finalWidth, finalHeight)
+    // Add image to PDF with compression
+    pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight, undefined, 'MEDIUM')
     
     // Generate filename with current date
     const currentDate = new Date().toLocaleDateString('en-IN').replace(/\//g, '-')
     const customerName = formData.step1?.fullName || 'Customer'
     const filename = `Need_Analysis_${customerName.replace(/\s+/g, '_')}_${currentDate}.pdf`
     
-    // Download the PDF
+    // Convert PDF to blob for Supabase upload
+    const pdfBlob = pdf.output('blob')
+    
+    // Upload to Supabase Storage
+    const uploadResult = await uploadPDFToStorage(pdfBlob, filename)
+    
+    // Download the PDF locally as well
     pdf.save(filename)
     
     // Cleanup
     document.body.removeChild(tempContainer)
     
-    return { success: true, filename }
+    if (uploadResult.success) {
+      return { 
+        success: true, 
+        filename,
+        supabaseUrl: uploadResult.url,
+        storagePath: uploadResult.path
+      }
+    } else {
+      return { 
+        success: true, 
+        filename,
+        storageError: uploadResult.error 
+      }
+    }
   } catch (error) {
     console.error('Error generating PDF:', error)
     throw new Error(`Failed to generate PDF: ${error.message}`)
@@ -93,16 +114,6 @@ export const generatePDF = async (formData) => {
 }
 
 const createPDFHTML = (formData) => {
-  // Helper function to format currency
-  const formatCurrency = (amount) => {
-    if (!amount) return ''
-    const formattedAmount = new Intl.NumberFormat('en-IN', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount)
-    return `Rs. ${formattedAmount}`
-  }
-
   // Helper function to format date
   const formatDate = (date) => {
     if (!date) return ''
@@ -116,55 +127,55 @@ const createPDFHTML = (formData) => {
   return `
     <div style="
       background: white; 
-      padding: 10mm;
+      padding: 8mm;
       font-family: Arial, sans-serif; 
-      font-size: 12px; 
-      line-height: 1.4; 
+      font-size: 11px; 
+      line-height: 1.3; 
       color: #000; 
-      width: 190mm; 
-      min-height: 277mm;
+      width: 194mm; 
+      min-height: 281mm;
       margin: 0 auto;
       box-sizing: border-box;
       position: relative;
     ">
       <!-- Dark Blue Header with Logo -->
-      <div style="background: #1e3a8a; color: white; padding:20px; margin: -10mm -10mm 5px -10mm; border-radius: 5px 5px 5px 5px;">
+      <div style="background: #1e3a8a; color: white; padding:15px; margin: -8mm -8mm 4px -8mm; border-radius: 4px;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: white;">Need Analysis</h1>
-            <h2 style="margin: 0; font-size: 24px; font-weight: bold; color: white;">Form</h2>
+            <h1 style="margin: 0; font-size: 20px; font-weight: bold; color: white;">Need Analysis</h1>
+            <h2 style="margin: 0; font-size: 20px; font-weight: bold; color: white;">Form</h2>
           </div>
           <div style="text-align: right;">
-            <div style="background: #1e3a8a ; padding:20px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
-              <img src="/images/logos/white_favicon.png" alt="Logo" style="height: 40px; width: auto;" />
+            <div style="background: #1e3a8a ; padding:15px; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+              <img src="/images/logos/white_favicon.png" alt="Logo" style="height: 32px; width: auto;" />
             </div>
           </div>
         </div>
       </div>
 
       <!-- Personal Information Section -->
-      <div style="margin-bottom: 30px; margin-left: 0mm; margin-right: 0mm;">
-        <div style="background: darkgrey; padding: 12px 12px 12px 12px; border-radius: 8px 8px 8px 8px; margin-bottom: 15px; text-align: center;">
-          <h3 style="margin: 0; font-size: 20px; font-weight: bold; color: #333;">Personal Information</h3>
+      <div style="margin-bottom: 25px; margin-left: 0mm; margin-right: 0mm;">
+        <div style="background: darkgrey; padding: 10px; border-radius: 6px; margin-bottom: 12px; text-align: center;">
+          <h3 style="margin: 0; font-size: 18px; font-weight: bold; color: #333;">Personal Information</h3>
         </div>
         
         <!-- Personal Info without borders -->
-        <div style="padding: 12px;">
-          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+        <div style="padding: 10px;">
+          <div style="display: flex; margin-bottom: 8px; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">Full Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
-            <span style="flex: 1; padding-left: 10px; text-align: left;">
+            <span style="flex: 1; padding-left: 8px; text-align: left;">
               ${formData.step1?.fullName || ''}
             </span>
           </div>
           
-          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+          <div style="display: flex; margin-bottom: 8px; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">Date of Birth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
-            <span style="flex: 1; padding-left: 10px; text-align: left;">
+            <span style="flex: 1; padding-left: 8px; text-align: left;">
               ${formatDate(formData.step1?.dateOfBirth) || ''}
             </span>
           </div>
           
-          <div style="display: flex; margin-bottom: 12px; align-items: center;">
+          <div style="display: flex; margin-bottom: 8px; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">Spouse's Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.spouseName || ''}
@@ -216,13 +227,13 @@ const createPDFHTML = (formData) => {
       </div>
 
       <!-- Insurance and Health Covers Section -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
         <!-- Insurance Section -->
         <div>
-          <div style="background: darkgray; padding: 8px; border-radius: 8px 8px 8px 8px; margin-bottom: 10px; text-align: center;">
-            <h4 style="margin: 0; font-size: 13px; font-weight: bold;">Insurance</h4>
+          <div style="background: darkgray; padding: 6px; border-radius: 6px; margin-bottom: 8px; text-align: center;">
+            <h4 style="margin: 0; font-size: 12px; font-weight: bold;">Insurance</h4>
           </div>
-          <div style="padding: 10px; height: 120px;">
+          <div style="padding: 8px; height: 100px;">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
                 ${formData.step2?.insuranceNeeds?.dependentCostOfLiving ? '✓' : ''}
@@ -252,10 +263,10 @@ const createPDFHTML = (formData) => {
 
         <!-- Health Covers Section -->
         <div>
-          <div style="background: darkgray; padding: 8px; border-radius: 8px 8px 8px 8px; margin-bottom: 10px; text-align: center;">
-            <h4 style="margin: 0; font-size: 13px; font-weight: bold;">Health Covers</h4>
+          <div style="background: darkgray; padding: 6px; border-radius: 6px; margin-bottom: 8px; text-align: center;">
+            <h4 style="margin: 0; font-size: 12px; font-weight: bold;">Health Covers</h4>
           </div>
-          <div style="padding: 10px; height: 120px;">
+          <div style="padding: 8px; height: 100px;">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
                 ${formData.step2?.healthCovers?.dailyHospitalizationExpenses ? '✓' : ''}

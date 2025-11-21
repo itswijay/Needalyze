@@ -28,8 +28,16 @@ export default function Step4Page() {
       const result = await generatePDF(formData)
       console.log('PDF generated successfully:', result.filename)
       
-      // Optional: Show success message
-      // You could add a toast notification here if you have one implemented
+      if (result.supabaseUrl) {
+        console.log('PDF uploaded to Supabase:', result.supabaseUrl)
+        // You could show a success message with the cloud URL
+        alert(`PDF generated and saved to cloud!\nFile: ${result.filename}\nCloud URL: ${result.supabaseUrl}`)
+      } else if (result.storageError) {
+        console.warn('Storage upload failed but local download succeeded:', result.storageError)
+        alert(`PDF downloaded locally. Cloud upload failed: ${result.storageError}`)
+      } else {
+        alert(`PDF downloaded successfully: ${result.filename}`)
+      }
       
     } catch (error) {
       console.error('Failed to generate PDF:', error)
