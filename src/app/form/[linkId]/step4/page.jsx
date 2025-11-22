@@ -16,29 +16,39 @@ export default function Step4Page() {
   const { updateStepData, getAllData, linkId } = useFormContext()
 
   const handleDownload = async () => {
-    if (isGeneratingPDF) return // Prevent multiple clicks
-    
+    // Stronger guard: prevent multiple clicks with immediate return
+    if (isGeneratingPDF) {
+      console.log('PDF generation already in progress, ignoring click')
+      return
+    }
+
     setIsGeneratingPDF(true)
     try {
       // Get all form data from context
       const formData = getAllData()
       console.log('Form data for PDF generation:', formData)
-      
+
       // Generate and download PDF
       const result = await generatePDF(formData)
       console.log('PDF generated successfully:', result.filename)
-      
+
       if (result.supabaseUrl) {
         console.log('PDF uploaded to Supabase:', result.supabaseUrl)
         // You could show a success message with the cloud URL
-        alert(`PDF generated and saved to cloud!\nFile: ${result.filename}\nCloud URL: ${result.supabaseUrl}`)
+        alert(
+          `PDF generated and saved to cloud!\nFile: ${result.filename}\nCloud URL: ${result.supabaseUrl}`
+        )
       } else if (result.storageError) {
-        console.warn('Storage upload failed but local download succeeded:', result.storageError)
-        alert(`PDF downloaded locally. Cloud upload failed: ${result.storageError}`)
+        console.warn(
+          'Storage upload failed but local download succeeded:',
+          result.storageError
+        )
+        alert(
+          `PDF downloaded locally. Cloud upload failed: ${result.storageError}`
+        )
       } else {
         alert(`PDF downloaded successfully: ${result.filename}`)
       }
-      
     } catch (error) {
       console.error('Failed to generate PDF:', error)
       alert('Failed to generate PDF. Please try again.')
@@ -138,6 +148,7 @@ export default function Step4Page() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {/* Start New Form Button */}
             <Button
+              type="button"
               onClick={handleStartOver}
               className="px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
               variant="outline"
@@ -149,13 +160,16 @@ export default function Step4Page() {
 
             {/* Download Button */}
             <Button
+              type="button"
               onClick={handleDownload}
               className="px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
               variant="gradient"
               disabled={isGeneratingPDF}
             >
               <Download className="w-5 h-5" />
-              <span>{isGeneratingPDF ? 'Generating PDF...' : 'Download PDF'}</span>
+              <span>
+                {isGeneratingPDF ? 'Generating PDF...' : 'Download PDF'}
+              </span>
             </Button>
           </div>
         </div>
