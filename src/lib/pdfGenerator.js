@@ -16,14 +16,14 @@ export const generatePDF = async (formData) => {
     tempContainer.style.zIndex = '-1000'
     tempContainer.style.padding = '0'
     tempContainer.style.margin = '0'
-    
+
     // Create the HTML content directly instead of using React rendering
     tempContainer.innerHTML = createPDFHTML(formData)
-    
+
     document.body.appendChild(tempContainer)
 
     // Wait a moment for rendering
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     // Get the rendered element
     const element = tempContainer.firstElementChild
@@ -32,9 +32,9 @@ export const generatePDF = async (formData) => {
       throw new Error('PDF content not rendered properly')
     }
 
-    // Configure html2canvas options for optimized file size
+    // Configure html2canvas options for higher quality
     const canvas = await html2canvas(element, {
-      scale: 1.2, // Reduced scale to decrease file size
+      scale: 2.5, // Increased scale for better quality (2.5)
       useCORS: true,
       allowTaint: false,
       backgroundColor: '#ffffff',
@@ -44,67 +44,81 @@ export const generatePDF = async (formData) => {
       scrollY: 0,
     })
 
-    // Create PDF with compression
-    const imgData = canvas.toDataURL('image/jpeg', 0.7) // Use JPEG with 70% quality for smaller size
+    // Create PDF with higher quality
+    const imgData = canvas.toDataURL('image/jpeg', 0.85) // JPEG quality (85%)
     const pdf = new jsPDF('p', 'mm', 'a4')
-    
+
     // A4 dimensions in mm
     const pageWidth = 210
     const pageHeight = 297
-    
+
     // Calculate the image dimensions to fit the page with margins
     const margin = 10
-    const maxWidth = pageWidth - (2 * margin)
-    const maxHeight = pageHeight - (2 * margin)
-    
+    const maxWidth = pageWidth - 2 * margin
+    const maxHeight = pageHeight - 2 * margin
+
     const imgWidth = maxWidth
     const imgHeight = (canvas.height * maxWidth) / canvas.width
-    
+
     // If the image is taller than the page, scale it down
     let finalWidth = imgWidth
     let finalHeight = imgHeight
-    
+
     if (imgHeight > maxHeight) {
       finalHeight = maxHeight
       finalWidth = (canvas.width * maxHeight) / canvas.height
     }
-    
+
     // Center the image on the page
     const x = (pageWidth - finalWidth) / 2
     const y = (pageHeight - finalHeight) / 2
-    
-    // Add image to PDF with compression
-    pdf.addImage(imgData, 'JPEG', x, y, finalWidth, finalHeight, undefined, 'MEDIUM')
-    
+
+    // Add image to PDF with higher quality compression
+    pdf.addImage(
+      imgData,
+      'JPEG',
+      x,
+      y,
+      finalWidth,
+      finalHeight,
+      undefined,
+      'FAST'
+    )
+
     // Generate filename with current date
-    const currentDate = new Date().toLocaleDateString('en-IN').replace(/\//g, '-')
+    const currentDate = new Date()
+      .toLocaleDateString('en-IN')
+      .replace(/\//g, '-')
     const customerName = formData.step1?.fullName || 'Customer'
-    const filename = `Need_Analysis_${customerName.replace(/\s+/g, '_')}_${currentDate}.pdf`
-    
+    const filename = `Need_Analysis_${customerName.replace(
+      /\s+/g,
+      '_'
+    )}_${currentDate}.pdf`
+
     // Convert PDF to blob for Supabase upload
     const pdfBlob = pdf.output('blob')
-    
+
     // Upload to Supabase Storage
     const uploadResult = await uploadPDFToStorage(pdfBlob, filename)
-    
+
     // Download the PDF locally as well
     pdf.save(filename)
-    
+
     // Cleanup
     document.body.removeChild(tempContainer)
-    
+
     if (uploadResult.success) {
-      return { 
-        success: true, 
+      return {
+        success: true,
         filename,
         supabaseUrl: uploadResult.url,
-        storagePath: uploadResult.path
+        storagePath: uploadResult.path,
       }
     } else {
-      return { 
-        success: true, 
+      return {
+        success: true,
         filename,
-        storageError: uploadResult.error 
+        storageError: uploadResult.error,
       }
     }
   } catch (error) {
@@ -236,13 +250,21 @@ const createPDFHTML = (formData) => {
           <div style="padding: 8px; height: 100px;">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${formData.step2?.insuranceNeeds?.dependentCostOfLiving ? '✓' : ''}
+                ${
+                  formData.step2?.insuranceNeeds?.dependentCostOfLiving
+                    ? '✓'
+                    : ''
+                }
               </div>
               <span style="font-size: 10px;">Dependents Cost</span>
             </div>
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${formData.step2?.insuranceNeeds?.higherEducationChildren ? '✓' : ''}
+                ${
+                  formData.step2?.insuranceNeeds?.higherEducationChildren
+                    ? '✓'
+                    : ''
+                }
               </div>
               <span style="font-size: 10px;">Education</span>
             </div>
@@ -269,7 +291,11 @@ const createPDFHTML = (formData) => {
           <div style="padding: 8px; height: 100px;">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${formData.step2?.healthCovers?.dailyHospitalizationExpenses ? '✓' : ''}
+                ${
+                  formData.step2?.healthCovers?.dailyHospitalizationExpenses
+                    ? '✓'
+                    : ''
+                }
               </div>
               <span style="font-size: 10px;">Daily Hospitalization</span>
             </div>
@@ -312,7 +338,11 @@ const createPDFHTML = (formData) => {
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
             <span style="width: 200px; font-weight: bold; text-align: left; white-space: nowrap;">Bank Interest Rate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
-              ${formData.step3?.bankInterestRate ? formData.step3.bankInterestRate + '%' : ''}
+              ${
+                formData.step3?.bankInterestRate
+                  ? formData.step3.bankInterestRate + '%'
+                  : ''
+              }
             </span>
           </div>
           
@@ -343,7 +373,9 @@ const createPDFHTML = (formData) => {
 
       <!-- Footer -->
       <div style="margin-top: 25px; text-align: center; font-size: 10px; color: #666; padding-top: 12px;">
-        Generated by Needalyze Insurance Analysis System | ${new Date().toLocaleDateString('en-IN')}
+        Generated by Needalyze Insurance Analysis System | ${new Date().toLocaleDateString(
+          'en-IN'
+        )}
       </div>
     </div>
   `
