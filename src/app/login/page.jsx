@@ -1,6 +1,6 @@
 'use client'
 import Image from 'next/image'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,10 +24,41 @@ const loginSchema = z.object({
     .min(6, 'Password must be at least 6 characters'),
 })
 
-const page = () => {
+// Separate component for handling search params
+const SearchParamsHandler = ({ setInfoMessage }) => {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { isAuthenticated, isApproved, loading: authLoading, signOut } = useAuth()
+
+  useEffect(() => {
+    const reason = searchParams.get('reason')
+    if (reason === 'not-approved') {
+      const message =
+        'Your account is pending approval. Please contact your team leader or wait for approval to access the dashboard.'
+      setInfoMessage(message)
+      // Store in sessionStorage so it persists even if page reloads
+      sessionStorage.setItem('loginInfoMessage', message)
+      // Clean up the URL
+      router.replace('/login', { shallow: true })
+    } else {
+      // Check if there's a stored message from redirect
+      const storedMessage = sessionStorage.getItem('loginInfoMessage')
+      if (storedMessage) {
+        setInfoMessage(storedMessage)
+      }
+    }
+  }, [searchParams, router, setInfoMessage])
+
+  return null
+}
+
+const LoginPage = () => {
+  const router = useRouter()
+  const {
+    isAuthenticated,
+    isApproved,
+    loading: authLoading,
+    signOut,
+  } = useAuth()
   const [loading, setLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(null) // null initially to prevent hydration mismatch
   const [errorMessage, setErrorMessage] = useState('')
@@ -47,25 +78,6 @@ const page = () => {
       password: '',
     },
   })
-
-  // Check for redirect reason and show appropriate message - MUST run before auth redirect
-  useEffect(() => {
-    const reason = searchParams.get('reason')
-    if (reason === 'not-approved') {
-      const message = 'Your account is pending approval. Please contact your team leader or wait for approval to access the dashboard.'
-      setInfoMessage(message)
-      // Store in sessionStorage so it persists even if page reloads
-      sessionStorage.setItem('loginInfoMessage', message)
-      // Clean up the URL
-      router.replace('/login', { shallow: true })
-    } else {
-      // Check if there's a stored message from redirect
-      const storedMessage = sessionStorage.getItem('loginInfoMessage')
-      if (storedMessage) {
-        setInfoMessage(storedMessage)
-      }
-    }
-  }, [searchParams, router])
 
   // Redirect to dashboard if already authenticated (but not if showing not-approved message)
   useEffect(() => {
@@ -94,7 +106,9 @@ const page = () => {
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
           <p>
-            {isAuthenticated && isApproved ? 'Redirecting to dashboard...' : 'Loading...'}
+            {isAuthenticated && isApproved
+              ? 'Redirecting to dashboard...'
+              : 'Loading...'}
           </p>
         </div>
       </div>
@@ -118,7 +132,7 @@ const page = () => {
         success: result.success,
         error: result.error,
         hasUser: !!result.user,
-        hasSession: !!result.session
+        hasSession: !!result.session,
       })
 
       if (result.success) {
@@ -156,6 +170,9 @@ const page = () => {
 
   return (
     <>
+      <Suspense fallback={<div>Loading...</div>}>
+        <SearchParamsHandler setInfoMessage={setInfoMessage} />
+      </Suspense>
       <div className="w-full h-screen flex flex-col md:flex-row overflow-hidden">
         <div className="w-full md:w-1/2 bg-[linear-gradient(to_bottom,_#24456e_0%,_#04182f_80%)] flex flex-col justify-center items-center pt-6 pb-12 md:py-0 relative flex-shrink-0">
           <Image
@@ -198,11 +215,21 @@ const page = () => {
                   {infoMessage && (
                     <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
                       <div className="flex items-start gap-2">
-                        <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        <svg
+                          className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                         <div className="flex-1">
-                          <p className="text-blue-800 text-sm font-medium">{infoMessage}</p>
+                          <p className="text-blue-800 text-sm font-medium">
+                            {infoMessage}
+                          </p>
                           {isAuthenticated && !isApproved && (
                             <button
                               onClick={handleLogout}
@@ -289,11 +316,21 @@ const page = () => {
                   {infoMessage && (
                     <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
                       <div className="flex items-start gap-2">
-                        <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                        <svg
+                          className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                         <div className="flex-1">
-                          <p className="text-blue-800 text-sm font-medium">{infoMessage}</p>
+                          <p className="text-blue-800 text-sm font-medium">
+                            {infoMessage}
+                          </p>
                           {isAuthenticated && !isApproved && (
                             <button
                               onClick={handleLogout}
@@ -372,6 +409,23 @@ const page = () => {
         </div>
       </div>
     </>
+  )
+}
+
+const page = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="w-full h-screen flex justify-center items-center bg-[linear-gradient(to_bottom,_#24456e_0%,_#04182f_80%)]">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p>Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <LoginPage />
+    </Suspense>
   )
 }
 
