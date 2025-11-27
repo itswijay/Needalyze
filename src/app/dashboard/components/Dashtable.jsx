@@ -36,6 +36,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import Image from "next/image";
+import ApproveUser from "./ApproveUser";
 
 export const columns = [
   {
@@ -287,6 +288,8 @@ export function DataTable({ formData }) {
   const [rowSelection, setRowSelection] = React.useState({});
   // console.log("Form Data in Dashtable:", formData);
 
+  const [isApproveUserOpen, setIsApproveUserOpen] = React.useState(false) // useState for ApproveUser
+
   const Customer = React.useMemo(() => {
     if (!formData || !Array.isArray(formData)) {
       return [];
@@ -326,6 +329,14 @@ export function DataTable({ formData }) {
 
   return (
     <div className=" w-full ">
+
+        {/* User Approve Buuton */}
+        <Button 
+            onClick ={() => setIsApproveUserOpen(true)}
+            className="bg-gradient-to-r from-[#2265d0] to-[#2265d0] w-52 px-3 py-3 sm:py-5 text-xs sm:text-sm">
+          Approve User 
+        </Button>
+
       <div className="flex items-center justify-between py-4 gap-3">
         <Input
           placeholder="Filter name..."
@@ -453,6 +464,10 @@ export function DataTable({ formData }) {
           </Button>
         </div>
       </div>
+
+       {/* Approve User Mounted Here */}
+      <ApproveUser open={isApproveUserOpen} onOpenChange={setIsApproveUserOpen} />
+
     </div>
   );
 }
