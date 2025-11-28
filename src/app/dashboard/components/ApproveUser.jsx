@@ -36,7 +36,7 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
 
     if (users.length === 0) {
       users = [
-        { user: "John Doe", address: "123 Main St", status: "On Hold" },
+        { user: "John Doe", address: "123 Main St", status: "Pending" },
         { user: "Jane Smith", address: "456 Oak Ave", status: "Pending" },
         { user: "Alice Johnson", address: "789 Pine Rd", status: "Pending" },
       ];
@@ -44,6 +44,13 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
 
     return users;
   });
+
+  const [statusFilter, setStatusFilter] = React.useState("All");
+
+  const filteredData = React.useMemo(() => {
+    if (statusFilter === "All") return data;
+    return data.filter((user) => user.status === statusFilter);
+  }, [statusFilter, data]);
 
   const columns = React.useMemo(
     () => [
@@ -65,7 +72,9 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
 
           return (
             <Button
-              className="text-white px-4 py-2 rounded-full bg-blue-600 text-sm md:text-base"
+              className={`text-white px-4 py-2 rounded-full text-sm md:text-base ${
+                status === "Approved" ? "bg-green-600" : "bg-blue-600"
+              }`}
               onClick={() => {
                 if (status !== "Approved") {
                   setData((prevData) =>
@@ -88,7 +97,7 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
   );
 
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -101,6 +110,23 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
             Approve User
           </DialogTitle>
         </DialogHeader>
+
+        {/* Status Filter */}
+        <div className="my-4 flex items-center gap-2">
+          <label htmlFor="status" className="font-medium">
+            Filter by Status:
+          </label>
+          <select
+            id="status"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border rounded px-2 py-1"
+          >
+            <option value="All">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+          </select>
+        </div>
 
         <div className="mt-6 border rounded-lg overflow-x-auto">
           <Table className="min-w-full text-sm md:text-base">
