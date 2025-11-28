@@ -24,7 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const ApproveUser = ({ open, setOpen, formData }) => {
+const ApproveUser = ({ open, onOpenChange, formData }) => {
   const [data, setData] = React.useState(() => {
     let users = Array.isArray(formData)
       ? formData.map((item) => ({
@@ -94,7 +94,7 @@ const ApproveUser = ({ open, setOpen, formData }) => {
   });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md md:max-w-lg lg:max-w-4xl mx-auto p-4 sm:p-6 gap-3 sm:gap-4 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center">
