@@ -26,31 +26,45 @@ import {
 
 const ApproveUser = ({ open, onOpenChange, formData }) => {
   const [data, setData] = React.useState(() => {
-    let users = Array.isArray(formData)
-      ? formData.map((item) => ({
-          user: item.full_name || "Unknown",
-          address: item.address || "Not Provided",
-          status: item.status || "On Hold",
-        }))
-      : [];
+    // Example fallback users
+    const exampleUsers = [
+      {
+        full_name: "John Doe",
+        branch: "New York",
+        code_num: "A123",
+        status: "Pending",
+      },
+      {
+        full_name: "Sarah Smith",
+        branch: "California",
+        code_num: "B456",
+        status: "Pending",
+      },
+      {
+        full_name: "Mike Anderson",
+        branch: "Texas",
+        code_num: "C789",
+        status: "Pending",
+      },
+      {
+        full_name: "Emily Johnson",
+        branch: "Florida",
+        code_num: "D321",
+        status: "Pending",
+      },
+    ];
 
-    if (users.length === 0) {
-      users = [
-        { user: "John Doe", address: "123 Main St", status: "Pending" },
-        { user: "Jane Smith", address: "456 Oak Ave", status: "Pending" },
-        { user: "Alice Johnson", address: "789 Pine Rd", status: "Pending" },
-      ];
-    }
+    let users = Array.isArray(formData) && formData.length > 0
+      ? formData
+      : exampleUsers;
 
-    return users;
+    return users.map((item) => ({
+      user: item.full_name || "Unknown",
+      branch: item.branch || "Not Provided",
+      code_num: item.code_num || "Not Provided",
+      status: item.status || "Pending",
+    }));
   });
-
-  const [statusFilter, setStatusFilter] = React.useState("All");
-
-  const filteredData = React.useMemo(() => {
-    if (statusFilter === "All") return data;
-    return data.filter((user) => user.status === statusFilter);
-  }, [statusFilter, data]);
 
   const columns = React.useMemo(
     () => [
@@ -60,9 +74,53 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
         cell: ({ row }) => <div>{row.getValue("user")}</div>,
       },
       {
-        accessorKey: "address",
-        header: "Address",
-        cell: ({ row }) => <div>{row.getValue("address")}</div>,
+        accessorKey: "branch",
+        header: "Branch",
+        cell: ({ row }) => <div>{row.getValue("branch")}</div>,
+      },
+      {
+        accessorKey: "code_num",
+        header: "Code Number",
+        cell: ({ row }) => <div>{row.getValue("code_num")}</div>,
+      },
+      {
+        accessorKey: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+          return (
+            <div className="flex items-center gap-2">
+              <Button
+                className="bg-blue-600 text-white px-3 py-1 rounded-md text-xs md:text-sm"
+                onClick={() => {
+                  setData((prev) =>
+                    prev.map((user) =>
+                      user.user === row.original.user
+                        ? { ...user, status: "Approved" }
+                        : user
+                    )
+                  );
+                }}
+              >
+                Approve
+              </Button>
+
+              <Button
+                className="bg-red-600 text-white px-3 py-1 rounded-md text-xs md:text-sm"
+                onClick={() => {
+                  setData((prev) =>
+                    prev.map((user) =>
+                      user.user === row.original.user
+                        ? { ...user, status: "Rejected" }
+                        : user
+                    )
+                  );
+                }}
+              >
+                Reject
+              </Button>
+            </div>
+          );
+        },
       },
       {
         accessorKey: "status",
@@ -71,24 +129,17 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
           const status = row.original.status;
 
           return (
-            <Button
-              className={`text-white px-4 py-2 rounded-full text-sm md:text-base ${
-                status === "Approved" ? "bg-green-600" : "bg-blue-600"
+            <span
+              className={`font-medium ${
+                status === "Approved"
+                  ? "text-green-600"
+                  : status === "Rejected"
+                  ? "text-red-600"
+                  : "text-gray-600"
               }`}
-              onClick={() => {
-                if (status !== "Approved") {
-                  setData((prevData) =>
-                    prevData.map((user) =>
-                      user.user === row.original.user
-                        ? { ...user, status: "Approved" }
-                        : user
-                    )
-                  );
-                }
-              }}
             >
               {status}
-            </Button>
+            </span>
           );
         },
       },
@@ -97,7 +148,7 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
   );
 
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -110,23 +161,6 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
             Approve User
           </DialogTitle>
         </DialogHeader>
-
-        {/* Status Filter */}
-        <div className="my-4 flex items-center gap-2">
-          <label htmlFor="status" className="font-medium">
-            Filter by Status:
-          </label>
-          <select
-            id="status"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="border rounded px-2 py-1"
-          >
-            <option value="All">All</option>
-            <option value="Pending">Pending</option>
-            <option value="Approved">Approved</option>
-          </select>
-        </div>
 
         <div className="mt-6 border rounded-lg overflow-x-auto">
           <Table className="min-w-full text-sm md:text-base">
@@ -161,7 +195,7 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center py-4">
+                  <TableCell colSpan={4} className="text-center py-4">
                     No users found.
                   </TableCell>
                 </TableRow>
