@@ -26,31 +26,26 @@ import {
 
 const ApproveUser = ({ open, onOpenChange, formData }) => {
   const [data, setData] = React.useState(() => {
-    // Example fallback users
     const exampleUsers = [
       {
         full_name: "John Doe",
         branch: "New York",
         code_num: "A123",
-        status: "Pending",
       },
       {
         full_name: "Sarah Smith",
         branch: "California",
         code_num: "B456",
-        status: "Pending",
       },
       {
         full_name: "Mike Anderson",
         branch: "Texas",
         code_num: "C789",
-        status: "Pending",
       },
       {
         full_name: "Emily Johnson",
         branch: "Florida",
         code_num: "D321",
-        status: "Pending",
       },
     ];
 
@@ -62,7 +57,6 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
       user: item.full_name || "Unknown",
       branch: item.branch || "Not Provided",
       code_num: item.code_num || "Not Provided",
-      status: item.status || "Pending",
     }));
   });
 
@@ -88,14 +82,14 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
         header: "Actions",
         cell: ({ row }) => {
           return (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-center gap-2">
               <Button
-                className="bg-blue-600 text-white px-3 py-1 rounded-md text-xs md:text-sm"
+                className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs md:text-sm"
                 onClick={() => {
                   setData((prev) =>
                     prev.map((user) =>
                       user.user === row.original.user
-                        ? { ...user, status: "Approved" }
+                        ? { ...user, action: "Approved" }
                         : user
                     )
                   );
@@ -105,12 +99,12 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
               </Button>
 
               <Button
-                className="bg-red-600 text-white px-3 py-1 rounded-md text-xs md:text-sm"
+                className="bg-red-600 text-white px-3 py-1 rounded-full text-xs md:text-sm"
                 onClick={() => {
                   setData((prev) =>
                     prev.map((user) =>
                       user.user === row.original.user
-                        ? { ...user, status: "Rejected" }
+                        ? { ...user, action: "Rejected" }
                         : user
                     )
                   );
@@ -119,27 +113,6 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
                 Reject
               </Button>
             </div>
-          );
-        },
-      },
-      {
-        accessorKey: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const status = row.original.status;
-
-          return (
-            <span
-              className={`font-medium ${
-                status === "Approved"
-                  ? "text-green-600"
-                  : status === "Rejected"
-                  ? "text-red-600"
-                  : "text-gray-600"
-              }`}
-            >
-              {status}
-            </span>
           );
         },
       },
@@ -168,7 +141,7 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
               {table.getHeaderGroups().map((hg) => (
                 <TableRow key={hg.id}>
                   {hg.headers.map((header) => (
-                    <TableHead key={header.id} className="px-4 py-2">
+                    <TableHead key={header.id} className="px-4 py-2 text-center">
                       {flexRender(
                         header.column.columnDef.header,
                         header.getContext()
@@ -184,7 +157,7 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="px-4 py-2">
+                      <TableCell key={cell.id} className="px-4 py-2 text-center">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
