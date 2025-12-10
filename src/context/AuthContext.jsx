@@ -61,7 +61,7 @@ export function AuthProvider({ children }) {
     initializeAuth()
 
     // Listen for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
+    const authListener = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session)
 
@@ -84,7 +84,7 @@ export function AuthProvider({ children }) {
     return () => {
       isMounted = false
       clearTimeout(loadTimeout)
-      authListener?.subscription?.unsubscribe()
+      authListener?.data?.subscription?.unsubscribe()
     }
   }, [])
 

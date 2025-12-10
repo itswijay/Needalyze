@@ -1,16 +1,30 @@
 import { supabase } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
+
+// Validation schema
+const formSubmissionSchema = z.object({
+  formData: z.record(z.any()),
+  pdfUrl: z.string().url(),
+  pdfPath: z.string().min(1),
+  userId: z.string().uuid(),
+  linkId: z.string().min(1),
+})
 
 export async function POST(request) {
   try {
     const body = await request.json()
-    const { 
-      formData, 
-      pdfUrl, 
-      pdfPath, 
-      userId, 
-      linkId 
-    } = body
+
+    // Validate request body
+    const validationResult = formSubmissionSchema.safeParse(body)
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid request data' },
+        { status: 400 }
+      )
+    }
+
+    const { formData, pdfUrl, pdfPath, userId, linkId } = validationResult.data
 
     // Save form submission to database
     const { data, error } = await supabase
@@ -26,7 +40,7 @@ export async function POST(request) {
         customer_name: formData?.step1?.fullName,
         customer_phone: formData?.step1?.phoneNumber,
         monthly_income: formData?.step1?.monthlyIncome,
-        life_value: formData?.step3?.actualHLValue
+        life_value: formData?.step3?.actualHLValue,
       })
 
     if (error) {
@@ -37,11 +51,10 @@ export async function POST(request) {
       )
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      submissionId: data[0]?.id 
+    return NextResponse.json({
+      success: true,
+      submissionId: data[0]?.id,
     })
-
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json(

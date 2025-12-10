@@ -90,70 +90,12 @@ export async function POST(request, { params }) {
       )
     }
 
-    // Check if form entry already exists
-    const { data: existingForm } = await supabase
-      .from('need_analysis_form')
-      .select('form_id')
-      .eq('link_id', linkId)
-      .single()
-
-    let result
-
-    if (existingForm) {
-      // Update existing form based on step
-      let updateData = {}
-
-      if (step === 'step1') {
-        updateData = {
-          full_name: data.fullName,
-          date_of_birth: data.dateOfBirth,
-          spouse_name: data.spouseName,
-          address: data.address,
-          phone_number: data.phoneNumber,
-          number_of_children: data.numberOfChildren,
-          children_ages: data.childrenAges,
-          occupation: data.occupation,
-          age: data.age,
-          monthly_income: data.monthlyIncome,
-        }
-      } else if (step === 'step2') {
-        const insuranceNeeds = Object.entries(data.insuranceNeeds)
-          .filter(([_, value]) => value)
-          .map(([key, _]) => key)
-
-        const healthCovers = Object.entries(data.healthCovers)
-          .filter(([_, value]) => value)
-          .map(([key, _]) => key)
-
-        updateData = {
-          insurance_needs: insuranceNeeds,
-          health_covers: healthCovers,
-        }
-      } else if (step === 'step3') {
-        updateData = {
-          human_life_value: data.actualHLValue || 0,
-          status: data.completed ? 'completed' : 'pending',
-        }
-      } else if (step === 'step4') {
-        // updateData = {
-        //   status: data.completionData.completed ? "completed" : "pending",
-        // };
-      }
-
-      const { data: updatedData, error } = await supabase
+    // For step1, use upsert to prevent race condition
+    if (step === 'step1') {
+      const { data: upsertData, error } = await supabase
         .from('need_analysis_form')
-        .update(updateData)
-        .eq('link_id', linkId)
-        .select()
-
-      if (error) throw error
-      result = updatedData
-    } else {
-      // Create new form entry (only for step1)
-      if (step === 'step1') {
-        const { data: insertData, error } = await supabase
-          .from('need_analysis_form')
-          .insert({
+        .upsert(
+          {
             link_id: linkId,
             user_id: user_id,
             full_name: data.fullName,
@@ -167,23 +109,65 @@ export async function POST(request, { params }) {
             age: data.age,
             monthly_income: data.monthlyIncome,
             status: 'pending',
-          })
-          .select()
-
-        if (error) throw error
-        result = insertData
-      } else {
-        return Response.json(
-          {
-            success: false,
-            error: 'Form must be started from step 1',
           },
-          { status: 400 }
+          { onConflict: 'link_id' }
         )
-      }
+        .select()
+
+      if (error) throw error
+      return Response.json({ success: true, data: upsertData })
     }
 
-    return Response.json({ success: true, data: result })
+    // For other steps, check if form exists and update
+    const { data: existingForm } = await supabase
+      .from('need_analysis_form')
+      .select('form_id')
+      .eq('link_id', linkId)
+      .single()
+
+    if (!existingForm) {
+      return Response.json(
+        {
+          success: false,
+          error: 'Form must be started from step 1',
+        },
+        { status: 400 }
+      )
+    }
+
+    let updateData = {}
+
+    if (step === 'step2') {
+      const insuranceNeeds = Object.entries(data.insuranceNeeds)
+        .filter(([_, value]) => value)
+        .map(([key, _]) => key)
+
+      const healthCovers = Object.entries(data.healthCovers)
+        .filter(([_, value]) => value)
+        .map(([key, _]) => key)
+
+      updateData = {
+        insurance_needs: insuranceNeeds,
+        health_covers: healthCovers,
+      }
+    } else if (step === 'step3') {
+      updateData = {
+        human_life_value: data.actualHLValue || 0,
+        status: data.completed ? 'completed' : 'pending',
+      }
+    } else if (step === 'step4') {
+      // No update for step4
+      updateData = {}
+    }
+
+    const { data: updatedData, error } = await supabase
+      .from('need_analysis_form')
+      .update(updateData)
+      .eq('link_id', linkId)
+      .select()
+
+    if (error) throw error
+    return Response.json({ success: true, data: updatedData })
   } catch (error) {
     return Response.json(
       { success: false, error: error.message },
