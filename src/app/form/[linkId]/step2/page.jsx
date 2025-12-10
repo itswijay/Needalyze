@@ -118,32 +118,39 @@ export default function NeedAnalysisFormPage2() {
     // Hide warning message when selecting
     setShowWarningMessage(false)
 
-  if (
-    field === 'surgeryCover' &&
-    newValue &&
-    watchedValues.healthCovers?.hospitalBillCover
-  ) {
-    setShowConflictMessage(true)
-    toast.error("You cannot select Hospital Bill Cover and Surgery Cover together");
-    return;
-  }
+    if (
+      field === 'surgeryCover' &&
+      newValue &&
+      watchedValues.healthCovers?.hospitalBillCover
+    ) {
+      setShowConflictMessage(true)
+      toast.error(
+        'You cannot select Hospital Bill Cover and Surgery Cover together'
+      )
+      return
+    }
 
-  if (
-    field === 'hospitalBillCover' &&
-    newValue &&
-    watchedValues.healthCovers?.surgeryCover
-  ) {
-    setShowConflictMessage(true)
-    toast.error("You cannot select Hospital Bill Cover and Surgery Cover together");
-    return;
-  }
-
+    if (
+      field === 'hospitalBillCover' &&
+      newValue &&
+      watchedValues.healthCovers?.surgeryCover
+    ) {
+      setShowConflictMessage(true)
+      toast.error(
+        'You cannot select Hospital Bill Cover and Surgery Cover together'
+      )
+      return
+    }
 
     setValue(`healthCovers.${field}`, newValue, { shouldValidate: true })
   }
 
   const onSubmit = async (data) => {
-    if (isSubmitting) return // Prevent multiple submissions
+    // Double-check isSubmitting with strict equality
+    if (isSubmitting === true) {
+      console.log('Submission already in progress, ignoring duplicate click')
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -156,7 +163,8 @@ export default function NeedAnalysisFormPage2() {
       // Don't reset isSubmitting - let it stay disabled during navigation
     } catch (error) {
       console.error('Error saving step 2:', error)
-      // Only reset on error, but still navigate
+      toast.error('Failed to save form data. Please try again.')
+      // Only reset on error
       setIsSubmitting(false)
       router.push(`/form/${linkId}/step3`)
     }
@@ -166,29 +174,31 @@ export default function NeedAnalysisFormPage2() {
     router.push(`/form/${linkId}/step1`)
   }
 
-const handleNext = () => {
-  const insuranceSelected = Object.values(watchedValues.insuranceNeeds || {}).some(Boolean);
-  const healthSelected = Object.values(watchedValues.healthCovers || {}).some(Boolean);
+  const handleNext = () => {
+    const insuranceSelected = Object.values(
+      watchedValues.insuranceNeeds || {}
+    ).some(Boolean)
+    const healthSelected = Object.values(watchedValues.healthCovers || {}).some(
+      Boolean
+    )
 
-  // If nothing selected → toast
-  if (!insuranceSelected && !healthSelected) {
-    toast.error("Select at least one option to continue");
-    return;
+    // If nothing selected → toast
+    if (!insuranceSelected && !healthSelected) {
+      toast.error('Select at least one option to continue')
+      return
+    }
+
+    // FIX: Read Zod refine errors correctly
+    const zodError =
+      errors.healthCovers?._errors?.[0] || errors.healthCovers?.root?.message
+
+    if (zodError) {
+      toast.error(zodError)
+      return
+    }
+
+    handleSubmit(onSubmit)()
   }
-
-  // FIX: Read Zod refine errors correctly
-  const zodError =
-    errors.healthCovers?._errors?.[0] ||
-    errors.healthCovers?.root?.message;
-
-  if (zodError) {
-    toast.error(zodError);
-    return;
-  }
-
-  handleSubmit(onSubmit)();
-};
-
 
   const handleStepNavigation = (stepNumber) => {
     // Navigate to the selected step
@@ -207,8 +217,6 @@ const handleNext = () => {
       <section className="flex-grow flex justify-center items-start py-8 px-4">
         <FormContainer>
           <div>
-
-
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 text-sm -mt-4">
               {/* Insurance Need Section */}
               <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-xl border border-gray-100">
@@ -369,7 +377,6 @@ const handleNext = () => {
                   </AlertDialog>
                 </div>
 
-
                 <div className="space-y-3">
                   <Controller
                     name="healthCovers.dailyHospitalizationExpenses"
@@ -433,7 +440,6 @@ const handleNext = () => {
                     )}
                   />
                 </div>
-
               </div>
             </div>
 

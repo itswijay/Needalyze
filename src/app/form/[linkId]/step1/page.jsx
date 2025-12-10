@@ -174,14 +174,17 @@ export default function Form1Page() {
   }, [open, mounted, onKeyDown])
 
   const handleValidationErrors = () => {
-  Object.values(errors).forEach((err) => {
-    toast.error(err.message);
-  });
-};
-
+    Object.values(errors).forEach((err) => {
+      toast.error(err.message)
+    })
+  }
 
   const onSubmit = async (data) => {
-    if (isSubmitting) return // Prevent multiple submissions
+    // Double-check isSubmitting with strict equality
+    if (isSubmitting === true) {
+      console.log('Submission already in progress, ignoring duplicate click')
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -208,9 +211,9 @@ export default function Form1Page() {
       // Don't reset isSubmitting - let it stay disabled during navigation
     } catch (error) {
       console.error('Error saving step 1:', error)
-      // Only reset on error, but still navigate
+      toast.error('Failed to save form data. Please try again.')
+      // Only reset on error
       setIsSubmitting(false)
-      router.push(`/form/${linkId}/step2`)
     }
   }
 
@@ -238,11 +241,10 @@ export default function Form1Page() {
       ) : (
         <section className="flex-grow flex justify-center items-center py-8 px-4">
           <FormContainer>
-          <form
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
-            onSubmit={handleSubmit(onSubmit, handleValidationErrors)}
-          >
-
+            <form
+              className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
+              onSubmit={handleSubmit(onSubmit, handleValidationErrors)}
+            >
               {/* Full Name */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
@@ -374,7 +376,6 @@ export default function Form1Page() {
                       : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
-
               </div>
 
               {/* Spouse Name */}
@@ -403,7 +404,6 @@ export default function Form1Page() {
                       : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
-
               </div>
 
               {/* Children’s Ages */}
@@ -420,7 +420,6 @@ export default function Form1Page() {
                       : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
-
               </div>
 
               {/* Occupation */}
@@ -455,7 +454,6 @@ export default function Form1Page() {
                       : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full max-w-md focus:outline-none`}
                 />
-
               </div>
             </form>
 
@@ -470,14 +468,13 @@ export default function Form1Page() {
                 />
               </div>
               <div className="flex-grow flex justify-end">
-            <FormNavButton
-              label={isSubmitting ? 'Saving...' : 'Next'}
-              type="next"
-              variant="gradient"
-              onClick={handleSubmit(onSubmit, handleValidationErrors)}
-              disabled={isSubmitting}
-            />
-
+                <FormNavButton
+                  label={isSubmitting ? 'Saving...' : 'Next'}
+                  type="next"
+                  variant="gradient"
+                  onClick={handleSubmit(onSubmit, handleValidationErrors)}
+                  disabled={isSubmitting}
+                />
               </div>
             </div>
           </FormContainer>

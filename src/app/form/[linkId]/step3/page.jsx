@@ -175,7 +175,11 @@ export default function Form3Page() {
 
   // handle Calculation
   const onSubmit = async (data) => {
-    if (isSubmitting) return // Prevent multiple submissions
+    // Double-check isSubmitting with strict equality
+    if (isSubmitting === true) {
+      console.log('Submission already in progress, ignoring duplicate click')
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -199,32 +203,33 @@ export default function Form3Page() {
       // Don't reset isSubmitting - let it stay disabled during navigation
     } catch (error) {
       console.error('Error marking form as complete:', error)
+      toast.error('Failed to save form data. Please try again.')
       // Only reset on error
       setIsSubmitting(false)
     }
-  };
+  }
 
   const onError = (errors) => {
-  if (errors.fixedMonthlyExpenses) {
-    toast.error(errors.fixedMonthlyExpenses.message);
-    return;
-  }
+    if (errors.fixedMonthlyExpenses) {
+      toast.error(errors.fixedMonthlyExpenses.message)
+      return
+    }
 
-  if (errors.bankInterestRate) {
-    toast.error(errors.bankInterestRate.message);
-    return;
-  }
+    if (errors.bankInterestRate) {
+      toast.error(errors.bankInterestRate.message)
+      return
+    }
 
-  if (errors.unsecuredBankLoan) {
-    toast.error(errors.unsecuredBankLoan.message);
-    return;
-  }
+    if (errors.unsecuredBankLoan) {
+      toast.error(errors.unsecuredBankLoan.message)
+      return
+    }
 
-  if (errors.cashInHandInsurance) {
-    toast.error(errors.cashInHandInsurance.message);
-    return;
+    if (errors.cashInHandInsurance) {
+      toast.error(errors.cashInHandInsurance.message)
+      return
+    }
   }
-};
 
   const handleStepNavigation = (stepNumber) => {
     // Navigate to the selected step
@@ -255,7 +260,6 @@ export default function Form3Page() {
             onSubmit={handleSubmit(onSubmit, onError)}
             className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
           >
-
             {/* Left column - Input fields */}
             <div className="flex flex-col space-y-3 sm:space-y-4">
               {/* Fixed Monthly Expenses */}
@@ -268,7 +272,6 @@ export default function Form3Page() {
                   className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                   {...register('fixedMonthlyExpenses', { valueAsNumber: true })}
                 />
-
               </div>
 
               {/* Bank Interest Rate */}
@@ -282,7 +285,6 @@ export default function Form3Page() {
                   className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                   {...register('bankInterestRate', { valueAsNumber: true })}
                 />
-
               </div>
 
               {/* HLV - Mobile only */}

@@ -91,10 +91,11 @@
 
 ---
 
-## Bug 12: Form Submit Race Condition
+## Bug 12: Form Submit Race Condition ✅
 
 **File:** `src/app/form/[linkId]/step1/page.jsx` (+ step2, step3)
-**Status:** Not Done
+**Fixed:** Improved double-check for isSubmitting with strict equality and added error toasts
+**Status:** DONE
 
 ---
 
