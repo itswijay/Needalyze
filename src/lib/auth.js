@@ -197,8 +197,8 @@ export async function signIn(email, password) {
       .eq('user_id', data.user.id)
       .single()
 
-    if (profileError) {
-      // Sign out the user if profile check fails
+    if (profileError || !profile) {
+      // Sign out the user if profile check fails or profile doesn't exist
       await supabase.auth.signOut()
       return {
         success: false,

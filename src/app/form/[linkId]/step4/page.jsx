@@ -16,11 +16,11 @@ export default function Step4Page() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const { updateStepData, getAllData, linkId } = useFormContext()
 
-useEffect(() => {
-  toast.success("Form submitted successfully!", {
-    id: "form-success"
-  });
-}, []);
+  useEffect(() => {
+    toast.success('Form submitted successfully!', {
+      id: 'form-success',
+    })
+  }, [])
 
   const handleDownload = async () => {
     // Stronger guard: prevent multiple clicks with immediate return
@@ -34,6 +34,20 @@ useEffect(() => {
       // Get all form data from context
       const formData = getAllData()
       console.log('Form data for PDF generation:', formData)
+
+      // Save form to database before generating PDF
+      try {
+        await updateStepData(
+          'step4',
+          { completed: true, completedAt: new Date() },
+          true
+        )
+      } catch (dbError) {
+        console.error('Failed to save form to database:', dbError)
+        toast.error('Failed to save form. PDF generation cancelled.')
+        setIsGeneratingPDF(false)
+        return
+      }
 
       // Generate and download PDF
       const result = await generatePDF(formData)

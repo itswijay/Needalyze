@@ -1,6 +1,7 @@
-"use client";
+'use client'
 
-import { Button } from "@/components/ui/button";
+import toast from 'react-hot-toast'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogClose,
@@ -10,57 +11,61 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
-import { useContext, useState } from "react";
-import WhatsappButton from "./WhatsappButton";
-import { useAuthContext } from "@/context/AuthContext";
+import { useContext, useState } from 'react'
+import WhatsappButton from './WhatsappButton'
+import { useAuthContext } from '@/context/AuthContext'
 
 const CreateLinkDialog = () => {
-  const [link, setLink] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const [linkCreated, setLinkCreated] = useState(false);
-  const { user: loadUser } = useAuthContext();
+  const [link, setLink] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [linkCreated, setLinkCreated] = useState(false)
+  const { user: loadUser } = useAuthContext()
 
   const createNewLink = async () => {
-    setIsCreating(true);
+    setIsCreating(true)
     try {
-      const response = await fetch("/api/form-link", {
-        method: "POST",
+      const response = await fetch('/api/form-link', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           user_id: loadUser?.id,
-          expiry_hours: 24*14, // Link expires in 14 days
+          expiry_hours: 24 * 14, // Link expires in 14 days
         }),
-      });
+      })
 
-      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const result = await response.json()
 
       if (result.success) {
-        setLink(result.formUrl);
-        setLinkCreated(true);
+        setLink(result.formUrl)
+        setLinkCreated(true)
       } else {
-        console.error("Failed to create link:", result.error);
-        // You might want to show an error message here
+        console.error('Failed to create link:', result.error)
+        toast.error(result.error || 'Failed to create link')
       }
     } catch (error) {
-      console.error("Error creating link:", error);
-      // You might want to show an error message here
+      console.error('Error creating link:', error)
+      toast.error('Network error. Please try again.')
     } finally {
-      setIsCreating(false);
+      setIsCreating(false)
     }
-  };
+  }
 
   const resetDialog = () => {
-    setLink("");
-    setCopied(false);
-    setLinkCreated(false);
-  };
+    setLink('')
+    setCopied(false)
+    setLinkCreated(false)
+  }
 
   return (
     <div>
@@ -75,8 +80,8 @@ const CreateLinkDialog = () => {
             <DialogTitle>Create link</DialogTitle>
             <DialogDescription className="text-sm">
               {!linkCreated
-                ? "Click the button below to create a new form link."
-                : "Copy this link to share with others."}
+                ? 'Click the button below to create a new form link.'
+                : 'Copy this link to share with others.'}
             </DialogDescription>
           </DialogHeader>
           {!linkCreated ? (
@@ -86,7 +91,7 @@ const CreateLinkDialog = () => {
                 disabled={isCreating}
                 className="bg-gradient-to-r from-[#3EAA66] to-[#189370] hover:opacity-90 text-white"
               >
-                {isCreating ? "Creating..." : "Create New Link"}
+                {isCreating ? 'Creating...' : 'Create New Link'}
               </Button>
             </div>
           ) : (
@@ -109,14 +114,14 @@ const CreateLinkDialog = () => {
                       navigator.clipboard
                         .writeText(link)
                         .then(() => {
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 2000);
+                          setCopied(true)
+                          setTimeout(() => setCopied(false), 2000)
                         })
-                        .catch(() => {});
+                        .catch(() => {})
                     }}
                     className="bg-gradient-to-r from-[#3EAA66] to-[#189370] hover:opacity-90 text-white cursor-pointer"
                   >
-                    {copied ? "Copied" : "Copy Link"}
+                    {copied ? 'Copied' : 'Copy Link'}
                   </Button>
                 </div>
               </DialogFooter>
@@ -125,7 +130,7 @@ const CreateLinkDialog = () => {
         </DialogContent>
       </Dialog>
     </div>
-  );
-};
+  )
+}
 
-export default CreateLinkDialog;
+export default CreateLinkDialog
