@@ -1,6 +1,7 @@
 import { Poppins } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/Providers'
+import { Toaster } from "react-hot-toast"
 
 const poppins = Poppins({
   variable: '--font-poppins',
@@ -19,6 +20,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${poppins.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
+        <Toaster position="top-right" />
       </body>
     </html>
   )

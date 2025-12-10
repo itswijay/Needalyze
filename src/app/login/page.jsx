@@ -1,4 +1,5 @@
 'use client'
+import toast from "react-hot-toast";
 import Image from 'next/image'
 import React, { useState, useEffect, Suspense } from 'react'
 import { Input } from '@/components/ui/input'
@@ -144,11 +145,13 @@ const LoginPage = () => {
         // Login failed - show error message
         console.log('Setting error message:', result.error)
         setErrorMessage(result.error || 'Login failed. Please try again.')
+        toast.error(result.error || 'Login failed. Please try again.');
         setLoading(false)
       }
     } catch (error) {
       console.error('Login error:', error)
       setErrorMessage('An unexpected error occurred. Please try again.')
+      toast.error("Unexpected error occurred.");
       setLoading(false)
     }
   }
@@ -167,6 +170,12 @@ const LoginPage = () => {
       setLoading(false)
     }
   }
+
+const handleValidationErrors = (errors) => {
+  Object.values(errors).forEach((err) => {
+    toast.error(err.message);
+  });
+};
 
   return (
     <>
@@ -244,12 +253,12 @@ const LoginPage = () => {
                     </div>
                   )}
                   {/* Error Message */}
-                  {errorMessage && (
+                  {/* {errorMessage && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                       {errorMessage}
                     </div>
-                  )}
-                  <form onSubmit={handleSubmit(handleLogin)} noValidate>
+                  )} */}
+                  <form onSubmit={handleSubmit(handleLogin, handleValidationErrors)} noValidate>
                     <div className="mb-4">
                       <Input
                         className="rounded-full placeholder:text-xs p-5 bg-gray-200 border-0"
@@ -258,11 +267,7 @@ const LoginPage = () => {
                         autoComplete="email"
                         {...register('email')}
                       />
-                      {errors.email && (
-                        <p className="text-red-600 text-xs mt-1 ml-4">
-                          {errors.email.message}
-                        </p>
-                      )}
+
                     </div>
                     <div className="mb-4">
                       <Input
@@ -272,11 +277,7 @@ const LoginPage = () => {
                         autoComplete="current-password"
                         {...register('password')}
                       />
-                      {errors.password && (
-                        <p className="text-red-600 text-xs mt-1 ml-4">
-                          {errors.password.message}
-                        </p>
-                      )}
+
                     </div>
                     <Button
                       type="submit"
@@ -345,12 +346,12 @@ const LoginPage = () => {
                     </div>
                   )}
                   {/* Error Message */}
-                  {errorMessage && (
+                  {/* {errorMessage && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
                       {errorMessage}
                     </div>
-                  )}
-                  <form onSubmit={handleSubmit(handleLogin)} noValidate>
+                  )} */}
+                  <form onSubmit={handleSubmit(handleLogin, handleValidationErrors)} noValidate>
                     <div className="mb-4">
                       <Input
                         className="rounded-full placeholder:text-xs p-5"
@@ -359,11 +360,7 @@ const LoginPage = () => {
                         autoComplete="email"
                         {...register('email')}
                       />
-                      {errors.email && (
-                        <p className="text-red-600 text-xs mt-1 ml-4">
-                          {errors.email.message}
-                        </p>
-                      )}
+                      
                     </div>
                     <div className="mb-4">
                       <Input
@@ -373,11 +370,7 @@ const LoginPage = () => {
                         autoComplete="current-password"
                         {...register('password')}
                       />
-                      {errors.password && (
-                        <p className="text-red-600 text-xs mt-1 ml-4">
-                          {errors.password.message}
-                        </p>
-                      )}
+
                     </div>
                     <Button
                       type="submit"

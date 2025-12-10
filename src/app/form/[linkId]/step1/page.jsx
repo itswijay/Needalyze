@@ -1,5 +1,6 @@
 'use client'
 
+import toast from 'react-hot-toast'
 import React, { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
@@ -172,6 +173,13 @@ export default function Form1Page() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [open, mounted, onKeyDown])
 
+  const handleValidationErrors = () => {
+  Object.values(errors).forEach((err) => {
+    toast.error(err.message);
+  });
+};
+
+
   const onSubmit = async (data) => {
     if (isSubmitting) return // Prevent multiple submissions
 
@@ -230,10 +238,11 @@ export default function Form1Page() {
       ) : (
         <section className="flex-grow flex justify-center items-center py-8 px-4">
           <FormContainer>
-            <form
-              className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
-              onSubmit={handleSubmit(onSubmit)}
-            >
+          <form
+            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
+            onSubmit={handleSubmit(onSubmit, handleValidationErrors)}
+          >
+
               {/* Full Name */}
               <div>
                 <label className="block text-gray-700 font-medium mb-1">
@@ -269,11 +278,6 @@ export default function Form1Page() {
                       : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
-                {errors.address && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.address.message}
-                  </p>
-                )}
               </div>
 
               {/* Date of Birth */}
@@ -370,11 +374,7 @@ export default function Form1Page() {
                       : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
-                {errors.phoneNumber && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.phoneNumber.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Spouse Name */}
@@ -403,11 +403,7 @@ export default function Form1Page() {
                       : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
-                {errors.numberOfChildren && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.numberOfChildren.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Children’s Ages */}
@@ -424,11 +420,7 @@ export default function Form1Page() {
                       : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
                 />
-                {errors.childrenAges && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.childrenAges.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Occupation */}
@@ -463,11 +455,7 @@ export default function Form1Page() {
                       : 'border-[#8EABD2]'
                   } rounded-full px-3 py-2 bg-[#DCE7F2] w-full max-w-md focus:outline-none`}
                 />
-                {errors.monthlyIncome && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.monthlyIncome.message}
-                  </p>
-                )}
+
               </div>
             </form>
 
@@ -482,13 +470,14 @@ export default function Form1Page() {
                 />
               </div>
               <div className="flex-grow flex justify-end">
-                <FormNavButton
-                  label={isSubmitting ? 'Saving...' : 'Next'}
-                  type="next"
-                  variant="gradient"
-                  onClick={handleSubmit(onSubmit)}
-                  disabled={isSubmitting}
-                />
+            <FormNavButton
+              label={isSubmitting ? 'Saving...' : 'Next'}
+              type="next"
+              variant="gradient"
+              onClick={handleSubmit(onSubmit, handleValidationErrors)}
+              disabled={isSubmitting}
+            />
+
               </div>
             </div>
           </FormContainer>
