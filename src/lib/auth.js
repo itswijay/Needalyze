@@ -277,11 +277,21 @@ export async function signOut() {
  */
 export async function getCurrentUser() {
   try {
-    // Get session from localStorage
+    // Create a timeout promise to prevent hanging
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(
+        () => reject(new Error('Supabase session fetch timeout')),
+        5000
+      )
+    })
+
+    const sessionPromise = supabase.auth.getSession()
+
+    // Race between the actual request and timeout
     const {
       data: { session },
       error,
-    } = await supabase.auth.getSession()
+    } = await Promise.race([sessionPromise, timeoutPromise])
 
     if (error) {
       console.error('Error getting session:', error)
@@ -296,7 +306,7 @@ export async function getCurrentUser() {
       session: session,
     }
   } catch (error) {
-    console.error('Error in getCurrentUser:', error)
+    console.error('Error in getCurrentUser:', error.message)
     return {
       user: null,
       session: null,
