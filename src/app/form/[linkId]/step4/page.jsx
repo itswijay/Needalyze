@@ -35,6 +35,59 @@ export default function Step4Page() {
       const formData = getAllData()
       console.log('Form data for PDF generation:', formData)
 
+      // Validate all required fields are filled
+      if (!formData.step1?.fullName?.trim()) {
+        toast.error('Step 1: Full name is required')
+        setIsGeneratingPDF(false)
+        return
+      }
+      if (!formData.step1?.dateOfBirth) {
+        toast.error('Step 1: Date of birth is required')
+        setIsGeneratingPDF(false)
+        return
+      }
+      if (!formData.step1?.phoneNumber?.trim()) {
+        toast.error('Step 1: Phone number is required')
+        setIsGeneratingPDF(false)
+        return
+      }
+      if (!formData.step1?.address?.trim()) {
+        toast.error('Step 1: Address is required')
+        setIsGeneratingPDF(false)
+        return
+      }
+      if (
+        formData.step1?.monthlyIncome === null ||
+        formData.step1?.monthlyIncome === ''
+      ) {
+        toast.error('Step 1: Monthly income is required')
+        setIsGeneratingPDF(false)
+        return
+      }
+
+      // Validate step2 has at least one selection
+      const hasStep2Selection =
+        Object.values(formData.step2?.insuranceNeeds || {}).some((v) => v) ||
+        Object.values(formData.step2?.healthCovers || {}).some((v) => v)
+
+      if (!hasStep2Selection) {
+        toast.error(
+          'Step 2: Please select at least one insurance need or health cover'
+        )
+        setIsGeneratingPDF(false)
+        return
+      }
+
+      // Validate step3 calculations are done
+      if (
+        !formData.step3?.actualHLValue ||
+        formData.step3.actualHLValue === 0
+      ) {
+        toast.error('Step 3: Please complete the calculations')
+        setIsGeneratingPDF(false)
+        return
+      }
+
       // Save form to database before generating PDF
       try {
         await updateStepData(
