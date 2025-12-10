@@ -1,4 +1,5 @@
 'use client'
+import toast from 'react-hot-toast'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
@@ -14,6 +15,12 @@ export default function Step4Page() {
   const [isRestarting, setIsRestarting] = useState(false)
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const { updateStepData, getAllData, linkId } = useFormContext()
+
+useEffect(() => {
+  toast.success("Form submitted successfully!", {
+    id: "form-success"
+  });
+}, []);
 
   const handleDownload = async () => {
     // Stronger guard: prevent multiple clicks with immediate return

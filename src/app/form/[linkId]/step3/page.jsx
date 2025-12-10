@@ -1,5 +1,6 @@
 'use client'
 
+import toast from 'react-hot-toast'
 import React, { useState, useEffect } from 'react'
 import FormContainer from '@/components/FormContainer'
 import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
@@ -201,7 +202,29 @@ export default function Form3Page() {
       // Only reset on error
       setIsSubmitting(false)
     }
+  };
+
+  const onError = (errors) => {
+  if (errors.fixedMonthlyExpenses) {
+    toast.error(errors.fixedMonthlyExpenses.message);
+    return;
   }
+
+  if (errors.bankInterestRate) {
+    toast.error(errors.bankInterestRate.message);
+    return;
+  }
+
+  if (errors.unsecuredBankLoan) {
+    toast.error(errors.unsecuredBankLoan.message);
+    return;
+  }
+
+  if (errors.cashInHandInsurance) {
+    toast.error(errors.cashInHandInsurance.message);
+    return;
+  }
+};
 
   const handleStepNavigation = (stepNumber) => {
     // Navigate to the selected step
@@ -229,9 +252,10 @@ export default function Form3Page() {
           </div>
 
           <form
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={handleSubmit(onSubmit, onError)}
             className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
           >
+
             {/* Left column - Input fields */}
             <div className="flex flex-col space-y-3 sm:space-y-4">
               {/* Fixed Monthly Expenses */}
@@ -244,11 +268,7 @@ export default function Form3Page() {
                   className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                   {...register('fixedMonthlyExpenses', { valueAsNumber: true })}
                 />
-                {errors.fixedMonthlyExpenses && (
-                  <p className="text-red-600 text-xs mt-1 ml-4">
-                    {errors.fixedMonthlyExpenses.message}
-                  </p>
-                )}
+
               </div>
 
               {/* Bank Interest Rate */}
@@ -262,11 +282,7 @@ export default function Form3Page() {
                   className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
                   {...register('bankInterestRate', { valueAsNumber: true })}
                 />
-                {errors.bankInterestRate && (
-                  <p className="text-red-600 text-xs mt-1 ml-4">
-                    {errors.bankInterestRate.message}
-                  </p>
-                )}
+
               </div>
 
               {/* HLV - Mobile only */}
@@ -352,7 +368,7 @@ export default function Form3Page() {
               label={isSubmitting ? 'Submitting...' : 'Submit'}
               type="next"
               variant="gradient"
-              onClick={handleSubmit(onSubmit)}
+              onClick={handleSubmit(onSubmit, onError)}
               disabled={isSubmitting}
             />
           </div>
