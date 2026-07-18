@@ -7,6 +7,7 @@ import {
   signOut as authSignOut,
 } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
+import { ROLE_IDS } from "@/lib/roles";
 
 // Create the Auth Context
 const AuthContext = createContext(undefined);
@@ -34,8 +35,6 @@ export function AuthProvider({ children }) {
     // Listen for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth state changed:", event, session);
-
         if (event === "SIGNED_IN") {
           setUser(session?.user || null);
           setSession(session);
@@ -89,11 +88,6 @@ export function AuthProvider({ children }) {
 
       if (success && profile) {
         setUserProfile(profile);
-        console.log("User profile loaded:", {
-          status: profile.status,
-          isApproved: profile.status === "approved",
-          profile,
-        });
       }
     } catch (error) {
       console.error("Error loading user profile:", error);
@@ -130,8 +124,7 @@ export function AuthProvider({ children }) {
   const isAuthenticated = !!user && !!session;
 
   // Check if user is admin (based on role)
-  const isAdmin =
-    userProfile?.role_id === "fe33d24b-ed16-4cbb-a236-c642eff30320";
+  const isAdmin = userProfile?.role_id === ROLE_IDS.ADMIN;
 
   // Check if user status is approved
   const isApproved = userProfile?.status === "approved";

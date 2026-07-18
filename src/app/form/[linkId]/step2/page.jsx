@@ -149,7 +149,15 @@ export default function NeedAnalysisFormPage2() {
 
     try {
       // Save to both localStorage and database
-      await updateStepData('step2', data, true)
+      const saveResult = await updateStepData('step2', data, true)
+
+      if (!saveResult.success) {
+        toast.error(
+          saveResult.error || 'Failed to save your details. Please try again.'
+        )
+        setIsSubmitting(false)
+        return
+      }
 
       // Navigate to next step (keep button disabled during navigation)
       router.push(`/form/${linkId}/step3`)

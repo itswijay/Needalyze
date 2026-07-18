@@ -4,22 +4,23 @@ import { formatCurrency } from './utils'
 import { uploadPDFToStorage } from './pdfStorage'
 
 export const generatePDF = async (formData) => {
+  // Created outside the try block so the finally clause can always clean it
+  // up, even if something throws before/after it's attached to the DOM.
+  const tempContainer = document.createElement('div')
+  tempContainer.style.position = 'absolute'
+  tempContainer.style.left = '-9999px'
+  tempContainer.style.top = '0'
+  tempContainer.style.width = '210mm' // A4 width
+  tempContainer.style.height = '297mm' // A4 height
+  tempContainer.style.background = 'white'
+  tempContainer.style.zIndex = '-1000'
+  tempContainer.style.padding = '0'
+  tempContainer.style.margin = '0'
+
+  // Create the HTML content directly instead of using React rendering
+  tempContainer.innerHTML = createPDFHTML(formData)
+
   try {
-    // Create a temporary container for the PDF content
-    const tempContainer = document.createElement('div')
-    tempContainer.style.position = 'absolute'
-    tempContainer.style.left = '-9999px'
-    tempContainer.style.top = '0'
-    tempContainer.style.width = '210mm' // A4 width
-    tempContainer.style.height = '297mm' // A4 height
-    tempContainer.style.background = 'white'
-    tempContainer.style.zIndex = '-1000'
-    tempContainer.style.padding = '0'
-    tempContainer.style.margin = '0'
-
-    // Create the HTML content directly instead of using React rendering
-    tempContainer.innerHTML = createPDFHTML(formData)
-
     document.body.appendChild(tempContainer)
 
     // Wait a moment for rendering
@@ -32,17 +33,23 @@ export const generatePDF = async (formData) => {
       throw new Error('PDF content not rendered properly')
     }
 
-    // Configure html2canvas options for higher quality
-    const canvas = await html2canvas(element, {
-      scale: 2.5, // Increased scale for better quality (2.5)
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: '#ffffff',
-      width: element.scrollWidth,
-      height: element.scrollHeight,
-      scrollX: 0,
-      scrollY: 0,
-    })
+    // Configure html2canvas options for higher quality, with a timeout so a
+    // hung render can't block forever.
+    const canvas = await Promise.race([
+      html2canvas(element, {
+        scale: 2.5, // Increased scale for better quality (2.5)
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        scrollX: 0,
+        scrollY: 0,
+      }),
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('PDF generation timed out')), 30000)
+      ),
+    ])
 
     // Create PDF with higher quality
     const imgData = canvas.toDataURL('image/jpeg', 0.85) // JPEG quality (85%)
@@ -104,9 +111,6 @@ export const generatePDF = async (formData) => {
     // Download the PDF locally as well
     pdf.save(filename)
 
-    // Cleanup
-    document.body.removeChild(tempContainer)
-
     if (uploadResult.success) {
       return {
         success: true,
@@ -124,6 +128,12 @@ export const generatePDF = async (formData) => {
   } catch (error) {
     console.error('Error generating PDF:', error)
     throw new Error(`Failed to generate PDF: ${error.message}`)
+  } finally {
+    // Always clean up the temp DOM node, whether generation succeeded,
+    // failed, or timed out.
+    if (tempContainer.parentNode) {
+      tempContainer.parentNode.removeChild(tempContainer)
+    }
   }
 }
 

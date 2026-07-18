@@ -5,9 +5,23 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 )
 
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isValidUUID(value) {
+  return typeof value === 'string' && UUID_REGEX.test(value)
+}
+
 export async function GET(request, { params }) {
   try {
     const { linkId } = await params
+
+    if (!isValidUUID(linkId)) {
+      return Response.json(
+        { success: false, error: 'Invalid link ID format' },
+        { status: 400 }
+      )
+    }
 
     // Check if link exists and is active
     const { data: linkData, error: linkError } = await supabase
@@ -22,7 +36,6 @@ export async function GET(request, { params }) {
         {
           success: false,
           error: 'Invalid or expired link',
-          linkError,
         },
         { status: 404 }
       )
@@ -34,10 +47,6 @@ export async function GET(request, { params }) {
         {
           success: false,
           error: 'Link has expired',
-
-          linkData,
-          ex: new Date(linkData.expiry_date),
-          now: new Date(),
         },
         { status: 410 }
       )
@@ -53,7 +62,6 @@ export async function GET(request, { params }) {
     return Response.json(
       {
         success: true,
-        linkError,
         linkData,
         formData: formData || null,
       },
@@ -70,10 +78,15 @@ export async function GET(request, { params }) {
 export async function POST(request, { params }) {
   try {
     const { linkId } = await params
-    const { step, data, user_id } = await request.json()
 
-    // console.log("User ID in form POST linkId]:", user_id);
-    console.log('Received data for step:', step, 'Data:', data)
+    if (!isValidUUID(linkId)) {
+      return Response.json(
+        { success: false, error: 'Invalid link ID format' },
+        { status: 400 }
+      )
+    }
+
+    const { step, data, user_id } = await request.json()
 
     // Verify link is valid
     const { data: linkData, error: linkError } = await supabase
@@ -87,6 +100,14 @@ export async function POST(request, { params }) {
       return Response.json(
         { success: false, error: 'Invalid link' },
         { status: 404 }
+      )
+    }
+
+    // Check if link is expired (write path must enforce this too, not just GET)
+    if (new Date(linkData.expiry_date) < new Date()) {
+      return Response.json(
+        { success: false, error: 'Link has expired' },
+        { status: 410 }
       )
     }
 
@@ -134,11 +155,9 @@ export async function POST(request, { params }) {
           human_life_value: data.actualHLValue || 0,
           status: data.completed ? 'completed' : 'pending',
         }
-      } else if (step === 'step4') {
-        // updateData = {
-        //   status: data.completionData.completed ? "completed" : "pending",
-        // };
       }
+      // step4 has no fields of its own to persist: step3 already flips
+      // status to "completed", and step4 is just the success/summary screen.
 
       const { data: updatedData, error } = await supabase
         .from('need_analysis_form')

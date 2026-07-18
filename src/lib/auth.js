@@ -1,10 +1,5 @@
 import { supabase } from './supabase'
-
-// Role IDs from the database
-const ROLE_IDS = {
-  USER: '31181c75-79f9-4fee-8629-e706ce8c905b',
-  ADMIN: 'fe33d24b-ed16-4cbb-a236-c642eff30320',
-}
+import { ROLE_IDS } from './roles'
 
 /**
  * Get role_id based on position

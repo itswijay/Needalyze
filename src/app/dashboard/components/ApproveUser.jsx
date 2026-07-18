@@ -6,6 +6,7 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import toast from 'react-hot-toast'
 
 import {
   Dialog,
@@ -23,41 +24,70 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Spinner } from '@/components/ui/spinner'
+import { getPendingUsers, approveUser, rejectUser } from '@/lib/admin'
 
-const ApproveUser = ({ open, onOpenChange, formData }) => {
-  const [data, setData] = React.useState(() => {
-    const exampleUsers = [
-      {
-        full_name: 'John Doe',
-        branch: 'New York',
-        code_num: 'A123',
-      },
-      {
-        full_name: 'Sarah Smith',
-        branch: 'California',
-        code_num: 'B456',
-      },
-      {
-        full_name: 'Mike Anderson',
-        branch: 'Texas',
-        code_num: 'C789',
-      },
-      {
-        full_name: 'Emily Johnson',
-        branch: 'Florida',
-        code_num: 'D321',
-      },
-    ]
+const mapProfileToRow = (profile) => ({
+  user_id: profile.user_id,
+  user:
+    `${profile.first_name || ''} ${profile.last_name || ''}`.trim() ||
+    'Unknown',
+  branch: profile.branch || 'Not Provided',
+  code_num: profile.code_number || 'Not Provided',
+})
 
-    let users =
-      Array.isArray(formData) && formData.length > 0 ? formData : exampleUsers
+const ApproveUser = ({ open, onOpenChange, onChange }) => {
+  const [data, setData] = React.useState([])
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [processingId, setProcessingId] = React.useState(null)
 
-    return users.map((item) => ({
-      user: item.full_name || 'Unknown',
-      branch: item.branch || 'Not Provided',
-      code_num: item.code_num || 'Not Provided',
-    }))
-  })
+  const loadPendingUsers = React.useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const { success, profiles, error } = await getPendingUsers()
+
+      if (success) {
+        setData((profiles || []).map(mapProfileToRow))
+      } else {
+        toast.error(error || 'Failed to load pending users')
+        setData([])
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (open) {
+      loadPendingUsers()
+    }
+  }, [open, loadPendingUsers])
+
+  const handleDecision = async (userId, decision) => {
+    setProcessingId(userId)
+    try {
+      const action = decision === 'approved' ? approveUser : rejectUser
+      const { success, error } = await action(userId)
+
+      if (!success) {
+        toast.error(
+          error ||
+            `Failed to ${decision === 'approved' ? 'approve' : 'reject'} user`
+        )
+        return
+      }
+
+      toast.success(
+        decision === 'approved'
+          ? 'User approved successfully'
+          : 'User rejected successfully'
+      )
+      setData((prev) => prev.filter((user) => user.user_id !== userId))
+      onChange?.()
+    } finally {
+      setProcessingId(null)
+    }
+  }
 
   const columns = React.useMemo(
     () => [
@@ -80,43 +110,30 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
         accessorKey: 'actions',
         header: 'Actions',
         cell: ({ row }) => {
+          const isProcessing = processingId === row.original.user_id
           return (
             <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Button
                 className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs md:text-sm w-full md:w-auto"
-                onClick={() => {
-                  setData((prev) =>
-                    prev.map((user) =>
-                      user.user === row.original.user
-                        ? { ...user, action: 'Approved' }
-                        : user
-                    )
-                  )
-                }}
+                disabled={isProcessing}
+                onClick={() => handleDecision(row.original.user_id, 'approved')}
               >
-                Approve
+                {isProcessing ? <Spinner /> : 'Approve'}
               </Button>
 
               <Button
                 className="bg-red-600 text-white px-3 py-1 rounded-full text-xs md:text-sm w-full md:w-auto"
-                onClick={() => {
-                  setData((prev) =>
-                    prev.map((user) =>
-                      user.user === row.original.user
-                        ? { ...user, action: 'Rejected' }
-                        : user
-                    )
-                  )
-                }}
+                disabled={isProcessing}
+                onClick={() => handleDecision(row.original.user_id, 'rejected')}
               >
-                Reject
+                {isProcessing ? <Spinner /> : 'Reject'}
               </Button>
             </div>
           )
         },
       },
     ],
-    []
+    [processingId]
   )
 
   const table = useReactTable({
@@ -135,130 +152,131 @@ const ApproveUser = ({ open, onOpenChange, formData }) => {
         </DialogHeader>
 
         <div className="mt-6">
-          {/* Desktop Table View */}
-          <div className="hidden md:block border rounded-lg overflow-x-auto">
-            <Table className="min-w-full text-sm md:text-base">
-              <TableHeader>
-                {table.getHeaderGroups().map((hg) => (
-                  <TableRow key={hg.id}>
-                    {hg.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        className="px-4 py-2 text-center"
-                      >
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </TableHead>
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Spinner className="size-6" />
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table View */}
+              <div className="hidden md:block border rounded-lg overflow-x-auto">
+                <Table className="min-w-full text-sm md:text-base">
+                  <TableHeader>
+                    {table.getHeaderGroups().map((hg) => (
+                      <TableRow key={hg.id}>
+                        {hg.headers.map((header) => (
+                          <TableHead
+                            key={header.id}
+                            className="px-4 py-2 text-center"
+                          >
+                            {flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                          </TableHead>
+                        ))}
+                      </TableRow>
                     ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
+                  </TableHeader>
 
-              <TableBody>
-                {table.getRowModel().rows.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className="px-4 py-2 text-center"
-                        >
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
+                  <TableBody>
+                    {table.getRowModel().rows.length ? (
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell
+                              key={cell.id}
+                              className="px-4 py-2 text-center"
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-4">
+                          No pending users found.
                         </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center py-4">
-                      No users found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="md:hidden space-y-4">
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <div
-                  key={row.id}
-                  className="border rounded-lg p-4 bg-white shadow-sm"
-                >
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="font-semibold text-gray-600 text-xs sm:text-sm">
-                        User
-                      </span>
-                      <span className="font-medium text-xs sm:text-sm">
-                        {row.original.user}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-semibold text-gray-600 text-xs sm:text-sm">
-                        Branch
-                      </span>
-                      <span className="font-medium text-xs sm:text-sm">
-                        {row.original.branch}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-semibold text-gray-600 text-xs sm:text-sm">
-                        Code Number
-                      </span>
-                      <span className="font-medium text-xs sm:text-sm">
-                        {row.original.code_num}
-                      </span>
-                    </div>
-                    <div className="pt-3 border-t">
-                      <div className="flex flex-col gap-2">
-                        <Button
-                          className="bg-blue-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm w-full"
-                          onClick={() => {
-                            setData((prev) =>
-                              prev.map((user) =>
-                                user.user === row.original.user
-                                  ? { ...user, action: 'Approved' }
-                                  : user
-                              )
-                            )
-                          }}
-                        >
-                          Approve
-                        </Button>
-
-                        <Button
-                          className="bg-red-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm w-full"
-                          onClick={() => {
-                            setData((prev) =>
-                              prev.map((user) =>
-                                user.user === row.original.user
-                                  ? { ...user, action: 'Rejected' }
-                                  : user
-                              )
-                            )
-                          }}
-                        >
-                          Reject
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-4 text-gray-500 text-sm">
-                No users found.
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
-            )}
-          </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {table.getRowModel().rows.length ? (
+                  table.getRowModel().rows.map((row) => {
+                    const isProcessing = processingId === row.original.user_id
+                    return (
+                      <div
+                        key={row.id}
+                        className="border rounded-lg p-4 bg-white shadow-sm"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex justify-between">
+                            <span className="font-semibold text-gray-600 text-xs sm:text-sm">
+                              User
+                            </span>
+                            <span className="font-medium text-xs sm:text-sm">
+                              {row.original.user}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-semibold text-gray-600 text-xs sm:text-sm">
+                              Branch
+                            </span>
+                            <span className="font-medium text-xs sm:text-sm">
+                              {row.original.branch}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="font-semibold text-gray-600 text-xs sm:text-sm">
+                              Code Number
+                            </span>
+                            <span className="font-medium text-xs sm:text-sm">
+                              {row.original.code_num}
+                            </span>
+                          </div>
+                          <div className="pt-3 border-t">
+                            <div className="flex flex-col gap-2">
+                              <Button
+                                className="bg-blue-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm w-full"
+                                disabled={isProcessing}
+                                onClick={() =>
+                                  handleDecision(row.original.user_id, 'approved')
+                                }
+                              >
+                                {isProcessing ? <Spinner /> : 'Approve'}
+                              </Button>
+
+                              <Button
+                                className="bg-red-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm w-full"
+                                disabled={isProcessing}
+                                onClick={() =>
+                                  handleDecision(row.original.user_id, 'rejected')
+                                }
+                              >
+                                {isProcessing ? <Spinner /> : 'Reject'}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="text-center py-4 text-gray-500 text-sm">
+                    No pending users found.
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

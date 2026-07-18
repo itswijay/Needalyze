@@ -52,6 +52,69 @@ const initialFormState = {
   },
 };
 
+// Convert a `need_analysis_form` database row into the shape the form steps
+// expect. Note: the database only ever persists `human_life_value` for
+// step3 (see api/form/[linkId]/route.js) and has no completion-timestamp
+// column, so those fields can't be restored here.
+function convertDbDataToFormState(dbData) {
+  return {
+    step1: {
+      fullName: dbData.full_name || "",
+      dateOfBirth: dbData.date_of_birth
+        ? new Date(dbData.date_of_birth)
+        : null,
+      spouseName: dbData.spouse_name || "",
+      address: dbData.address || "",
+      phoneNumber: dbData.phone_number || "",
+      numberOfChildren: dbData.number_of_children || "",
+      childrenAges: dbData.children_ages || "",
+      occupation: dbData.occupation || "",
+      age: dbData.age || "",
+      monthlyIncome: dbData.monthly_income || "",
+    },
+    step2: {
+      insuranceNeeds: {
+        dependentCostOfLiving:
+          dbData.insurance_needs?.includes("dependentCostOfLiving") || false,
+        higherEducationChildren:
+          dbData.insurance_needs?.includes("higherEducationChildren") ||
+          false,
+        longTermSavings:
+          dbData.insurance_needs?.includes("longTermSavings") || false,
+        shortTermSavings:
+          dbData.insurance_needs?.includes("shortTermSavings") || false,
+        pensionFund:
+          dbData.insurance_needs?.includes("pensionFund") || false,
+      },
+      healthCovers: {
+        dailyHospitalizationExpenses:
+          dbData.health_covers?.includes("dailyHospitalizationExpenses") ||
+          false,
+        surgeryCover:
+          dbData.health_covers?.includes("surgeryCover") || false,
+        hospitalBillCover:
+          dbData.health_covers?.includes("hospitalBillCover") || false,
+        criticalIllness:
+          dbData.health_covers?.includes("criticalIllness") || false,
+      },
+    },
+    step3: {
+      fixedMonthlyExpenses: "",
+      bankInterestRate: "",
+      unsecuredBankLoan: "",
+      cashInHandInsurance: "",
+      hlvalue: dbData.human_life_value || 0,
+      actualHLValue: 0,
+    },
+    step4: {
+      completed: dbData.status === "completed",
+      // No real completion timestamp is stored in the database — leave it
+      // null rather than fabricating "now" as if it were accurate.
+      completedAt: null,
+    },
+  };
+}
+
 // Form Provider Component
 export function FormProvider({ children }) {
   const [formData, setFormData] = useState(initialFormState);
@@ -67,11 +130,8 @@ export function FormProvider({ children }) {
       if (params?.linkId) {
         setLinkId(params?.linkId);
 
-        console.log("Initializing form data for link ID:", params.linkId);
-
         try {
           // Try to get data from database first
-
           const response = await fetch(`/api/form/${params.linkId}`);
           const result = await response.json();
           setApiError(
@@ -83,78 +143,12 @@ export function FormProvider({ children }) {
                 }
           );
 
-          setAdvisorUserId(result.linkData.user_id);
-
-          console.log("Form data fetched from API:", result);
-
           if (result.success && result.formData) {
             // Convert database data to form format
-            const dbData = result.formData;
-            const convertedData = {
-              step1: {
-                fullName: dbData.full_name || "",
-                dateOfBirth: dbData.date_of_birth
-                  ? new Date(dbData.date_of_birth)
-                  : null,
-                spouseName: dbData.spouse_name || "",
-                address: dbData.address || "",
-                phoneNumber: dbData.phone_number || "",
-                numberOfChildren: dbData.number_of_children || "",
-                childrenAges: dbData.children_ages || "",
-                occupation: dbData.occupation || "",
-                age: dbData.age || "",
-                monthlyIncome: dbData.monthly_income || "",
-              },
-              step2: {
-                insuranceNeeds: {
-                  dependentCostOfLiving:
-                    dbData.insurance_needs?.includes("dependentCostOfLiving") ||
-                    false,
-                  higherEducationChildren:
-                    dbData.insurance_needs?.includes(
-                      "higherEducationChildren"
-                    ) || false,
-                  longTermSavings:
-                    dbData.insurance_needs?.includes("longTermSavings") ||
-                    false,
-                  shortTermSavings:
-                    dbData.insurance_needs?.includes("shortTermSavings") ||
-                    false,
-                  pensionFund:
-                    dbData.insurance_needs?.includes("pensionFund") || false,
-                },
-                healthCovers: {
-                  dailyHospitalizationExpenses:
-                    dbData.health_covers?.includes(
-                      "dailyHospitalizationExpenses"
-                    ) || false,
-                  surgeryCover:
-                    dbData.health_covers?.includes("surgeryCover") || false,
-                  hospitalBillCover:
-                    dbData.health_covers?.includes("hospitalBillCover") ||
-                    false,
-                  criticalIllness:
-                    dbData.health_covers?.includes("criticalIllness") || false,
-                },
-              },
-              step3: {
-                fixedMonthlyExpenses: "",
-                bankInterestRate: "",
-                unsecuredBankLoan: "",
-                cashInHandInsurance: "",
-                hlvalue: dbData.human_life_value || 0,
-                actualHLValue: 0,
-              },
-              step4: {
-                completed: dbData.status === "completed",
-                completedAt: dbData.status === "completed" ? new Date() : null,
-              },
-            };
+            const convertedData = convertDbDataToFormState(result.formData);
 
             setFormData(convertedData);
             setAdvisorUserId(result.linkData.user_id);
-
-            console.log("Advisor User ID set to:", result.linkData.user_id);
 
             // Update localStorage with database data
             const dataToSave = { ...convertedData };
@@ -164,29 +158,6 @@ export function FormProvider({ children }) {
             }
             localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
           }
-          // else {
-          //   // No database data, try localStorage
-          //   const savedData = localStorage.getItem(STORAGE_KEY);
-          //   if (savedData) {
-          //     const parsedData = JSON.parse(savedData);
-          //     if (parsedData.step1?.dateOfBirth) {
-          //       parsedData.step1.dateOfBirth = new Date(
-          //         parsedData.step1.dateOfBirth
-          //       );
-          //     }
-          //     setFormData(parsedData);
-          //     setAdvisorUserId(result.linkData.user_id);
-          //     console.log(
-          //       "Advisor User ID set to from else:",
-          //       result.linkData.user_id
-          //     );
-          //   }
-          // console.log(
-          //   "No form data found in database for link ID:",
-          //   params.linkId
-          // );
-          // console.log("Result from API else part:", result);
-          // }
         } catch (error) {
           console.error("Error loading form data:", error);
           setApiError({
@@ -274,10 +245,14 @@ export function FormProvider({ children }) {
     if (saveToDb && linkId) {
       try {
         await saveStepToDatabase(step, data);
+        return { success: true };
       } catch (error) {
         console.error("Failed to save to database:", error);
+        return { success: false, error: error.message || "Failed to save data" };
       }
     }
+
+    return { success: true };
   };
 
   // Get data for a specific step
@@ -297,40 +272,6 @@ export function FormProvider({ children }) {
     }
   };
 
-  // Load data from database and override localStorage
-  const loadFromDatabase = async () => {
-    if (!linkId) return false;
-
-    try {
-      const response = await fetch(`/api/form/${linkId}`);
-      const result = await response.json();
-
-      if (result.success && result.formData) {
-        const dbData = result.formData;
-        const convertedData = {
-          // ... conversion logic same as above
-        };
-
-        setFormData(convertedData);
-
-        // Update localStorage
-        const dataToSave = { ...convertedData };
-        if (dataToSave.step1?.dateOfBirth instanceof Date) {
-          dataToSave.step1.dateOfBirth =
-            dataToSave.step1.dateOfBirth.toISOString();
-        }
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error("Error loading from database:", error);
-      return false;
-    }
-  };
-
   // Get all form data
   const getAllData = () => {
     return formData;
@@ -345,7 +286,6 @@ export function FormProvider({ children }) {
     isLoaded,
     linkId,
     saveStepToDatabase,
-    loadFromDatabase,
     apiError,
     clearApiError: () => setApiError(null),
   };

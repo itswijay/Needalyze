@@ -52,30 +52,35 @@ const page = () => {
               Allforms.filter(
                 (form) =>
                   form.status === "completed" &&
+                  Array.isArray(form.insurance_needs) &&
                   form.insurance_needs.includes("higherEducationChildren")
               ).length || 0,
             pensionfund:
               Allforms.filter(
                 (form) =>
                   form.status === "completed" &&
+                  Array.isArray(form.insurance_needs) &&
                   form.insurance_needs.includes("pensionFund")
               ).length || 0,
             DependentsCostofLiving:
               Allforms.filter(
                 (form) =>
                   form.status === "completed" &&
+                  Array.isArray(form.insurance_needs) &&
                   form.insurance_needs.includes("dependentCostOfLiving")
               ).length || 0,
             longTermSavings:
               Allforms.filter(
                 (form) =>
                   form.status === "completed" &&
+                  Array.isArray(form.insurance_needs) &&
                   form.insurance_needs.includes("longTermSavings")
               ).length || 0,
             shortTermSavings:
               Allforms.filter(
                 (form) =>
                   form.status === "completed" &&
+                  Array.isArray(form.insurance_needs) &&
                   form.insurance_needs.includes("shortTermSavings")
               ).length || 0,
           },

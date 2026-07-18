@@ -13,18 +13,32 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Profile from './Profile'
 import { Button } from '@/components/ui/button'
 import ApproveUser from './ApproveUser'
-import { ClipboardList, Users } from 'lucide-react'
+import { Users } from 'lucide-react'
+import { getUserStatistics } from '@/lib/admin'
 
 const Navbar = () => {
   const router = useRouter()
-  const { userProfile, signOut } = useAuth()
+  const { userProfile, isAdmin, signOut } = useAuth()
 
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isApproveUserOpen, setIsApproveUserOpen] = useState(false)
+  const [pendingCount, setPendingCount] = useState(0)
+
+  const refreshPendingCount = useCallback(async () => {
+    if (!isAdmin) return
+    const { success, stats } = await getUserStatistics()
+    if (success) {
+      setPendingCount(stats.pending || 0)
+    }
+  }, [isAdmin])
+
+  useEffect(() => {
+    refreshPendingCount()
+  }, [refreshPendingCount])
 
   const handleSignOut = async () => {
     const { success } = await signOut()
@@ -57,29 +71,31 @@ const Navbar = () => {
           </span>
         </li>
 
-        {/* --- Center: Pending Approvals Button --- */}
-        <li className="flex-grow flex justify-end mr-1 md:mr-5">
-          {/* Mobile Button */}
-          <Button
-            onClick={() => setIsApproveUserOpen(true)}
-            className="md:hidden bg-transparent rounded-full text-[#2265d0] mb-1"
-          >
-            <div className="w-6 h-24 flex items-center justify-center">
-              <Users
-                style={{ width: '25px', height: '25px' }}
-                strokeWidth={1.5}
-              />
-            </div>
-          </Button>
+        {/* --- Center: Pending Approvals Button (admins only) --- */}
+        {isAdmin && (
+          <li className="flex-grow flex justify-end mr-1 md:mr-5">
+            {/* Mobile Button */}
+            <Button
+              onClick={() => setIsApproveUserOpen(true)}
+              className="md:hidden bg-transparent rounded-full text-[#2265d0] mb-1"
+            >
+              <div className="w-6 h-24 flex items-center justify-center">
+                <Users
+                  style={{ width: '25px', height: '25px' }}
+                  strokeWidth={1.5}
+                />
+              </div>
+            </Button>
 
-          {/* Desktop Button */}
-          <Button
-            onClick={() => setIsApproveUserOpen(true)}
-            className="hidden md:inline bg-gradient-to-r from-[#2265d0] to-[#2265d0] px-5 py-2 rounded-full text-white text-sm"
-          >
-            Pending Approvals (4)
-          </Button>
-        </li>
+            {/* Desktop Button */}
+            <Button
+              onClick={() => setIsApproveUserOpen(true)}
+              className="hidden md:inline bg-gradient-to-r from-[#2265d0] to-[#2265d0] px-5 py-2 rounded-full text-white text-sm"
+            >
+              Pending Approvals ({pendingCount})
+            </Button>
+          </li>
+        )}
 
         {/* --- Right: Avatar Menu --- */}
         <li>
@@ -126,11 +142,17 @@ const Navbar = () => {
       {/* --- Profile Dialog --- */}
       <Profile open={isProfileOpen} onOpenChange={setIsProfileOpen} />
 
-      {/* --- Approve User Dialog --- */}
-      <ApproveUser
-        open={isApproveUserOpen}
-        onOpenChange={setIsApproveUserOpen}
-      />
+      {/* --- Approve User Dialog (admins only) --- */}
+      {isAdmin && (
+        <ApproveUser
+          open={isApproveUserOpen}
+          onOpenChange={(open) => {
+            setIsApproveUserOpen(open)
+            if (!open) refreshPendingCount()
+          }}
+          onChange={refreshPendingCount}
+        />
+      )}
     </div>
   )
 }

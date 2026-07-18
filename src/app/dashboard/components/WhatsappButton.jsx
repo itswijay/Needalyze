@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import React from 'react'
 
-const WhatsappButton = () => {
+const WhatsappButton = ({ link }) => {
   return (
     <div>
       <Button

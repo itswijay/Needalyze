@@ -33,83 +33,93 @@ useEffect(() => {
     try {
       // Get all form data from context
       const formData = getAllData()
-      console.log('Form data for PDF generation:', formData)
 
       // Generate and download PDF
       const result = await generatePDF(formData)
-      console.log('PDF generated successfully:', result.filename)
 
       if (result.supabaseUrl) {
-        console.log('PDF uploaded to Supabase:', result.supabaseUrl)
-        // You could show a success message with the cloud URL
-        alert(
-          `PDF generated and saved to cloud!\nFile: ${result.filename}\nCloud URL: ${result.supabaseUrl}`
-        )
+        toast.success(`PDF generated and saved to cloud: ${result.filename}`)
       } else if (result.storageError) {
         console.warn(
           'Storage upload failed but local download succeeded:',
           result.storageError
         )
-        alert(
-          `PDF downloaded locally. Cloud upload failed: ${result.storageError}`
+        toast.error(
+          `PDF downloaded locally, but cloud upload failed: ${result.storageError}`
         )
       } else {
-        alert(`PDF downloaded successfully: ${result.filename}`)
+        toast.success(`PDF downloaded successfully: ${result.filename}`)
       }
     } catch (error) {
       console.error('Failed to generate PDF:', error)
-      alert('Failed to generate PDF. Please try again.')
+      toast.error('Failed to generate PDF. Please try again.')
     } finally {
       setIsGeneratingPDF(false)
     }
   }
 
-  const handleStartOver = () => {
+  const handleStartOver = async () => {
     if (isRestarting) return // Prevent multiple clicks
 
     setIsRestarting(true)
-    router.push(`/form/${linkId}/step1`)
-    // Reset form data in context
-    ;[
-      {
-        step: 'step1',
-        data: {
-          fullName: '',
-          dateOfBirth: null,
-          spouseName: '',
-          phoneNumber: '',
-          address: '',
-          numberOfChildren: null,
-          childrenAges: '',
-          occupation: '',
-          monthlyIncome: null,
-          age: null,
-        },
-      },
-      {
-        step: 'step2',
-        data: {
-          insuranceNeeds: {
-            dependentCostOfLiving: false,
-            higherEducationChildren: false,
-            longTermSavings: false,
-            shortTermSavings: false,
-            pensionFund: false,
-          },
-          healthCovers: {
-            dailyHospitalizationExpenses: false,
-            surgeryCover: false,
-            hospitalBillCover: false,
-            criticalIllness: false,
+
+    try {
+      // Reset form data in context, waiting for every save to complete
+      // before navigating away so step1 never renders stale data.
+      const resets = [
+        {
+          step: 'step1',
+          data: {
+            fullName: '',
+            dateOfBirth: null,
+            spouseName: '',
+            phoneNumber: '',
+            address: '',
+            numberOfChildren: null,
+            childrenAges: '',
+            occupation: '',
+            monthlyIncome: null,
+            age: null,
           },
         },
-      },
-      {
-        step: 'step3',
-        data: { actualHLValue: null, completed: false },
-      },
-    ].forEach((step) => updateStepData(step.step, step.data, true))
-    // Don't reset isRestarting - let it stay disabled during navigation
+        {
+          step: 'step2',
+          data: {
+            insuranceNeeds: {
+              dependentCostOfLiving: false,
+              higherEducationChildren: false,
+              longTermSavings: false,
+              shortTermSavings: false,
+              pensionFund: false,
+            },
+            healthCovers: {
+              dailyHospitalizationExpenses: false,
+              surgeryCover: false,
+              hospitalBillCover: false,
+              criticalIllness: false,
+            },
+          },
+        },
+        {
+          step: 'step3',
+          data: { actualHLValue: null, completed: false },
+        },
+        {
+          step: 'step4',
+          data: { completed: false, completedAt: null },
+        },
+      ]
+
+      await Promise.all(
+        resets.map((step) => updateStepData(step.step, step.data, true))
+      )
+
+      router.push(`/form/${linkId}/step1`)
+    } catch (error) {
+      console.error('Error resetting form:', error)
+      toast.error('Failed to reset the form. Please try again.')
+      setIsRestarting(false)
+    }
   }
 
   const handleStepNavigation = (stepNumber) => {

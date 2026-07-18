@@ -119,12 +119,10 @@ export default function Form1Page() {
       } else if (apiError.status === 404) {
         router.replace('/form/invalid')
       } else {
-        alert(apiError.message || 'Something went wrong')
+        toast.error(apiError.message || 'Something went wrong')
       }
     }
   }, [apiError])
-
-  console.log('apiError in Step 1 Page:', apiError)
 
   useEffect(() => setMounted(true), [])
 
@@ -201,7 +199,15 @@ export default function Form1Page() {
       }
 
       // Save to both localStorage and database
-      await updateStepData('step1', data, true)
+      const saveResult = await updateStepData('step1', data, true)
+
+      if (!saveResult.success) {
+        toast.error(
+          saveResult.error || 'Failed to save your details. Please try again.'
+        )
+        setIsSubmitting(false)
+        return
+      }
 
       // Navigate to next step (keep button disabled during navigation)
       router.push(`/form/${linkId}/step2`)
@@ -322,7 +328,7 @@ export default function Form1Page() {
                               setOpen(false)
                             }}
                             fromYear={1950}
-                            toYear={2025}
+                            toYear={new Date().getFullYear()}
                             captionLayout="dropdown"
                             initialFocus
                           />
@@ -343,7 +349,7 @@ export default function Form1Page() {
                                 setOpen(false)
                               }}
                               fromYear={1950}
-                              toYear={2025}
+                              toYear={new Date().getFullYear()}
                               captionLayout="dropdown"
                               initialFocus
                             />

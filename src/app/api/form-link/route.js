@@ -1,13 +1,38 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
-
 export async function POST(request) {
   try {
-    const { user_id, expiry_hours = 24*14 } = await request.json();
+    const authHeader = request.headers.get("authorization") || "";
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : null;
+
+    if (!token) {
+      return Response.json(
+        { success: false, error: "Authentication required" },
+        { status: 401 }
+      );
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      { global: { headers: { Authorization: `Bearer ${token}` } } }
+    );
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      return Response.json(
+        { success: false, error: "Invalid or expired session" },
+        { status: 401 }
+      );
+    }
+
+    const { expiry_hours = 24 * 14 } = await request.json();
 
     const expiryDate = new Date();
     expiryDate.setHours(expiryDate.getHours() + expiry_hours);
@@ -15,7 +40,7 @@ export async function POST(request) {
     const { data, error } = await supabase
       .from("form_link")
       .insert({
-        user_id: user_id,
+        user_id: user.id,
         expiry_date: expiryDate.toISOString(),
         status: "active",
       })
@@ -32,7 +57,7 @@ export async function POST(request) {
   } catch (error) {
     return Response.json(
       { success: false, error: error.message },
-      { status: 500 }
-    );
-  }
+      { status: 500 }
+    );
+  }
 }

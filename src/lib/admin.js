@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { ROLE_IDS } from './roles'
 
 /**
  * Admin helper functions
@@ -289,7 +290,7 @@ export async function deleteUserProfile(userId) {
     }
 
     // Prevent deletion of admin users
-    if (targetProfile.role_id === 'fe33d24b-ed16-4cbb-a236-c642eff30320') {
+    if (targetProfile.role_id === ROLE_IDS.ADMIN) {
       return {
         success: false,
         error: 'Cannot delete admin users. Only regular users can be deleted.',

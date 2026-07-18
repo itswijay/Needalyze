@@ -66,13 +66,20 @@ export const getAvailableStorage = () => {
       }
     }
     
-    // Test maximum capacity
+    // Test maximum capacity. Bounded at 30 doublings (~1GB of test data,
+    // far beyond any real browser quota) so this can't hang the main
+    // thread indefinitely if a quota exception is ever not thrown.
     try {
-      while (true) {
+      let iterations = 0;
+      const maxIterations = 30;
+      while (iterations < maxIterations) {
         localStorage.setItem(testKey, testData);
         testData += testData;
+        iterations++;
       }
     } catch (e) {
+      // Quota exceeded - expected, this is how we find the limit.
+    } finally {
       localStorage.removeItem(testKey);
     }
     

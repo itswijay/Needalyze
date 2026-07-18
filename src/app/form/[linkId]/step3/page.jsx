@@ -192,7 +192,15 @@ export default function Form3Page() {
         completedAt: new Date(),
       }
 
-      await updateStepData('step3', step3CompleteData, true)
+      const saveResult = await updateStepData('step3', step3CompleteData, true)
+
+      if (!saveResult.success) {
+        toast.error(
+          saveResult.error || 'Failed to save your details. Please try again.'
+        )
+        setIsSubmitting(false)
+        return
+      }
 
       // Navigate to final step (keep button disabled during navigation)
       router.push(`/form/${linkId}/step4`)

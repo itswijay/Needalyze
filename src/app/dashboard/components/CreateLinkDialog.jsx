@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { useContext, useState } from "react";
+import toast from "react-hot-toast";
 import WhatsappButton from "./WhatsappButton";
 import { useAuthContext } from "@/context/AuthContext";
 
@@ -23,18 +24,23 @@ const CreateLinkDialog = () => {
   const [copied, setCopied] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [linkCreated, setLinkCreated] = useState(false);
-  const { user: loadUser } = useAuthContext();
+  const { session } = useAuthContext();
 
   const createNewLink = async () => {
+    if (!session?.access_token) {
+      toast.error("You must be logged in to create a link.");
+      return;
+    }
+
     setIsCreating(true);
     try {
       const response = await fetch("/api/form-link", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
         },
         body: JSON.stringify({
-          user_id: loadUser?.id,
           expiry_hours: 24*14, // Link expires in 14 days
         }),
       });
@@ -46,11 +52,11 @@ const CreateLinkDialog = () => {
         setLinkCreated(true);
       } else {
         console.error("Failed to create link:", result.error);
-        // You might want to show an error message here
+        toast.error(result.error || "Failed to create link. Please try again.");
       }
     } catch (error) {
       console.error("Error creating link:", error);
-      // You might want to show an error message here
+      toast.error("Error creating link. Please try again.");
     } finally {
       setIsCreating(false);
     }
