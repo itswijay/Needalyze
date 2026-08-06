@@ -1,19 +1,9 @@
-import { createClient } from '@supabase/supabase-js'
-
-// Get environment variables
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-// Validate environment variables
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables')
-}
-
-// Single supabase client for interacting with database
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-})
+/**
+ * @deprecated Compatibility shim for the clean-architecture migration.
+ *
+ * The browser client now lives at infrastructure/supabase/browserClient and is
+ * for authentication only. Files still importing `supabase` from here are the
+ * ones that have not been migrated to a use case yet; this shim is deleted in
+ * the final sweep once that list is empty.
+ */
+export { browserClient as supabase } from '@/infrastructure/supabase/browserClient'
