@@ -14,12 +14,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { ChevronDown } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
-import { supabase } from '@/lib/supabase'
+import { apiClient } from '@/infrastructure/http/apiClient'
+import { BRANCH_OPTIONS } from '@/domain/constants/branches'
+import { POSITION_OPTIONS } from '@/domain/constants/positions'
 import { useAuth } from '@/context/AuthContext'
 import DeleteAccountVerify from './DeleteAccountVerify'
 
 const Profile = ({ open, onOpenChange }) => {
-  const { user, refreshUserProfile } = useAuth()
+  const { refreshUserProfile } = useAuth()
   const [first_name, setFirstName] = useState('')
   const [last_name, setLastName] = useState('')
   const [phone_number, setPhoneNumber] = useState('')
@@ -34,8 +36,8 @@ const Profile = ({ open, onOpenChange }) => {
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
-  const branches = ['Warakapola']
-  const positions = ['Branch Manager', 'Team Leader', 'Advisor']
+  const branches = BRANCH_OPTIONS
+  const positions = POSITION_OPTIONS
 
   // Fetch user profile on dialog open
   useEffect(() => {
@@ -49,40 +51,16 @@ const Profile = ({ open, onOpenChange }) => {
       setIsLoading(true)
       setError('')
 
-      // Get current user
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser()
+      const { profile } = await apiClient.get('/api/me')
 
-      if (userError || !user) {
-        setError('Failed to get user information')
-        return
-      }
-
-      // Fetch user profile from user_profile table
-      const { data: profileData, error: profileError } = await supabase
-        .from('user_profile')
-        .select('*')
-        .eq('user_id', user.id)
-        .single()
-
-      if (profileError) {
-        setError('Failed to fetch profile data')
-        return
-      }
-
-      if (profileData) {
-        setFirstName(profileData.first_name || '')
-        setLastName(profileData.last_name || '')
-        setPhoneNumber(profileData.phone_number || '')
-        setBranch(profileData.branch || '')
-        setPosition(profileData.position || '')
-        setSelectedBranch(profileData.branch || '')
-      }
+      setFirstName(profile.firstName || '')
+      setLastName(profile.lastName || '')
+      setPhoneNumber(profile.phoneNumber || '')
+      setBranch(profile.branch || '')
+      setPosition(profile.position || '')
+      setSelectedBranch(profile.branch || '')
     } catch (err) {
-      setError('An error occurred while fetching profile')
-      console.error('Error fetching profile:', err)
+      setError(err.message || 'Failed to fetch profile data')
     } finally {
       setIsLoading(false)
     }
@@ -94,40 +72,16 @@ const Profile = ({ open, onOpenChange }) => {
       setError('')
       setSuccessMessage('')
 
-      // Validate required fields
-      if (!first_name || !last_name || !phone_number || !branch || !position) {
-        setError('Please fill in all required fields')
-        return
-      }
-
-      // Get current user
-      const {
-        data: { user },
-        error: userError,
-      } = await supabase.auth.getUser()
-
-      if (userError || !user) {
-        setError('Failed to get user information')
-        return
-      }
-
-      // Update user profile
-      const { error: updateError } = await supabase
-        .from('user_profile')
-        .update({
-          first_name,
-          last_name,
-          phone_number,
-          branch,
-          position,
-          updated_at: new Date(),
-        })
-        .eq('user_id', user.id)
-
-      if (updateError) {
-        setError(updateError.message || 'Failed to update profile')
-        return
-      }
+      // Shape and format are validated server-side against the same schema the
+      // registration form uses, so a malformed phone number is rejected here
+      // too rather than only being checked for emptiness.
+      await apiClient.patch('/api/me', {
+        firstName: first_name,
+        lastName: last_name,
+        phoneNumber: phone_number,
+        branch,
+        position,
+      })
 
       setSuccessMessage('Profile updated successfully!')
 
@@ -139,8 +93,7 @@ const Profile = ({ open, onOpenChange }) => {
         onOpenChange(false)
       }, 500)
     } catch (err) {
-      setError('An error occurred while saving profile')
-      console.error('Error saving profile:', err)
+      setError(err.message || 'Failed to update profile')
     } finally {
       setIsSaving(false)
     }

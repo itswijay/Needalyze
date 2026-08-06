@@ -7,15 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
-
-// Zod validation schema
-const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address')
-})
+import { forgotPasswordSchema } from '@/application/validation/auth'
 
 const ForgetPasswordPage = () => {
   const [loading, setLoading] = useState(false)
@@ -39,7 +31,7 @@ const ForgetPasswordPage = () => {
     formState: { errors },
     reset,
   } = useForm({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(forgotPasswordSchema),
     mode: 'onSubmit',
     defaultValues: {
       email: ''

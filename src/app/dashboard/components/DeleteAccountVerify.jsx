@@ -12,39 +12,29 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog'
-import { deleteUserAccount } from '@/lib/auth'
+import { apiClient } from '@/infrastructure/http/apiClient'
 import { useAuth } from '@/context/AuthContext'
 
 const DeleteAccountVerify = ({ open, onOpenChange }) => {
   const router = useRouter()
-  const { user } = useAuth()
+  const { signOut } = useAuth()
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState('')
 
   const handleConfirmDelete = async () => {
-    if (!user?.id) {
-      setError('User information not found')
-      return
-    }
-
     try {
       setIsDeleting(true)
       setError('')
 
-      // Call delete account function
-      const { success, error: deleteError } = await deleteUserAccount(user.id)
+      // The account to delete is whoever the request is authenticated as; the
+      // browser no longer passes a user id for the server to trust.
+      await apiClient.delete('/api/me')
 
-      if (!success) {
-        setError(deleteError || 'Failed to delete account')
-        return
-      }
-
-      // Account deleted successfully
-      // Redirect to login page
+      await signOut()
       router.push('/login')
     } catch (err) {
       console.error('Delete account error:', err)
-      setError('An error occurred while deleting your account')
+      setError(err.message || 'An error occurred while deleting your account')
     } finally {
       setIsDeleting(false)
     }

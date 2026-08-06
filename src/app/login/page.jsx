@@ -8,22 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { signIn } from '@/lib/auth'
+import { loginSchema } from '@/application/validation/auth'
 import { useAuth } from '@/context/AuthContext'
-
-// Zod validation schema
-const loginSchema = z.object({
-  email: z
-    .string()
-    .min(1, 'Email is required')
-    .email('Please enter a valid email address'),
-  password: z
-    .string()
-    .min(1, 'Password is required')
-    .min(6, 'Password must be at least 6 characters'),
-})
 
 // Separate component for handling search params
 const SearchParamsHandler = ({ setInfoMessage }) => {
@@ -58,6 +45,7 @@ const LoginPage = () => {
     isAuthenticated,
     isApproved,
     loading: authLoading,
+    signIn,
     signOut,
   } = useAuth()
   const [loading, setLoading] = useState(false)
@@ -124,30 +112,17 @@ const LoginPage = () => {
       // Clear stored message when user attempts login
       sessionStorage.removeItem('loginInfoMessage')
 
-      console.log('Attempting login for:', data.email)
-
-      // Call Supabase signIn function
       const result = await signIn(data.email, data.password)
 
-      console.log('Login result:', {
-        success: result.success,
-        error: result.error,
-        hasUser: !!result.user,
-        hasSession: !!result.session,
-      })
-
       if (result.success) {
-        // Login successful - AuthContext will handle the redirect via useEffect
-        // The onAuthStateChange listener in AuthContext will update the state
-        // and the useEffect above will redirect to dashboard
-        console.log('Login successful, waiting for auth state to update...')
-      } else {
-        // Login failed - show error message
-        console.log('Setting error message:', result.error)
-        setErrorMessage(result.error || 'Login failed. Please try again.')
-        toast.error(result.error || 'Login failed. Please try again.');
-        setLoading(false)
+        // AuthContext holds the session now; the effect above redirects once
+        // the auth state settles.
+        return
       }
+
+      setErrorMessage(result.error || 'Login failed. Please try again.')
+      toast.error(result.error || 'Login failed. Please try again.')
+      setLoading(false)
     } catch (error) {
       console.error('Login error:', error)
       setErrorMessage('An unexpected error occurred. Please try again.')

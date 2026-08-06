@@ -14,21 +14,21 @@ const DashboardPage = () => {
   const [cardData, setCardData] = useState({});
   const { userProfile } = useAuth();
 
-  // console.log("userProfile in dashboard page:", userProfile?.user_id);
+  // console.log("userProfile in dashboard page:", userProfile?.userId);
 
   useEffect(() => {
     const getData = async () => {
       try {
-        if (!userProfile?.user_id) {
+        if (!userProfile?.userId) {
           return;
         }
 
-        // console.log("Fetching forms for user ID:", userProfile.user_id);
+        // console.log("Fetching forms for user ID:", userProfile.userId);
 
         const { data: Allforms, error } = await supabase
           .from("need_analysis_form")
           .select("*")
-          .eq("user_id", userProfile.user_id);
+          .eq("user_id", userProfile.userId);
 
         if (error) {
           console.error("Error fetching forms:", error);
@@ -91,7 +91,7 @@ const DashboardPage = () => {
     };
 
     getData();
-  }, [userProfile?.user_id]);
+  }, [userProfile?.userId]);
 
   return (
     <ProtectedRoute requireApproval={true}>

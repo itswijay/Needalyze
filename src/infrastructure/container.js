@@ -2,6 +2,8 @@ import { forUser, withServiceRole } from './supabase/serverClient'
 import { createSupabaseFormLinkRepository } from './supabase/repositories/supabaseFormLinkRepository'
 import { createSupabaseNeedAnalysisRepository } from './supabase/repositories/supabaseNeedAnalysisRepository'
 import { createSupabasePdfStorage } from './supabase/supabasePdfStorage'
+import { createSupabaseUserProfileRepository } from './supabase/repositories/supabaseUserProfileRepository'
+import { createAdminAuthGateway } from './supabase/supabaseAuthGateway'
 
 /**
  * Composition root.
@@ -24,7 +26,9 @@ export function createContainer({ accessToken = null, serviceRole = false } = {}
     client,
     formLinks: createSupabaseFormLinkRepository(client),
     needAnalyses: createSupabaseNeedAnalysisRepository(client),
+    userProfiles: createSupabaseUserProfileRepository(client),
     fileStorage: createSupabasePdfStorage(client),
+    auth: createAdminAuthGateway(),
   }
 }
 

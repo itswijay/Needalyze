@@ -7,59 +7,15 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 import { useRouter } from 'next/navigation'
-import { signUp } from '@/lib/auth'
+import { apiClient } from '@/infrastructure/http/apiClient'
+import { registerSchema } from '@/application/validation/auth'
+import { BRANCH_OPTIONS } from '@/domain/constants/branches'
+import {
+  POSITION_OPTIONS,
+  requiresCodeNumber,
+} from '@/domain/constants/positions'
 import { useAuth } from '@/context/AuthContext'
-
-// Zod Validation Schema
-const registerSchema = z
-  .object({
-    firstName: z
-      .string()
-      .min(1, 'First name is required')
-      .regex(/^[a-zA-Z\s]+$/, 'First name should contain only letters'),
-    lastName: z
-      .string()
-      .min(1, 'Last name is required')
-      .regex(/^[a-zA-Z\s]+$/, 'Last name should contain only letters'),
-    phoneNumber: z
-      .string()
-      .min(1, 'Phone number is required')
-      .regex(
-        /^\+\d{11}$/,
-        'Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)'
-      ),
-    branch: z.string().min(1, 'Please select a branch'),
-    position: z.string().min(1, 'Please select a position'),
-    regCode: z.string().optional(),
-    email: z
-      .string()
-      .min(1, 'Email is required')
-      .email('Please enter a valid email address'),
-    password: z
-      .string()
-      .min(1, 'Password is required')
-      .min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  })
-  .refine(
-    (data) => {
-      // Registration code is required for Advisor and Team Leader
-      if (data.position === 'Advisor' || data.position === 'Team Leader') {
-        return data.regCode && data.regCode.trim().length > 0
-      }
-      return true
-    },
-    {
-      message: 'Code number is required for this position',
-      path: ['regCode'],
-    }
-  )
 
 export default function Register() {
   const router = useRouter()
@@ -81,8 +37,8 @@ export default function Register() {
   const [showPositionDropdownDesktop, setShowPositionDropdownDesktop] =
     useState(false)
 
-  const branches = ['Warakapola']
-  const positions = ['Branch Manager', 'Advisor', 'Team Leader']
+  const branches = BRANCH_OPTIONS
+  const positions = POSITION_OPTIONS
 
   // React Hook Form with Zod - MUST be called before any early returns
   const {
@@ -183,45 +139,24 @@ const handleValidationErrors = (errors) => {
     setSuccessMessage('')
 
     try {
-      // Prepare user data for registration
-      const userData = {
-        email: data.email,
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phoneNumber: data.phoneNumber,
-        branch: data.branch,
-        position: data.position,
-        codeNumber: data.regCode || null,
-      }
+      // The browser is never signed in during registration now: the account is
+      // created server-side, so there is no session to immediately sign out of.
+      await apiClient.post('/api/auth/register', data, { auth: false })
 
-      // Call Supabase signUp function
-      const result = await signUp(userData)
+      setSuccessMessage(
+        'Registration successful! Please check your email to verify your account. After email verification, your account will be pending admin approval.'
+      )
 
-      if (result.success) {
-        // Registration successful
-        setSuccessMessage(
-          'Registration successful! Please check your email to verify your account. After email verification, your account will be pending admin approval.'
-        )
+      reset()
+      setSelectedBranch('')
+      setSelectedPosition('')
 
-        // Reset form
-        reset()
-        setSelectedBranch('')
-        setSelectedPosition('')
-
-        // Redirect to login page after 3 seconds
-        setTimeout(() => {
-          router.push('/login')
-        }, 5000)
-      } else {
-        // Registration failed - show error
-        setErrorMessage(
-          result.error || 'Registration failed. Please try again.'
-        )
-      }
+      setTimeout(() => {
+        router.push('/login')
+      }, 5000)
     } catch (error) {
-      console.error('Registration error:', error)
-      setErrorMessage('An unexpected error occurred. Please try again.')
+      setErrorMessage(error.message || 'Registration failed. Please try again.')
+      toast.error(error.message || 'Registration failed. Please try again.')
     } finally {
       setIsLoading(false)
     }
@@ -409,8 +344,7 @@ const handleValidationErrors = (errors) => {
                 </div>
 
                 {/* Code Number - Show only for Advisor and Team Leader */}
-                {(selectedPosition === 'Advisor' ||
-                  selectedPosition === 'Team Leader') && (
+                {requiresCodeNumber(selectedPosition) && (
                   <div className="mb-4">
                     <input
                       type="text"
@@ -679,8 +613,7 @@ const handleValidationErrors = (errors) => {
               </div>
 
               {/* Code Number - Show only for Advisor and Team Leader */}
-              {(selectedPosition === 'Advisor' ||
-                selectedPosition === 'Team Leader') && (
+              {requiresCodeNumber(selectedPosition) && (
                 <div>
                   <input
                     type="text"

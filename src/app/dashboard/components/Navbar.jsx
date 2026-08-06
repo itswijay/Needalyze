@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import ApproveUser from './ApproveUser'
 import { Users } from 'lucide-react'
 import { getUserStatistics } from '@/lib/admin'
+import { fullName, initials } from '@/domain/entities/userProfile'
 
 const Navbar = () => {
   const router = useRouter()
@@ -47,12 +48,7 @@ const Navbar = () => {
     }
   }
 
-  const getUserInitials = () => {
-    if (!userProfile) return 'U'
-    const firstInitial = userProfile.first_name?.[0] || ''
-    const lastInitial = userProfile.last_name?.[0] || ''
-    return `${firstInitial}${lastInitial}`.toUpperCase()
-  }
+  const getUserInitials = () => initials(userProfile)
 
   return (
     <div>
@@ -111,7 +107,7 @@ const Navbar = () => {
               <DropdownMenuLabel>
                 <div className="flex flex-col">
                   <span className="font-semibold">
-                    {userProfile?.first_name} {userProfile?.last_name}
+                    {fullName(userProfile)}
                   </span>
                   <span className="text-xs text-gray-500">
                     {userProfile?.position}
