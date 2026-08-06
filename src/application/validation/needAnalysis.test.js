@@ -49,12 +49,49 @@ describe('step1Schema', () => {
       expect(result.error.issues[0].message).toBe('Date of birth is required')
     })
 
-    it('accepts a real Date', () => {
+    it('accepts a real Date, which is what the calendar component gives the browser', () => {
       const result = step1Schema.safeParse({
         ...validStep1,
         dateOfBirth: new Date('1990-01-01'),
       })
+
       expect(result.success).toBe(true)
+      expect(result.data.dateOfBirth).toBeInstanceOf(Date)
+    })
+
+    // The server re-validates the same payload after JSON, where that Date has
+    // become a string. A schema that only accepts Date objects would reject
+    // every step-1 save.
+    it('accepts an ISO string, which is what the server receives', () => {
+      const result = step1Schema.safeParse({
+        ...validStep1,
+        dateOfBirth: '1990-01-01T00:00:00.000Z',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data.dateOfBirth).toBeInstanceOf(Date)
+      expect(result.data.dateOfBirth.getUTCFullYear()).toBe(1990)
+    })
+
+    // `new Date()` is lenient enough to turn "sometime in 1990" into Jan 1
+    // 1990, so the schema requires ISO 8601 rather than trusting it.
+    it.each([
+      ['prose', 'sometime in 1990'],
+      ['a local format', '15/06/1985'],
+      ['a bare year', '1990'],
+      ['a number', 631152000000],
+      ['nonsense', 'not a date'],
+    ])('rejects %s', (_label, value) => {
+      const result = step1Schema.safeParse({ ...validStep1, dateOfBirth: value })
+
+      expect(result.success).toBe(false)
+      expect(result.error.issues[0].message).toBe('Date of birth is required')
+    })
+
+    it('accepts a plain ISO date without a time component', () => {
+      expect(
+        step1Schema.safeParse({ ...validStep1, dateOfBirth: '1985-06-15' }).success
+      ).toBe(true)
     })
   })
 

@@ -6,7 +6,12 @@ import {
   MAX_HEALTH_COVERS,
   findHealthCoverConflict,
 } from '@/domain/constants/needCategories'
-import { optionalAmount, phoneNumberSchema, requiredAmount } from './common'
+import {
+  optionalAmount,
+  phoneNumberSchema,
+  requiredAmount,
+  requiredDate,
+} from './common'
 
 /**
  * Input schemas for the four form steps.
@@ -20,7 +25,7 @@ import { optionalAmount, phoneNumberSchema, requiredAmount } from './common'
 export const step1Schema = z
   .object({
     fullName: z.string().min(1, 'Full name is required'),
-    dateOfBirth: z.coerce.date({ required_error: 'Date of birth is required' }),
+    dateOfBirth: requiredDate('Date of birth is required'),
     spouseName: z.string().optional(),
     address: z.string().min(1, 'Address is required'),
     phoneNumber: phoneNumberSchema,
