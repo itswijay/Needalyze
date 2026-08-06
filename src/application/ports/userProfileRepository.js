@@ -8,6 +8,7 @@
  * @property {(status: string) => Promise<UserProfile[]>} listByStatus
  * @property {(profile: UserProfile) => Promise<UserProfile>} create
  * @property {(userId: string, changes: Partial<UserProfile>) => Promise<UserProfile>} update
+ * @property {(userId: string, status: string) => Promise<void>} setStatus
  * @property {() => Promise<Record<string, number>>} countByStatus
  */
 

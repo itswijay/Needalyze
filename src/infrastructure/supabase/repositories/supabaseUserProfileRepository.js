@@ -57,6 +57,22 @@ export function createSupabaseUserProfileRepository(client) {
     },
 
     /**
+     * Change someone else's status.
+     *
+     * Goes through the `update_user_status` database function rather than a
+     * plain UPDATE: it is SECURITY DEFINER and only touches the status column,
+     * so an admin approving a user cannot also alter their role.
+     */
+    async setStatus(userId, status) {
+      const { error } = await client.rpc('update_user_status', {
+        target_user_id: userId,
+        new_status: status,
+      })
+
+      if (error) throw error
+    },
+
+    /**
      * One grouped read instead of the four separate count queries the dashboard
      * statistics helper used to fire.
      */

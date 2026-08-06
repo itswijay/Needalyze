@@ -13,12 +13,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Profile from './Profile'
 import { Button } from '@/components/ui/button'
 import ApproveUser from './ApproveUser'
 import { Users } from 'lucide-react'
-import { getUserStatistics } from '@/lib/admin'
+import { usePendingUsers } from '@/hooks/usePendingUsers'
 import { fullName, initials } from '@/domain/entities/userProfile'
 
 const Navbar = () => {
@@ -27,19 +27,11 @@ const Navbar = () => {
 
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isApproveUserOpen, setIsApproveUserOpen] = useState(false)
-  const [pendingCount, setPendingCount] = useState(0)
-
-  const refreshPendingCount = useCallback(async () => {
-    if (!isAdmin) return
-    const { success, stats } = await getUserStatistics()
-    if (success) {
-      setPendingCount(stats.pending || 0)
-    }
-  }, [isAdmin])
+  const { pendingCount, refreshCount } = usePendingUsers({ enabled: isAdmin })
 
   useEffect(() => {
-    refreshPendingCount()
-  }, [refreshPendingCount])
+    refreshCount()
+  }, [refreshCount])
 
   const handleSignOut = async () => {
     const { success } = await signOut()
@@ -144,9 +136,9 @@ const Navbar = () => {
           open={isApproveUserOpen}
           onOpenChange={(open) => {
             setIsApproveUserOpen(open)
-            if (!open) refreshPendingCount()
+            if (!open) refreshCount()
           }}
-          onChange={refreshPendingCount}
+          onChange={refreshCount}
         />
       )}
     </div>

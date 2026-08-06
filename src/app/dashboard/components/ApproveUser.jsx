@@ -25,76 +25,50 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Spinner } from '@/components/ui/spinner'
-import { getPendingUsers, approveUser, rejectUser } from '@/lib/admin'
-
-const mapProfileToRow = (profile) => ({
-  user_id: profile.user_id,
-  user:
-    `${profile.first_name || ''} ${profile.last_name || ''}`.trim() ||
-    'Unknown',
-  branch: profile.branch || 'Not Provided',
-  code_num: profile.code_number || 'Not Provided',
-})
+import { usePendingUsers } from '@/hooks/usePendingUsers'
 
 const ApproveUser = ({ open, onOpenChange, onChange }) => {
-  const [data, setData] = React.useState([])
-  const [isLoading, setIsLoading] = React.useState(false)
-  const [processingId, setProcessingId] = React.useState(null)
-
-  const loadPendingUsers = React.useCallback(async () => {
-    setIsLoading(true)
-    try {
-      const { success, profiles, error } = await getPendingUsers()
-
-      if (success) {
-        setData((profiles || []).map(mapProfileToRow))
-      } else {
-        toast.error(error || 'Failed to load pending users')
-        setData([])
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  const { users, isLoading, processingId, load, approve, reject } =
+    usePendingUsers()
 
   React.useEffect(() => {
-    if (open) {
-      loadPendingUsers()
-    }
-  }, [open, loadPendingUsers])
+    if (!open) return
 
-  const handleDecision = async (userId, decision) => {
-    setProcessingId(userId)
-    try {
-      const action = decision === 'approved' ? approveUser : rejectUser
-      const { success, error } = await action(userId)
+    load().then((result) => {
+      if (!result.success) {
+        toast.error(result.error || 'Failed to load pending users')
+      }
+    })
+  }, [open, load])
 
-      if (!success) {
+  const handleDecision = React.useCallback(
+    async (userId, decision) => {
+      const isApproval = decision === 'approved'
+      const result = await (isApproval ? approve(userId) : reject(userId))
+
+      if (!result.success) {
         toast.error(
-          error ||
-            `Failed to ${decision === 'approved' ? 'approve' : 'reject'} user`
+          result.error || `Failed to ${isApproval ? 'approve' : 'reject'} user`
         )
         return
       }
 
       toast.success(
-        decision === 'approved'
+        isApproval
           ? 'User approved successfully'
           : 'User rejected successfully'
       )
-      setData((prev) => prev.filter((user) => user.user_id !== userId))
       onChange?.()
-    } finally {
-      setProcessingId(null)
-    }
-  }
+    },
+    [approve, reject, onChange]
+  )
 
   const columns = React.useMemo(
     () => [
       {
-        accessorKey: 'user',
+        accessorKey: 'name',
         header: 'User',
-        cell: ({ row }) => <div>{row.getValue('user')}</div>,
+        cell: ({ row }) => <div>{row.getValue('name')}</div>,
       },
       {
         accessorKey: 'branch',
@@ -102,21 +76,21 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
         cell: ({ row }) => <div>{row.getValue('branch')}</div>,
       },
       {
-        accessorKey: 'code_num',
+        accessorKey: 'codeNumber',
         header: 'Code Number',
-        cell: ({ row }) => <div>{row.getValue('code_num')}</div>,
+        cell: ({ row }) => <div>{row.getValue('codeNumber')}</div>,
       },
       {
         accessorKey: 'actions',
         header: 'Actions',
         cell: ({ row }) => {
-          const isProcessing = processingId === row.original.user_id
+          const isProcessing = processingId === row.original.userId
           return (
             <div className="flex flex-col md:flex-row items-center justify-center gap-2">
               <Button
                 className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs md:text-sm w-full md:w-auto"
                 disabled={isProcessing}
-                onClick={() => handleDecision(row.original.user_id, 'approved')}
+                onClick={() => handleDecision(row.original.userId, 'approved')}
               >
                 {isProcessing ? <Spinner /> : 'Approve'}
               </Button>
@@ -124,7 +98,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
               <Button
                 className="bg-red-600 text-white px-3 py-1 rounded-full text-xs md:text-sm w-full md:w-auto"
                 disabled={isProcessing}
-                onClick={() => handleDecision(row.original.user_id, 'rejected')}
+                onClick={() => handleDecision(row.original.userId, 'rejected')}
               >
                 {isProcessing ? <Spinner /> : 'Reject'}
               </Button>
@@ -133,11 +107,11 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
         },
       },
     ],
-    [processingId]
+    [processingId, handleDecision]
   )
 
   const table = useReactTable({
-    data,
+    data: users,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
@@ -211,7 +185,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
               <div className="md:hidden space-y-4">
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => {
-                    const isProcessing = processingId === row.original.user_id
+                    const isProcessing = processingId === row.original.userId
                     return (
                       <div
                         key={row.id}
@@ -223,7 +197,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                               User
                             </span>
                             <span className="font-medium text-xs sm:text-sm">
-                              {row.original.user}
+                              {row.original.name}
                             </span>
                           </div>
                           <div className="flex justify-between">
@@ -239,7 +213,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                               Code Number
                             </span>
                             <span className="font-medium text-xs sm:text-sm">
-                              {row.original.code_num}
+                              {row.original.codeNumber}
                             </span>
                           </div>
                           <div className="pt-3 border-t">
@@ -248,7 +222,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                                 className="bg-blue-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm w-full"
                                 disabled={isProcessing}
                                 onClick={() =>
-                                  handleDecision(row.original.user_id, 'approved')
+                                  handleDecision(row.original.userId, 'approved')
                                 }
                               >
                                 {isProcessing ? <Spinner /> : 'Approve'}
@@ -258,7 +232,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                                 className="bg-red-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm w-full"
                                 disabled={isProcessing}
                                 onClick={() =>
-                                  handleDecision(row.original.user_id, 'rejected')
+                                  handleDecision(row.original.userId, 'rejected')
                                 }
                               >
                                 {isProcessing ? <Spinner /> : 'Reject'}
