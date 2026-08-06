@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
 
+import { step1Schema } from '@/application/validation/needAnalysis'
 import FormContainer from '@/components/FormContainer'
 import FormNavButton from '@/components/FormNavButton'
 import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
@@ -22,53 +22,6 @@ import { CalendarIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useFormContext } from '@/context/FormContext'
-
-const formSchema = z
-  .object({
-    fullName: z.string().min(1, 'Full name is required'),
-    dateOfBirth: z.date({ required_error: 'Date of birth is required' }),
-    spouseName: z.string().optional(),
-    address: z.string().min(1, 'Address is required'),
-    phoneNumber: z
-      .string()
-      .min(1, 'Phone number is required')
-      .regex(
-        /^\+\d{11}$/,
-        'Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)'
-      ),
-
-    numberOfChildren: z.coerce
-      .number()
-      .min(0, 'Number of children is required')
-      .int('Must be a whole number'),
-
-    childrenAges: z.string().optional(),
-
-    occupation: z.string().optional(),
-
-    monthlyIncome: z.coerce
-      .number()
-      .min(1, 'Monthly income is required')
-      .int('Must be a valid number'),
-  })
-
-  .refine(
-    (data) => {
-      const numChildren = data.numberOfChildren
-      if (numChildren > 0) {
-        if (!data.childrenAges?.trim()) return false
-        const ages = data.childrenAges.split(',').map((a) => a.trim())
-        if (ages.length !== numChildren) return false
-        if (!ages.every((a) => /^\d+$/.test(a))) return false
-      }
-      return true
-    },
-    {
-      message:
-        "Enter the exact number of children's ages separated by commas (e.g., 5, 8, 12)",
-      path: ['childrenAges'],
-    }
-  )
 
 export default function Form1Page() {
   const router = useRouter()
@@ -95,7 +48,7 @@ export default function Form1Page() {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(step1Schema),
     mode: 'onChange',
     defaultValues: {
       fullName: '',
@@ -184,21 +137,8 @@ export default function Form1Page() {
     setIsSubmitting(true)
 
     try {
-      // Calculate age
-      const dob = data.dateOfBirth
-      if (dob) {
-        const today = new Date()
-        let age = today.getFullYear() - dob.getFullYear()
-        const m = today.getMonth() - dob.getMonth()
-        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-          age--
-        }
-        data.age = age
-      } else {
-        data.age = null
-      }
-
-      // Save to both localStorage and database
+      // Age is derived server-side from the date of birth (domain/services/age),
+      // so it is no longer smuggled into the submitted payload here.
       const saveResult = await updateStepData('step1', data, true)
 
       if (!saveResult.success) {
@@ -214,9 +154,8 @@ export default function Form1Page() {
       // Don't reset isSubmitting - let it stay disabled during navigation
     } catch (error) {
       console.error('Error saving step 1:', error)
-      // Only reset on error, but still navigate
+      toast.error('Failed to save your details. Please try again.')
       setIsSubmitting(false)
-      router.push(`/form/${linkId}/step2`)
     }
   }
 

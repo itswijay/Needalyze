@@ -374,7 +374,7 @@ const createPDFHTML = (formData) => {
             <div style="display: flex; align-items: center;">
               <span style="width: 200px; font-weight: bold; font-size: 14px; text-align: left; white-space: nowrap;">Actual Human Life Value&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
               <span style="flex: 1; padding-left: 10px; text-align: left; font-weight: bold; font-size: 13px;">
-                ${formatCurrency(formData.step3?.actualHLValue) || '0'}
+                ${formatCurrency(formData.step3?.humanLifeValue) || '0'}
               </span>
             </div>
           </div>

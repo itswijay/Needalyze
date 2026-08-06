@@ -3,7 +3,6 @@
 import toast from 'react-hot-toast'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
@@ -20,44 +19,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-
-// Zod validation schema
-const step2Schema = z.object({
-  insuranceNeeds: z.object({
-    dependentCostOfLiving: z.boolean(),
-    higherEducationChildren: z.boolean(),
-    longTermSavings: z.boolean(),
-    shortTermSavings: z.boolean(),
-    pensionFund: z.boolean(),
-  }),
-
-  healthCovers: z
-    .object({
-      dailyHospitalizationExpenses: z.boolean(),
-      surgeryCover: z.boolean(),
-      hospitalBillCover: z.boolean(),
-      criticalIllness: z.boolean(),
-    })
-    .refine(
-      (data) => {
-        const selectedCount = Object.values(data).filter(Boolean).length
-        return selectedCount <= 3
-      },
-      {
-        message: 'You can choose only 3 options',
-      }
-    )
-    .refine(
-      (data) => {
-        // Cannot select both hospital bill cover and surgery cover
-        return !(data.hospitalBillCover && data.surgeryCover)
-      },
-      {
-        message:
-          'Cannot select hospital bill cover and surgery cover at same time',
-      }
-    ),
-})
+import { step2Schema } from '@/application/validation/needAnalysis'
+import {
+  emptySelection,
+  findHealthCoverConflict,
+  HEALTH_COVER_KEYS,
+  INSURANCE_NEED_KEYS,
+} from '@/domain/constants/needCategories'
 
 export default function NeedAnalysisFormPage2() {
   const router = useRouter()
@@ -78,19 +46,8 @@ export default function NeedAnalysisFormPage2() {
   } = useForm({
     resolver: zodResolver(step2Schema),
     defaultValues: {
-      insuranceNeeds: {
-        dependentCostOfLiving: false,
-        higherEducationChildren: false,
-        longTermSavings: false,
-        shortTermSavings: false,
-        pensionFund: false,
-      },
-      healthCovers: {
-        dailyHospitalizationExpenses: false,
-        surgeryCover: false,
-        hospitalBillCover: false,
-        criticalIllness: false,
-      },
+      insuranceNeeds: emptySelection(INSURANCE_NEED_KEYS),
+      healthCovers: emptySelection(HEALTH_COVER_KEYS),
     },
     mode: 'onChange',
   })
@@ -118,26 +75,23 @@ export default function NeedAnalysisFormPage2() {
     // Hide warning message when selecting
     setShowWarningMessage(false)
 
-  if (
-    field === 'surgeryCover' &&
-    newValue &&
-    watchedValues.healthCovers?.hospitalBillCover
-  ) {
-    setShowConflictMessage(true)
-    toast.error("You cannot select Hospital Bill Cover and Surgery Cover together");
-    return;
-  }
+    // Turning a cover on must not create a conflicting pair. The pairs
+    // themselves are declared in domain/constants/needCategories, alongside the
+    // schema rule that enforces the same thing on submit.
+    if (newValue) {
+      const wouldConflict = findHealthCoverConflict({
+        ...watchedValues.healthCovers,
+        [field]: true,
+      })
 
-  if (
-    field === 'hospitalBillCover' &&
-    newValue &&
-    watchedValues.healthCovers?.surgeryCover
-  ) {
-    setShowConflictMessage(true)
-    toast.error("You cannot select Hospital Bill Cover and Surgery Cover together");
-    return;
-  }
-
+      if (wouldConflict) {
+        setShowConflictMessage(true)
+        toast.error(
+          'You cannot select Hospital Bill Cover and Surgery Cover together'
+        )
+        return
+      }
+    }
 
     setValue(`healthCovers.${field}`, newValue, { shouldValidate: true })
   }

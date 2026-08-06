@@ -14,7 +14,7 @@ export default function Step4Page() {
   const [isMarkingComplete, setIsMarkingComplete] = useState(false)
   const [isRestarting, setIsRestarting] = useState(false)
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
-  const { updateStepData, getAllData, linkId } = useFormContext()
+  const { resetForm, getAllData, linkId } = useFormContext()
 
 useEffect(() => {
   toast.success("Form submitted successfully!", {
@@ -64,55 +64,15 @@ useEffect(() => {
     setIsRestarting(true)
 
     try {
-      // Reset form data in context, waiting for every save to complete
-      // before navigating away so step1 never renders stale data.
-      const resets = [
-        {
-          step: 'step1',
-          data: {
-            fullName: '',
-            dateOfBirth: null,
-            spouseName: '',
-            phoneNumber: '',
-            address: '',
-            numberOfChildren: null,
-            childrenAges: '',
-            occupation: '',
-            monthlyIncome: null,
-            age: null,
-          },
-        },
-        {
-          step: 'step2',
-          data: {
-            insuranceNeeds: {
-              dependentCostOfLiving: false,
-              higherEducationChildren: false,
-              longTermSavings: false,
-              shortTermSavings: false,
-              pensionFund: false,
-            },
-            healthCovers: {
-              dailyHospitalizationExpenses: false,
-              surgeryCover: false,
-              hospitalBillCover: false,
-              criticalIllness: false,
-            },
-          },
-        },
-        {
-          step: 'step3',
-          data: { actualHLValue: null, completed: false },
-        },
-        {
-          step: 'step4',
-          data: { completed: false, completedAt: null },
-        },
-      ]
+      // One intent, one call. This used to post four blank steps in parallel,
+      // which wrote a half-empty row and raced the navigation to step 1.
+      const result = await resetForm()
 
-      await Promise.all(
-        resets.map((step) => updateStepData(step.step, step.data, true))
-      )
+      if (!result.success) {
+        toast.error(result.error || 'Failed to reset the form. Please try again.')
+        setIsRestarting(false)
+        return
+      }
 
       router.push(`/form/${linkId}/step1`)
     } catch (error) {

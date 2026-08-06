@@ -1,303 +1,203 @@
-"use client";
+'use client'
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import React, { createContext, useContext, useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
 
-// Create the Form Context
-const FormContext = createContext(undefined);
+import { apiClient } from '@/infrastructure/http/apiClient'
+import { emptyDraft, toDraft } from '@/application/view-models/needAnalysisDraft'
 
-// Local storage key
-const STORAGE_KEY = "needalyze-form-data";
+const FormContext = createContext(undefined)
 
-// Initial state structure for all form steps
-const initialFormState = {
-  step1: {
-    fullName: "",
-    dateOfBirth: null,
-    spouseName: "",
-    address: "",
-    phoneNumber: "",
-    numberOfChildren: "",
-    childrenAges: "",
-    occupation: "",
-    age: "",
-    monthlyIncome: "",
-  },
-  step2: {
-    insuranceNeeds: {
-      dependentCostOfLiving: false,
-      higherEducationChildren: false,
-      longTermSavings: false,
-      shortTermSavings: false,
-      pensionFund: false,
-    },
-    healthCovers: {
-      dailyHospitalizationExpenses: false,
-      surgeryCover: false,
-      hospitalBillCover: false,
-      criticalIllness: false,
-    },
-  },
-  step3: {
-    fixedMonthlyExpenses: "",
-    bankInterestRate: "",
-    unsecuredBankLoan: "",
-    cashInHandInsurance: "",
-    hlvalue: 0,
-    actualHLValue: 0,
-  },
-  step4: {
-    completed: false,
-    completedAt: null,
-  },
-};
+const STORAGE_KEY = 'needalyze-form-data'
 
-// Convert a `need_analysis_form` database row into the shape the form steps
-// expect. Note: the database only ever persists `human_life_value` for
-// step3 (see api/form/[linkId]/route.js) and has no completion-timestamp
-// column, so those fields can't be restored here.
-function convertDbDataToFormState(dbData) {
-  return {
-    step1: {
-      fullName: dbData.full_name || "",
-      dateOfBirth: dbData.date_of_birth
-        ? new Date(dbData.date_of_birth)
-        : null,
-      spouseName: dbData.spouse_name || "",
-      address: dbData.address || "",
-      phoneNumber: dbData.phone_number || "",
-      numberOfChildren: dbData.number_of_children || "",
-      childrenAges: dbData.children_ages || "",
-      occupation: dbData.occupation || "",
-      age: dbData.age || "",
-      monthlyIncome: dbData.monthly_income || "",
-    },
-    step2: {
-      insuranceNeeds: {
-        dependentCostOfLiving:
-          dbData.insurance_needs?.includes("dependentCostOfLiving") || false,
-        higherEducationChildren:
-          dbData.insurance_needs?.includes("higherEducationChildren") ||
-          false,
-        longTermSavings:
-          dbData.insurance_needs?.includes("longTermSavings") || false,
-        shortTermSavings:
-          dbData.insurance_needs?.includes("shortTermSavings") || false,
-        pensionFund:
-          dbData.insurance_needs?.includes("pensionFund") || false,
-      },
-      healthCovers: {
-        dailyHospitalizationExpenses:
-          dbData.health_covers?.includes("dailyHospitalizationExpenses") ||
-          false,
-        surgeryCover:
-          dbData.health_covers?.includes("surgeryCover") || false,
-        hospitalBillCover:
-          dbData.health_covers?.includes("hospitalBillCover") || false,
-        criticalIllness:
-          dbData.health_covers?.includes("criticalIllness") || false,
-      },
-    },
-    step3: {
-      fixedMonthlyExpenses: "",
-      bankInterestRate: "",
-      unsecuredBankLoan: "",
-      cashInHandInsurance: "",
-      hlvalue: dbData.human_life_value || 0,
-      actualHLValue: 0,
-    },
-    step4: {
-      completed: dbData.status === "completed",
-      // No real completion timestamp is stored in the database — leave it
-      // null rather than fabricating "now" as if it were accurate.
-      completedAt: null,
-    },
-  };
-}
-
-// Form Provider Component
+/**
+ * Holds the customer's in-progress form.
+ *
+ * Its job is now only draft state: what the customer has typed, what has been
+ * saved, and what the server said. Deciding which columns a step writes, what a
+ * completed form is, and what the life cover works out to all moved server-side
+ * — this file used to own a copy of each.
+ */
 export function FormProvider({ children }) {
-  const [formData, setFormData] = useState(initialFormState);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [linkId, setLinkId] = useState(null);
-  const [advisorUserId, setAdvisorUserId] = useState(null);
-  const [apiError, setApiError] = useState(null);
-  const params = useParams();
+  const [formData, setFormData] = useState(emptyDraft)
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [apiError, setApiError] = useState(null)
+  const params = useParams()
+  const linkId = params?.linkId || null
 
-  // Initialize form data from database or localStorage
   useEffect(() => {
-    const initializeFormData = async () => {
-      if (params?.linkId) {
-        setLinkId(params?.linkId);
+    if (!linkId) {
+      setIsLoaded(true)
+      return
+    }
 
-        try {
-          // Try to get data from database first
-          const response = await fetch(`/api/form/${params.linkId}`);
-          const result = await response.json();
-          setApiError(
-            result.success
-              ? null
-              : {
-                  status: response.status,
-                  message: result?.error || "Failed to load data",
-                }
-          );
+    let cancelled = false
 
-          if (result.success && result.formData) {
-            // Convert database data to form format
-            const convertedData = convertDbDataToFormState(result.formData);
-
-            setFormData(convertedData);
-            setAdvisorUserId(result.linkData.user_id);
-
-            // Update localStorage with database data
-            const dataToSave = { ...convertedData };
-            if (dataToSave.step1?.dateOfBirth instanceof Date) {
-              dataToSave.step1.dateOfBirth =
-                dataToSave.step1.dateOfBirth.toISOString();
-            }
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
-          }
-        } catch (error) {
-          console.error("Error loading form data:", error);
-          setApiError({
-            status: 500,
-            message: error.message || "Unknown error",
-          });
-          // Fallback to localStorage
-          const savedData = localStorage.getItem(STORAGE_KEY);
-          if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            if (parsedData.step1?.dateOfBirth) {
-              parsedData.step1.dateOfBirth = new Date(
-                parsedData.step1.dateOfBirth
-              );
-            }
-            setFormData(parsedData);
-          }
-        }
-      }
-
-      setIsLoaded(true);
-    };
-
-    initializeFormData();
-  }, [params?.linkId]);
-
-  // Save to localStorage whenever formData changes
-  useEffect(() => {
-    if (isLoaded && typeof window !== "undefined") {
+    const load = async () => {
       try {
-        const dataToSave = { ...formData };
-        if (dataToSave.step1?.dateOfBirth instanceof Date) {
-          dataToSave.step1.dateOfBirth =
-            dataToSave.step1.dateOfBirth.toISOString();
-        }
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
+        const { analysis } = await apiClient.get(`/api/form/${linkId}`, {
+          auth: false,
+        })
+        if (cancelled) return
+
+        const draft = toDraft(analysis)
+        setApiError(null)
+        setFormData(draft)
+        writeCache(draft)
       } catch (error) {
-        console.error("Error saving to localStorage:", error);
+        if (cancelled) return
+
+        setApiError({ status: error.status, message: error.message })
+
+        // A network blip shouldn't lose what the customer already typed.
+        const cached = readCache()
+        if (cached) setFormData(cached)
+      } finally {
+        if (!cancelled) setIsLoaded(true)
       }
     }
-  }, [formData, isLoaded]);
 
-  // Save step data to database
-  const saveStepToDatabase = async (step, data) => {
-    if (!linkId) throw new Error("No link ID available");
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [linkId])
+
+  // Mirror the draft to localStorage so a refresh mid-form is not a data loss.
+  useEffect(() => {
+    if (isLoaded) writeCache(formData)
+  }, [formData, isLoaded])
+
+  /**
+   * Update a step locally, optionally saving it first.
+   *
+   * @param {'step1'|'step2'|'step3'|'step4'} step
+   * @param {Object} data
+   * @param {boolean} [saveToDb]
+   * @returns {Promise<{ success: boolean, error?: string }>}
+   */
+  const updateStepData = async (step, data, saveToDb = false) => {
+    setFormData((previous) => ({
+      ...previous,
+      [step]: { ...previous[step], ...data },
+    }))
+
+    if (!saveToDb || !linkId) return { success: true }
 
     try {
-      const response = await fetch(`/api/form/${linkId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          step,
-          data,
-          user_id: advisorUserId,
-        }),
-      });
+      const { analysis } = await apiClient.post(
+        `/api/form/${linkId}`,
+        { step, data },
+        { auth: false }
+      )
 
-      const result = await response.json();
-
-      if (!result.success) {
-        throw new Error(result.error);
+      // Adopt the two things the server owns: the computed life cover and the
+      // completion status. Deliberately not the whole draft — the four step-3
+      // inputs are not persisted, so a full overwrite would blank the numbers
+      // the customer just typed.
+      if (analysis) {
+        const saved = toDraft(analysis)
+        setFormData((previous) => ({
+          ...previous,
+          step3: {
+            ...previous.step3,
+            humanLifeValue: saved.step3.humanLifeValue,
+          },
+          step4: saved.step4,
+        }))
       }
 
-      return result;
+      return { success: true }
     } catch (error) {
-      console.error("Error saving to database:", error);
-      throw error;
+      return { success: false, error: error.message }
     }
-  };
+  }
 
-  // Update step data (both localStorage and database)
-  const updateStepData = async (step, data, saveToDb = false) => {
-    // Update local state and localStorage
-    setFormData((prev) => ({
-      ...prev,
-      [step]: {
-        ...prev[step],
-        ...data,
-      },
-    }));
+  const getStepData = (step) => formData[step]
 
-    // Save to database if requested
-    if (saveToDb && linkId) {
-      try {
-        await saveStepToDatabase(step, data);
-        return { success: true };
-      } catch (error) {
-        console.error("Failed to save to database:", error);
-        return { success: false, error: error.message || "Failed to save data" };
-      }
+  const getAllData = () => formData
+
+  /** Start the form over: clear the draft and put the saved form back to pending. */
+  const resetForm = async () => {
+    setFormData(emptyDraft())
+    clearCache()
+
+    if (!linkId) return { success: true }
+
+    try {
+      await apiClient.post(`/api/form/${linkId}/reset`, undefined, {
+        auth: false,
+      })
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
     }
-
-    return { success: true };
-  };
-
-  // Get data for a specific step
-  const getStepData = (step) => {
-    return formData[step];
-  };
-
-  // Reset all form data
-  const resetForm = () => {
-    setFormData(initialFormState);
-    if (typeof window !== "undefined") {
-      try {
-        localStorage.removeItem(STORAGE_KEY);
-      } catch (error) {
-        console.error("Error clearing localStorage:", error);
-      }
-    }
-  };
-
-  // Get all form data
-  const getAllData = () => {
-    return formData;
-  };
+  }
 
   const value = {
     formData,
     updateStepData,
     getStepData,
-    resetForm,
     getAllData,
+    resetForm,
     isLoaded,
     linkId,
-    saveStepToDatabase,
     apiError,
     clearApiError: () => setApiError(null),
-  };
+  }
 
-  return <FormContext.Provider value={value}>{children}</FormContext.Provider>;
+  return <FormContext.Provider value={value}>{children}</FormContext.Provider>
 }
 
-// Custom hook to use the Form Context
 export function useFormContext() {
-  const context = useContext(FormContext);
+  const context = useContext(FormContext)
   if (context === undefined) {
-    throw new Error("useFormContext must be used within a FormProvider");
+    throw new Error('useFormContext must be used within a FormProvider')
   }
-  return context;
+  return context
+}
+
+function writeCache(draft) {
+  if (typeof window === 'undefined') return
+  try {
+    const serialisable = {
+      ...draft,
+      step1: {
+        ...draft.step1,
+        dateOfBirth:
+          draft.step1?.dateOfBirth instanceof Date
+            ? draft.step1.dateOfBirth.toISOString()
+            : draft.step1?.dateOfBirth ?? null,
+      },
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(serialisable))
+  } catch (error) {
+    console.error('Error saving form draft:', error)
+  }
+}
+
+function readCache() {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+
+    const parsed = JSON.parse(raw)
+    if (parsed.step1?.dateOfBirth) {
+      parsed.step1.dateOfBirth = new Date(parsed.step1.dateOfBirth)
+    }
+    return { ...emptyDraft(), ...parsed }
+  } catch (error) {
+    console.error('Error reading form draft:', error)
+    return null
+  }
+}
+
+function clearCache() {
+  if (typeof window === 'undefined') return
+  try {
+    localStorage.removeItem(STORAGE_KEY)
+  } catch (error) {
+    console.error('Error clearing form draft:', error)
+  }
 }

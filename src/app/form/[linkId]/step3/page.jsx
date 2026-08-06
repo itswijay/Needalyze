@@ -8,10 +8,14 @@ import ProgressBar from '@/components/ProgressBar'
 import { Button } from '@/components/ui/button'
 import FormNavButton from '@/components/FormNavButton'
 import { useRouter } from 'next/navigation'
-import * as z from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useFormContext } from '@/context/FormContext'
+import { step3Schema } from '@/application/validation/needAnalysis'
+import {
+  calculateActualHlv,
+  calculateHlv,
+} from '@/domain/services/humanLifeValue'
 
 export default function Form3Page() {
   const router = useRouter()
@@ -26,66 +30,6 @@ export default function Form3Page() {
     useFormContext()
   const step3Data = getStepData('step3')
 
-  // Zod validation schema
-  const calculationSchema = z.object({
-    fixedMonthlyExpenses: z.preprocess(
-      (val) => {
-        if (val === '' || val === null || val === undefined) return undefined
-        const num = Number(val)
-        return isNaN(num) ? undefined : num
-      },
-      z
-        .number({
-          required_error: 'Fixed monthly expenses is required',
-          invalid_type_error: 'Fixed monthly expenses is required',
-        })
-        .positive('Fixed monthly expenses must be greater than 0')
-        .min(1, 'Fixed monthly expenses must be at least 1')
-    ),
-
-    bankInterestRate: z.preprocess(
-      (val) => {
-        if (val === '' || val === null || val === undefined) return undefined
-        const num = Number(val)
-        return isNaN(num) ? undefined : num
-      },
-      z
-        .number({
-          required_error: 'Bank interest rate is required',
-          invalid_type_error: 'Bank interest rate is required',
-        })
-        .positive('Bank interest rate must be greater than 0')
-        .max(100, 'Bank interest rate cannot exceed 100%')
-    ),
-
-    // Optional fields - will be 0 if not provided
-    unsecuredBankLoan: z.preprocess(
-      (val) => {
-        if (val === '' || val === null || val === undefined) return 0
-        const num = Number(val)
-        return isNaN(num) ? 0 : num
-      },
-      z
-        .number({
-          invalid_type_error: 'Please enter a valid number',
-        })
-        .nonnegative('Cannot be negative')
-    ),
-
-    cashInHandInsurance: z.preprocess(
-      (val) => {
-        if (val === '' || val === null || val === undefined) return 0
-        const num = Number(val)
-        return isNaN(num) ? 0 : num
-      },
-      z
-        .number({
-          invalid_type_error: 'Please enter a valid number',
-        })
-        .nonnegative('Cannot be negative')
-    ),
-  })
-
   // React Hook Form with Zod resolver
   const {
     register,
@@ -94,7 +38,7 @@ export default function Form3Page() {
     formState: { errors },
     reset,
   } = useForm({
-    resolver: zodResolver(calculationSchema),
+    resolver: zodResolver(step3Schema),
     mode: 'onChange',
     defaultValues: {
       fixedMonthlyExpenses: '',
@@ -122,55 +66,26 @@ export default function Form3Page() {
         unsecuredBankLoan: step3Data.unsecuredBankLoan || '',
         cashInHandInsurance: step3Data.cashInHandInsurance || '',
       })
-      // Restore calculated values if they exist
-      if (step3Data.hlvalue) setHLValue(step3Data.hlvalue)
-      if (step3Data.actualHLValue) setActualHLValue(step3Data.actualHLValue)
+      // Show the saved total. The four inputs above are blank after a reload —
+      // the table stores only this figure, never the numbers behind it.
+      if (step3Data.humanLifeValue) setActualHLValue(step3Data.humanLifeValue)
     }
   }, [isLoaded, step3Data, reset])
 
-  // Real-time HLV calculation
+  // Live preview of the two figures. The formulas live in the domain layer, so
+  // this shows exactly what the server will compute and store on submit.
   useEffect(() => {
-    // Only calculate if both required fields have valid values
-    if (
-      fixedMonthlyExpenses &&
-      bankInterestRate &&
-      !isNaN(fixedMonthlyExpenses) &&
-      !isNaN(bankInterestRate) &&
-      fixedMonthlyExpenses > 0 &&
-      bankInterestRate > 0
-    ) {
-      // Formula: HLV = (Fixed Monthly Expenses × 12) / (Bank Interest Rate / 100)
-      const calculatedHLV =
-        (fixedMonthlyExpenses * 12) / (bankInterestRate / 100)
-
-      // Handle edge cases
-      if (isFinite(calculatedHLV) && calculatedHLV >= 0) {
-        setHLValue(Math.round(calculatedHLV)) // Round to nearest whole number
-      } else {
-        setHLValue(0)
-      }
-    } else {
-      setHLValue(0)
-    }
+    setHLValue(calculateHlv({ fixedMonthlyExpenses, bankInterestRate }))
   }, [fixedMonthlyExpenses, bankInterestRate])
 
-  // Real-time Actual HLV calculation
   useEffect(() => {
-    // Formula: Actual HLV = HLV + Unsecured Bank Loan - Cash In Hand + Insurance
-    const unsecuredLoan = Number(unsecuredBankLoan) || 0
-    const cashInsurance = Number(cashInHandInsurance) || 0
-
-    const calculatedActualHLV = hlvalue + unsecuredLoan - cashInsurance
-
-    // Ensure the result is valid and non-negative
-    if (isFinite(calculatedActualHLV) && calculatedActualHLV >= 0) {
-      setActualHLValue(Math.round(calculatedActualHLV))
-    } else if (calculatedActualHLV < 0) {
-      // If negative, show 0 (can't have negative life value)
-      setActualHLValue(0)
-    } else {
-      setActualHLValue(0)
-    }
+    setActualHLValue(
+      calculateActualHlv({
+        hlv: hlvalue,
+        unsecuredBankLoan,
+        cashInHandInsurance,
+      })
+    )
   }, [hlvalue, unsecuredBankLoan, cashInHandInsurance])
 
   // handle Calculation
@@ -180,19 +95,9 @@ export default function Form3Page() {
     setIsSubmitting(true)
 
     try {
-      // Save form inputs and calculated values to context
-      const step3CompleteData = {
-        fixedMonthlyExpenses: data.fixedMonthlyExpenses,
-        bankInterestRate: data.bankInterestRate,
-        unsecuredBankLoan: data.unsecuredBankLoan,
-        cashInHandInsurance: data.cashInHandInsurance,
-        hlvalue: hlvalue,
-        actualHLValue: actualHLValue,
-        completed: true,
-        completedAt: new Date(),
-      }
-
-      const saveResult = await updateStepData('step3', step3CompleteData, true)
+      // Only the customer's inputs are sent. The server recomputes the life
+      // cover from them rather than trusting a total posted by the browser.
+      const saveResult = await updateStepData('step3', data, true)
 
       if (!saveResult.success) {
         toast.error(
