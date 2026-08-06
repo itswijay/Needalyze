@@ -93,6 +93,31 @@ describe('step1Schema', () => {
         step1Schema.safeParse({ ...validStep1, dateOfBirth: '1985-06-15' }).success
       ).toBe(true)
     })
+
+    // The table already holds a row with a date of birth after its own
+    // created_at and an age of -1.
+    it('rejects a date in the future', () => {
+      const nextYear = new Date()
+      nextYear.setFullYear(nextYear.getFullYear() + 1)
+
+      const result = step1Schema.safeParse({
+        ...validStep1,
+        dateOfBirth: nextYear,
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.error.issues[0].message).toBe(
+        'Date of birth cannot be in the future'
+      )
+    })
+
+    it('accepts a date of birth today', () => {
+      const result = step1Schema.safeParse({
+        ...validStep1,
+        dateOfBirth: new Date(Date.now() - 1000),
+      })
+      expect(result.success).toBe(true)
+    })
   })
 
   describe('phone number', () => {

@@ -25,7 +25,15 @@ import {
 export const step1Schema = z
   .object({
     fullName: z.string().min(1, 'Full name is required'),
-    dateOfBirth: requiredDate('Date of birth is required'),
+    // The calendar caps the year, but nothing stopped a date later than today
+    // being posted — the table holds a row with a date of birth in the future
+    // and an age of -1. The check runs at parse time so "today" is not frozen
+    // at module load. Any minimum-age rule is a policy question and is
+    // deliberately not asserted here.
+    dateOfBirth: requiredDate('Date of birth is required').refine(
+      (date) => date <= new Date(),
+      { message: 'Date of birth cannot be in the future' }
+    ),
     spouseName: z.string().optional(),
     address: z.string().min(1, 'Address is required'),
     phoneNumber: phoneNumberSchema,
