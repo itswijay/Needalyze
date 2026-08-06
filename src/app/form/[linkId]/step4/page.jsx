@@ -7,14 +7,13 @@ import ProgressBar from '@/components/ProgressBar'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, Download, RotateCcw } from 'lucide-react'
 import { useFormContext } from '@/context/FormContext'
-import { generatePDF } from '@/lib/pdfGenerator'
+import { useNeedAnalysisPdf } from '@/hooks/useNeedAnalysisPdf'
 
 export default function Step4Page() {
   const router = useRouter()
-  const [isMarkingComplete, setIsMarkingComplete] = useState(false)
   const [isRestarting, setIsRestarting] = useState(false)
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false)
   const { resetForm, getAllData, linkId } = useFormContext()
+  const { generate, isGenerating: isGeneratingPDF } = useNeedAnalysisPdf(linkId)
 
 useEffect(() => {
   toast.success("Form submitted successfully!", {
@@ -23,38 +22,23 @@ useEffect(() => {
 }, []);
 
   const handleDownload = async () => {
-    // Stronger guard: prevent multiple clicks with immediate return
-    if (isGeneratingPDF) {
-      console.log('PDF generation already in progress, ignoring click')
-      return
-    }
-
-    setIsGeneratingPDF(true)
     try {
-      // Get all form data from context
-      const formData = getAllData()
+      const result = await generate(getAllData())
+      if (!result) return // already generating
 
-      // Generate and download PDF
-      const result = await generatePDF(formData)
-
-      if (result.supabaseUrl) {
-        toast.success(`PDF generated and saved to cloud: ${result.filename}`)
-      } else if (result.storageError) {
-        console.warn(
-          'Storage upload failed but local download succeeded:',
-          result.storageError
-        )
+      if (result.storageError) {
+        console.warn('Storage upload failed:', result.storageError)
         toast.error(
           `PDF downloaded locally, but cloud upload failed: ${result.storageError}`
         )
+      } else if (result.url) {
+        toast.success(`PDF generated and saved to cloud: ${result.filename}`)
       } else {
         toast.success(`PDF downloaded successfully: ${result.filename}`)
       }
     } catch (error) {
       console.error('Failed to generate PDF:', error)
       toast.error('Failed to generate PDF. Please try again.')
-    } finally {
-      setIsGeneratingPDF(false)
     }
   }
 

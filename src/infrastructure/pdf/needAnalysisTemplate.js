@@ -1,162 +1,35 @@
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
-import { formatCurrency } from './utils'
-import { uploadPDFToStorage } from './pdfStorage'
+import { formatCurrency } from '@/domain/services/money'
+import {
+  HEALTH_COVERS,
+  INSURANCE_NEEDS,
+} from '@/domain/constants/needCategories'
 
-export const generatePDF = async (formData) => {
-  // Created outside the try block so the finally clause can always clean it
-  // up, even if something throws before/after it's attached to the DOM.
-  const tempContainer = document.createElement('div')
-  tempContainer.style.position = 'absolute'
-  tempContainer.style.left = '-9999px'
-  tempContainer.style.top = '0'
-  tempContainer.style.width = '210mm' // A4 width
-  tempContainer.style.height = '297mm' // A4 height
-  tempContainer.style.background = 'white'
-  tempContainer.style.zIndex = '-1000'
-  tempContainer.style.padding = '0'
-  tempContainer.style.margin = '0'
-
-  // Create the HTML content directly instead of using React rendering
-  tempContainer.innerHTML = createPDFHTML(formData)
-
-  try {
-    document.body.appendChild(tempContainer)
-
-    // Wait a moment for rendering
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Get the rendered element
-    const element = tempContainer.firstElementChild
-
-    if (!element) {
-      throw new Error('PDF content not rendered properly')
-    }
-
-    // Configure html2canvas options for higher quality, with a timeout so a
-    // hung render can't block forever.
-    const canvas = await Promise.race([
-      html2canvas(element, {
-        scale: 2.5, // Increased scale for better quality (2.5)
-        useCORS: true,
-        allowTaint: false,
-        backgroundColor: '#ffffff',
-        width: element.scrollWidth,
-        height: element.scrollHeight,
-        scrollX: 0,
-        scrollY: 0,
-      }),
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('PDF generation timed out')), 30000)
-      ),
-    ])
-
-    // Create PDF with higher quality
-    const imgData = canvas.toDataURL('image/jpeg', 0.85) // JPEG quality (85%)
-    const pdf = new jsPDF('p', 'mm', 'a4')
-
-    // A4 dimensions in mm
-    const pageWidth = 210
-    const pageHeight = 297
-
-    // Calculate the image dimensions to fit the page with margins
-    const margin = 10
-    const maxWidth = pageWidth - 2 * margin
-    const maxHeight = pageHeight - 2 * margin
-
-    const imgWidth = maxWidth
-    const imgHeight = (canvas.height * maxWidth) / canvas.width
-
-    // If the image is taller than the page, scale it down
-    let finalWidth = imgWidth
-    let finalHeight = imgHeight
-
-    if (imgHeight > maxHeight) {
-      finalHeight = maxHeight
-      finalWidth = (canvas.width * maxHeight) / canvas.height
-    }
-
-    // Center the image on the page
-    const x = (pageWidth - finalWidth) / 2
-    const y = (pageHeight - finalHeight) / 2
-
-    // Add image to PDF with higher quality compression
-    pdf.addImage(
-      imgData,
-      'JPEG',
-      x,
-      y,
-      finalWidth,
-      finalHeight,
-      undefined,
-      'FAST'
-    )
-
-    // Generate filename with current date
-    const currentDate = new Date()
-      .toLocaleDateString('en-IN')
-      .replace(/\//g, '-')
-    const customerName = formData.step1?.fullName || 'Customer'
-    const filename = `Need_Analysis_${customerName.replace(
-      /\s+/g,
-      '_'
-    )}_${currentDate}.pdf`
-
-    // Convert PDF to blob for Supabase upload
-    const pdfBlob = pdf.output('blob')
-
-    // Upload to Supabase Storage
-    const uploadResult = await uploadPDFToStorage(pdfBlob, filename)
-
-    // Download the PDF locally as well
-    pdf.save(filename)
-
-    if (uploadResult.success) {
-      return {
-        success: true,
-        filename,
-        supabaseUrl: uploadResult.url,
-        storagePath: uploadResult.path,
-      }
-    } else {
-      return {
-        success: true,
-        filename,
-        storageError: uploadResult.error,
-      }
-    }
-  } catch (error) {
-    console.error('Error generating PDF:', error)
-    throw new Error(`Failed to generate PDF: ${error.message}`)
-  } finally {
-    // Always clean up the temp DOM node, whether generation succeeded,
-    // failed, or timed out.
-    if (tempContainer.parentNode) {
-      tempContainer.parentNode.removeChild(tempContainer)
-    }
-  }
-}
-
-const createPDFHTML = (formData) => {
-  // Helper function to format date
-  const formatDate = (date) => {
-    if (!date) return ''
-    return new Date(date).toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
-  }
+/**
+ * The printed need-analysis form.
+ *
+ * Markup is unchanged from the version that lived inside lib/pdfGenerator.js —
+ * only the data accessors moved onto the draft view model and the hardcoded
+ * category keys onto the domain constants. Note the insurance column shows four
+ * of the five needs: "short term savings" has never appeared on the printed
+ * form, and that is preserved here rather than quietly changed.
+ *
+ * @param {import('@/application/view-models/needAnalysisDraft').emptyDraft} formData
+ * @returns {string} a complete HTML document fragment
+ */
+export function renderNeedAnalysisHtml(formData) {
+  const tick = (on) => (on ? '✓' : '')
+  const needs = formData.step2?.insuranceNeeds || {}
+  const covers = formData.step2?.healthCovers || {}
 
   return `
     <div style="
-      background: white; 
+      background: white;
       padding: 8mm;
-      font-family: Arial, sans-serif; 
-      font-size: 11px; 
-      line-height: 1.3; 
-      color: #000; 
-      width: 194mm; 
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      line-height: 1.3;
+      color: #000;
+      width: 194mm;
       min-height: 281mm;
       margin: 0 auto;
       box-sizing: border-box;
@@ -182,7 +55,7 @@ const createPDFHTML = (formData) => {
         <div style="background: darkgrey; padding: 10px; border-radius: 6px; margin-bottom: 12px; text-align: center;">
           <h3 style="margin: 0; font-size: 18px; font-weight: bold; color: #333;">Personal Information</h3>
         </div>
-        
+
         <!-- Personal Info without borders -->
         <div style="padding: 10px;">
           <div style="display: flex; margin-bottom: 8px; align-items: center;">
@@ -191,56 +64,56 @@ const createPDFHTML = (formData) => {
               ${formData.step1?.fullName || ''}
             </span>
           </div>
-          
+
           <div style="display: flex; margin-bottom: 8px; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">Date of Birth&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 8px; text-align: left;">
               ${formatDate(formData.step1?.dateOfBirth) || ''}
             </span>
           </div>
-          
+
           <div style="display: flex; margin-bottom: 8px; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">Spouse's Name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.spouseName || ''}
             </span>
           </div>
-          
+
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">No of Children&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.numberOfChildren || ''}
             </span>
           </div>
-          
+
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">Children's Ages&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.childrenAges || ''}
             </span>
           </div>
-          
+
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">Address&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.address || ''}
             </span>
           </div>
-          
+
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">Phone Number&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.phoneNumber || ''}
             </span>
           </div>
-          
+
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">Occupation&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formData.step1?.occupation || ''}
             </span>
           </div>
-          
+
           <div style="display: flex; align-items: center;">
             <span style="width: 160px; font-weight: bold; text-align: left;">Monthly Income&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
@@ -260,33 +133,25 @@ const createPDFHTML = (formData) => {
           <div style="padding: 8px; height: 100px;">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${
-                  formData.step2?.insuranceNeeds?.dependentCostOfLiving
-                    ? '✓'
-                    : ''
-                }
+                ${tick(needs[INSURANCE_NEEDS.DEPENDENT_COST_OF_LIVING])}
               </div>
               <span style="font-size: 10px;">Dependents Cost</span>
             </div>
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${
-                  formData.step2?.insuranceNeeds?.higherEducationChildren
-                    ? '✓'
-                    : ''
-                }
+                ${tick(needs[INSURANCE_NEEDS.HIGHER_EDUCATION_CHILDREN])}
               </div>
               <span style="font-size: 10px;">Education</span>
             </div>
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${formData.step2?.insuranceNeeds?.longTermSavings ? '✓' : ''}
+                ${tick(needs[INSURANCE_NEEDS.LONG_TERM_SAVINGS])}
               </div>
               <span style="font-size: 10px;">Long Term Savings</span>
             </div>
             <div style="display: flex; align-items: center;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${formData.step2?.insuranceNeeds?.pensionFund ? '✓' : ''}
+                ${tick(needs[INSURANCE_NEEDS.PENSION_FUND])}
               </div>
               <span style="font-size: 10px;">Pension Fund</span>
             </div>
@@ -301,29 +166,25 @@ const createPDFHTML = (formData) => {
           <div style="padding: 8px; height: 100px;">
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${
-                  formData.step2?.healthCovers?.dailyHospitalizationExpenses
-                    ? '✓'
-                    : ''
-                }
+                ${tick(covers[HEALTH_COVERS.DAILY_HOSPITALIZATION_EXPENSES])}
               </div>
               <span style="font-size: 10px;">Daily Hospitalization</span>
             </div>
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${formData.step2?.healthCovers?.surgeryCover ? '✓' : ''}
+                ${tick(covers[HEALTH_COVERS.SURGERY_COVER])}
               </div>
               <span style="font-size: 10px;">Surgery Cover</span>
             </div>
             <div style="display: flex; align-items: center; margin-bottom: 8px;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${formData.step2?.healthCovers?.hospitalBillCover ? '✓' : ''}
+                ${tick(covers[HEALTH_COVERS.HOSPITAL_BILL_COVER])}
               </div>
               <span style="font-size: 10px;">Hospital Bill</span>
             </div>
             <div style="display: flex; align-items: center;">
               <div style="width: 16px; height: 16px; margin-right: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
-                ${formData.step2?.healthCovers?.criticalIllness ? '✓' : ''}
+                ${tick(covers[HEALTH_COVERS.CRITICAL_ILLNESS])}
               </div>
               <span style="font-size: 10px;">Critical Illness</span>
             </div>
@@ -336,7 +197,7 @@ const createPDFHTML = (formData) => {
         <div style="background: darkgray; padding: 8px; border-radius: 8px 8px 8px 8px; margin-bottom: 10px; text-align: center;">
           <h4 style="margin: 0; font-size: 14px; font-weight: bold;">Life Cover</h4>
         </div>
-        
+
         <div style="padding: 12px;">
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
             <span style="width: 200px; font-weight: bold; text-align: left; white-space: nowrap;">Fixed Monthly Expenses&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
@@ -344,7 +205,7 @@ const createPDFHTML = (formData) => {
               ${formatCurrency(formData.step3?.fixedMonthlyExpenses) || ''}
             </span>
           </div>
-          
+
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
             <span style="width: 200px; font-weight: bold; text-align: left; white-space: nowrap;">Bank Interest Rate&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
@@ -355,21 +216,21 @@ const createPDFHTML = (formData) => {
               }
             </span>
           </div>
-          
+
           <div style="display: flex; margin-bottom: 12px; align-items: center;">
             <span style="width: 200px; font-weight: bold; text-align: left; white-space: nowrap;">Unsecured Bank Loans&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formatCurrency(formData.step3?.unsecuredBankLoan) || ''}
             </span>
           </div>
-          
+
           <div style="display: flex; margin-bottom: 15px; align-items: center;">
             <span style="width: 200px; font-weight: bold; text-align: left; white-space: nowrap;">Cash in Hand + Insurance&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
             <span style="flex: 1; padding-left: 10px; text-align: left;">
               ${formatCurrency(formData.step3?.cashInHandInsurance) || ''}
             </span>
           </div>
-          
+
           <div style="padding-top: 12px; margin-top: 15px;">
             <div style="display: flex; align-items: center;">
               <span style="width: 200px; font-weight: bold; font-size: 14px; text-align: left; white-space: nowrap;">Actual Human Life Value&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:</span>
@@ -389,4 +250,25 @@ const createPDFHTML = (formData) => {
       </div>
     </div>
   `
+}
+
+function formatDate(date) {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+}
+
+/**
+ * The filename a generated report is saved under.
+ *
+ * @param {string} customerName
+ * @param {Date} [now]
+ */
+export function needAnalysisFilename(customerName, now = new Date()) {
+  const date = now.toLocaleDateString('en-IN').replace(/\//g, '-')
+  const name = (customerName || 'Customer').replace(/\s+/g, '_')
+  return `Need_Analysis_${name}_${date}.pdf`
 }

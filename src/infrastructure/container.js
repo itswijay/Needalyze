@@ -1,6 +1,7 @@
 import { forUser, withServiceRole } from './supabase/serverClient'
 import { createSupabaseFormLinkRepository } from './supabase/repositories/supabaseFormLinkRepository'
 import { createSupabaseNeedAnalysisRepository } from './supabase/repositories/supabaseNeedAnalysisRepository'
+import { createSupabasePdfStorage } from './supabase/supabasePdfStorage'
 
 /**
  * Composition root.
@@ -23,6 +24,7 @@ export function createContainer({ accessToken = null, serviceRole = false } = {}
     client,
     formLinks: createSupabaseFormLinkRepository(client),
     needAnalyses: createSupabaseNeedAnalysisRepository(client),
+    fileStorage: createSupabasePdfStorage(client),
   }
 }
 

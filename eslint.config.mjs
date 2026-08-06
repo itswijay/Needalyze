@@ -68,7 +68,10 @@ const DEPENDENCY_RULE = [
       "infrastructure/ may only import from application/ and domain/, never from the presentation layer.",
   },
   {
-    // Presentation talks to use cases and the HTTP adapter — never to the database.
+    // Presentation talks to use cases and the browser-side adapters
+    // (infrastructure/http, infrastructure/pdf) — never to the database.
+    // The PDF renderer is allowed because rasterising needs a live DOM, so it
+    // can only run here; it still knows nothing about storage or persistence.
     files: [
       "src/app/**/*.{js,jsx}",
       "src/components/**/*.{js,jsx}",
