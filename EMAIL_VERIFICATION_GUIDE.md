@@ -14,14 +14,18 @@ Your authentication system now includes **TWO-STEP VERIFICATION**:
 ```
 User Fills Registration Form
   ↓
-Submit → Creates account in Supabase
+POST /api/auth/register → creates the auth user, then the profile row
   ↓
 Email Verification Link Sent
   ↓
 Success Message: "Please check your email to verify your account"
   ↓
-Redirect to Login (after 3 seconds)
+Redirect to Login (after 5 seconds)
 ```
+
+The account is created server-side, so the browser is never signed in during
+registration. If the profile insert fails, the auth user is deleted again rather
+than being left stranded with no profile.
 
 ### 2. Email Verification
 
@@ -49,7 +53,7 @@ Login Blocked
 Message: "Your account is pending approval. Please wait for admin approval."
 ```
 
-### 4. Admin Approval (Future Feature)
+### 4. Admin Approval
 
 ```
 Admin Reviews New Users

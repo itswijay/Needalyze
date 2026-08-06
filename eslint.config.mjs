@@ -83,14 +83,6 @@ const DEPENDENCY_RULE = [
       "@/infrastructure/supabase/**",
       "@/infrastructure/container",
       "@supabase/supabase-js",
-      // Not-yet-migrated modules. Each warning here is a remaining slice of
-      // work; src/lib keeps only utils.js when the migration is done.
-      "@/lib/supabase",
-      "@/lib/auth",
-      "@/lib/admin",
-      "@/lib/roles",
-      "@/lib/pdfGenerator",
-      "@/lib/pdfStorage",
     ],
     message:
       "The presentation layer must not touch Supabase directly. Call a route handler through infrastructure/http/apiClient, or use a use case inside a route handler.",
@@ -111,10 +103,10 @@ const eslintConfig = [
   ...DEPENDENCY_RULE.map(({ files, forbidden, message }) => ({
     files,
     rules: {
-      // Warn during the migration; raised to "error" in the final sweep once
-      // every module has moved off the src/lib shims.
+      // Errors, not warnings: the migration is complete, so a new violation is
+      // a regression rather than outstanding work.
       "no-restricted-imports": [
-        "warn",
+        "error",
         { patterns: [{ group: forbidden, message }] },
       ],
     },

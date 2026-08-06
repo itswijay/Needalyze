@@ -1,95 +1,73 @@
-# Storage Optimization Strategies
+# Storage Optimization
 
-## Current Issues:
-1. **FormContext stores full form data in localStorage** on every change
-2. **PDF generation creates high-quality canvas images** (scale: 2)
-3. **Redundant storage** (database + localStorage)
+Ideas for reducing what Needalyze writes, to localStorage and to the `Pdfs`
+bucket. None of these are implemented — this is a list of options with their
+trade-offs, not a description of the code.
 
-## Solutions:
+> Paths updated during the clean-architecture migration. `pdfGenerator.js` no
+> longer exists; the rasteriser is now
+> `src/infrastructure/pdf/html2canvasPdfRenderer.js`.
 
-### 1. Implement Data Compression
+## What actually gets written today
+
+**localStorage** — `FormContext` mirrors the whole customer draft under
+`needalyze-form-data` on every change. The draft is small (one customer's
+answers, a few hundred bytes), and it exists so a refresh mid-form is not a data
+loss. It is cleared on "Fill Again".
+
+**Supabase storage** — one PDF per generated report, roughly 100-300 KB at
+`scale: 2.5` with JPEG quality 0.85. Nothing prunes old files.
+
+Neither is close to a limit at current volumes. Reach for the below when that
+stops being true.
+
+## PDF size
+
+The single biggest lever, in `html2canvasPdfRenderer.js`:
+
 ```javascript
-// Add to FormContext.jsx
-const compressData = (data) => {
-  return LZString.compress(JSON.stringify(data));
-};
-
-const decompressData = (compressedData) => {
-  try {
-    return JSON.parse(LZString.decompress(compressedData));
-  } catch {
-    return null;
-  }
-};
-```
-
-### 2. Reduce PDF Canvas Quality
-```javascript
-// In pdfGenerator.js - reduce scale from 2 to 1.5 or 1
 const canvas = await html2canvas(element, {
-  scale: 1, // Reduced from 2
-  useCORS: true,
-  allowTaint: false,
-  backgroundColor: '#ffffff',
-});
+  scale: 2.5,   // 1.5 roughly halves the file; 1 quarters it
+  ...
+})
+
+const imgData = canvas.toDataURL('image/jpeg', 0.85)  // 0.7 saves ~25% more
 ```
 
-### 3. Selective Storage
-```javascript
-// Store only essential data in localStorage
-const getEssentialData = (formData) => {
-  return {
-    step1: {
-      fullName: formData.step1?.fullName,
-      phoneNumber: formData.step1?.phoneNumber,
-    },
-    currentStep: formData.currentStep,
-    linkId: formData.linkId
-  };
-};
-```
+The report is dense text at 10-11px, so it does not degrade gracefully. Print a
+sample at any candidate setting and read the "Actual Human Life Value" line
+before committing to it.
 
-### 4. Implement Storage Cleanup
-```javascript
-// Add storage cleanup utility
-const cleanupStorage = () => {
-  const maxAge = 7 * 24 * 60 * 60 * 1000; // 7 days
-  const now = Date.now();
-  
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith('needalyze-')) {
-      const data = JSON.parse(localStorage.getItem(key));
-      if (data.timestamp && (now - data.timestamp) > maxAge) {
-        localStorage.removeItem(key);
-      }
-    }
-  });
-};
-```
+A larger change: render the PDF from text rather than a rasterised screenshot.
+jsPDF can draw text directly, which would cut files to a few KB and make them
+selectable and searchable, at the cost of rebuilding the template as drawing
+calls. `needAnalysisTemplate.js` is the only file that would change — the
+renderer port stays the same shape.
 
-### 5. Use sessionStorage for Temporary Data
-```javascript
-// Use sessionStorage for form drafts
-const TEMP_STORAGE_KEY = 'needalyze-temp-form';
-sessionStorage.setItem(TEMP_STORAGE_KEY, JSON.stringify(tempData));
-```
+## Retention
 
-### 6. Implement Debounced Saving
-```javascript
-// Add debounced saving to reduce write frequency
-import { debounce } from 'lodash';
+Nothing deletes old reports. Options, cheapest first:
 
-const debouncedSave = useCallback(
-  debounce((data) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, 1000),
-  []
-);
-```
+1. A Supabase scheduled function removing objects under `need-analysis/` older
+   than N months.
+2. Delete the previous report when a link's form is reset, since it is
+   superseded — `resetNeedAnalysis` is the natural place.
+3. Skip storage entirely for links that are never revisited, and store only on
+   an explicit "save to cloud" action.
 
-## Implementation Priority:
-1. **Reduce PDF canvas scale** (immediate 50%+ reduction)
-2. **Implement debounced saving** (reduce write frequency)
-3. **Add data compression** (30-70% size reduction)
-4. **Use sessionStorage for temporary data**
-5. **Implement storage cleanup**
+## localStorage
+
+Only worth touching if drafts grow substantially:
+
+- **Debounce the write.** `FormContext` writes on every keystroke through its
+  `useEffect`. A 500-1000ms debounce would cut writes by an order of magnitude.
+  Frequency, not size, is the cost here.
+- **sessionStorage instead.** A draft is only useful for the current sitting;
+  sessionStorage clears itself and never accumulates across customers on a
+  shared device — which is also the better privacy answer.
+- **Compression.** LZ-String would cut 30-70%, at the price of a dependency and
+  unreadable stored values. Not worth it at current sizes.
+
+Note the four step-3 inputs are not persisted server-side (the table stores only
+the resulting total), so the localStorage draft is the only thing that carries
+them across a refresh. Do not drop it without accounting for that.
