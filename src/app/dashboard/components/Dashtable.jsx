@@ -280,31 +280,21 @@ export const columns = [
   },
 ];
 
+/**
+ * @param {{ formData: import('@/application/view-models/needAnalysisRow').toRow[] }} props
+ *   rows arrive already shaped by the application layer; this component no
+ *   longer knows any database column names.
+ */
 export function DataTable({ formData }) {
   const [sorting, setSorting] = React.useState([]);
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [rowSelection, setRowSelection] = React.useState({});
-  // console.log("Form Data in Dashtable:", formData);
 
-
-  const Customer = React.useMemo(() => {
-    if (!formData || !Array.isArray(formData)) {
-      return [];
-    }
-
-    return formData.map((form) => ({
-      id: form.form_id || form.id,
-      user: form.full_name || "Unknown",
-      need:
-        form.insurance_needs?.concat(form.health_covers || []).join(", ") ||
-        "Not specified",
-      actualHumanLifeValue: form.human_life_value || 0,
-      address: form.address || "Not provided",
-      date: form.created_at ? form.created_at.split("T")[0] : "Unknown",
-      status: form.status || "Unknown",
-    }));
-  }, [formData]);
+  const Customer = React.useMemo(
+    () => (Array.isArray(formData) ? formData : []),
+    [formData]
+  );
 
   const table = useReactTable({
     data: Customer,
