@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { loginSchema, profileSchema, registerSchema } from './auth'
+import {
+  loginSchema,
+  profileSchema,
+  registerSchema,
+  resetPasswordSchema,
+} from './auth'
 import { POSITIONS } from '@/domain/constants/positions'
 import { BRANCH_OPTIONS } from '@/domain/constants/branches'
 
@@ -138,6 +143,45 @@ describe('profileSchema', () => {
     ).toBe(
       'Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)'
     )
+  })
+})
+
+describe('resetPasswordSchema', () => {
+  it('accepts a matching pair', () => {
+    expect(
+      resetPasswordSchema.safeParse({
+        password: 'newsecret',
+        confirmPassword: 'newsecret',
+      }).success
+    ).toBe(true)
+  })
+
+  it('rejects a mismatch', () => {
+    expect(
+      firstError(resetPasswordSchema, {
+        password: 'newsecret',
+        confirmPassword: 'different',
+      })
+    ).toBe('Passwords do not match')
+  })
+
+  // The same minimum as registration — a reset must not be a way around it.
+  it('applies the registration password rules', () => {
+    expect(
+      firstError(resetPasswordSchema, {
+        password: 'abc',
+        confirmPassword: 'abc',
+      })
+    ).toBe('Password must be at least 6 characters')
+  })
+
+  it('requires the confirmation field', () => {
+    expect(
+      firstError(resetPasswordSchema, {
+        password: 'newsecret',
+        confirmPassword: '',
+      })
+    ).toBe('Please confirm your password')
   })
 })
 

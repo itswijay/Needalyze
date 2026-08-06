@@ -50,5 +50,16 @@ export const loginSchema = z.object({
 
 export const forgotPasswordSchema = z.object({ email: emailSchema })
 
+/** Choosing a new password from an emailed reset link. */
+export const resetPasswordSchema = z
+  .object({
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, 'Please confirm your password'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
+
 /** Editing your own profile: the same fields, minus credentials. */
 export const profileSchema = z.object(profileFields)

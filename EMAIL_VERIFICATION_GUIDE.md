@@ -124,6 +124,38 @@ if (status !== 'approved') {
 5. Ensure **"Enable email confirmations"** is **CHECKED**
 6. Click **Save**
 
+### Allow the password-reset redirect (required):
+
+The reset email sends the user to `{origin}/reset-password`. Supabase will refuse
+to redirect anywhere that is not on the allowlist, so the link silently bounces
+back to the site root until this is set.
+
+1. Navigate: **Authentication → URL Configuration**
+2. Under **Redirect URLs**, add one entry per environment:
+   - `http://localhost:3000/reset-password`
+   - `https://<your-production-domain>/reset-password`
+3. Click **Save**
+
+### Password Reset Flow
+
+```
+User clicks "Forget Password" → enters their email
+  ↓
+Supabase emails a reset link (valid one hour)
+  ↓
+Link opens /reset-password, where supabase-js turns the token in the URL
+into a short-lived recovery session
+  ↓
+User sets a new password → the recovery session is signed out
+  ↓
+Redirect to Login, where the new password is used
+```
+
+The page shows the same confirmation whether or not the address is registered —
+a different message would reveal which addresses have accounts. An expired or
+already-used link shows a "request a new link" prompt rather than a form that
+cannot work.
+
 ### Configure Email Templates (Optional):
 
 1. Navigate: **Authentication → Email Templates**

@@ -42,6 +42,36 @@ export function createBrowserAuthGateway() {
       const { data } = browserClient.auth.onAuthStateChange(handler)
       return () => data?.subscription?.unsubscribe()
     },
+
+    /**
+     * Email a password-reset link.
+     *
+     * Supabase does not report whether the address is registered, which is what
+     * lets the page show the same message either way rather than confirming who
+     * has an account here.
+     *
+     * @param {string} email
+     * @param {string} redirectTo - absolute URL of the reset page
+     */
+    async requestPasswordReset(email, redirectTo) {
+      const { error } = await browserClient.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      })
+      if (error) throw new Error(error.message)
+    },
+
+    /**
+     * Set a new password for the currently authenticated user.
+     *
+     * Requires a session — either a normal one, or the recovery session that
+     * supabase-js establishes from the emailed link on page load.
+     *
+     * @param {string} password
+     */
+    async updatePassword(password) {
+      const { error } = await browserClient.auth.updateUser({ password })
+      if (error) throw new Error(error.message)
+    },
   }
 }
 

@@ -86,6 +86,13 @@ export function AuthProvider({ children }) {
         setUser(nextSession?.user || null)
         setSession(nextSession)
         loadProfile()
+      } else if (event === 'PASSWORD_RECOVERY') {
+        // The short-lived session created from a reset link. Session state is
+        // recorded so the reset page can tell a live link from a dead one, but
+        // the profile is deliberately not loaded — this session exists only to
+        // authorise setting a new password.
+        setUser(nextSession?.user || null)
+        setSession(nextSession)
       } else if (event === 'SIGNED_OUT') {
         setUser(null)
         setSession(null)
@@ -142,6 +149,32 @@ export function AuthProvider({ children }) {
     }
   }
 
+  /**
+   * Email a reset link. The caller shows the same confirmation whether or not
+   * the address is registered, so this deliberately does not distinguish.
+   */
+  const requestPasswordReset = async (email) => {
+    try {
+      await auth.requestPasswordReset(
+        email,
+        `${window.location.origin}/reset-password`
+      )
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
+  /** Set a new password using the recovery session from the emailed link. */
+  const updatePassword = async (password) => {
+    try {
+      await auth.updatePassword(password)
+      return { success: true }
+    } catch (error) {
+      return { success: false, error: error.message }
+    }
+  }
+
   const value = {
     user,
     session,
@@ -152,6 +185,8 @@ export function AuthProvider({ children }) {
     isApproved,
     signIn,
     signOut,
+    requestPasswordReset,
+    updatePassword,
     refreshUserProfile: loadProfile,
   }
 

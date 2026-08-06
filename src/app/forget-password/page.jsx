@@ -7,10 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import toast from 'react-hot-toast'
 import { forgotPasswordSchema } from '@/application/validation/auth'
+import { useAuth } from '@/context/AuthContext'
 
 const ForgetPasswordPage = () => {
+  const { requestPasswordReset } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [sent, setSent] = useState(false)
   const [isMobile, setIsMobile] = useState(null) // null initially to prevent hydration mismatch
 
   useEffect(() => {
@@ -37,29 +41,31 @@ const ForgetPasswordPage = () => {
       email: ''
     },
   })
-//==============================================
-
   const handleLogin = async (data) => {
-    try {
-      setLoading(true)
-      console.log('Form submitted successfully with data:', data)
+    setLoading(true)
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+    const result = await requestPasswordReset(data.email)
 
-      console.log('Verify successful!')
-      // Your actual login logic here
+    setLoading(false)
 
-      // Reset form after successful login if needed
-      // reset()
-    } catch (error) {
-      console.error('Login error:', error)
-    } finally {
-      setLoading(false)
+    if (!result.success) {
+      toast.error(result.error || 'Could not send the reset link. Please try again.')
+      return
     }
+
+    // Deliberately the same outcome whether or not the address is registered —
+    // a different message here would tell anyone who asks which email addresses
+    // have accounts.
+    reset()
+    setSent(true)
   }
-  
-//===========================================
+
+  const confirmation = (
+    <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-800 text-sm">
+      If an account exists for that address, we&apos;ve sent a link to reset the
+      password. The link expires in one hour.
+    </div>
+  )
   return (
     <>
       <div className="w-full h-screen flex flex-col md:flex-row overflow-hidden">
@@ -100,6 +106,7 @@ const ForgetPasswordPage = () => {
                   FORGET PASSWORD
                 </h1>
                 <div className="mx-4">
+                  {sent && confirmation}
                   <form onSubmit={handleSubmit(handleLogin)} noValidate>
                     <div className="mb-4">
                       <Input
@@ -121,24 +128,32 @@ const ForgetPasswordPage = () => {
                       disabled={loading}
                       className="w-full rounded-full p-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {loading ? 'Verifying...' : 'Verify Email'}
+                      {loading ? 'Sending...' : 'Send reset link'}
                     </Button>
                   </form>
+                  <p className="text-center text-primary-900 text-sm mt-4">
+                    <Link href="/login" className="font-semibold hover:underline">
+                      Back to login
+                    </Link>
+                  </p>
                 </div>
               </div>
             ) : (
               /* Desktop View - Card */
-              <Card className="shadow-sm w-[400px] h-[350px]">
+              <Card className="shadow-sm w-[400px]">
                 <CardHeader>
-                  <div className='mt-7'>
-                    <CardTitle className="text-center text-2xl">FORGET PASSWORD</CardTitle>
+                  <div className="mt-7">
+                    <CardTitle className="text-center text-2xl">
+                      FORGET PASSWORD
+                    </CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent>
+                  {sent && confirmation}
                   <form onSubmit={handleSubmit(handleLogin)} noValidate>
                     <div className="mb-4">
                       <Input
-                        className="rounded-full placeholder:text-xs p-5 mt-12 h-[50px]"
+                        className="rounded-full placeholder:text-xs p-5 mt-6 h-[50px]"
                         type="email"
                         placeholder="Email"
                         autoComplete="email"
@@ -150,16 +165,21 @@ const ForgetPasswordPage = () => {
                         </p>
                       )}
                     </div>
-                    <div className='mt-5'>
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full rounded-full p-5 bg-[linear-gradient(to_right,_#24456e_30%,_#04182f_80%)] h-[50px]"
-                    >
-                      {loading ? 'Verifying...' : 'Verify Email'}
-                    </Button>
+                    <div className="mt-5">
+                      <Button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full rounded-full p-5 bg-[linear-gradient(to_right,_#24456e_30%,_#04182f_80%)] h-[50px]"
+                      >
+                        {loading ? 'Sending...' : 'Send reset link'}
+                      </Button>
                     </div>
                   </form>
+                  <p className="text-center text-primary-600 text-xs mt-4">
+                    <Link href="/login" className="font-semibold hover:underline">
+                      Back to login
+                    </Link>
+                  </p>
                 </CardContent>
               </Card>
             )}
