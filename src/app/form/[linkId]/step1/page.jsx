@@ -63,8 +63,6 @@ export default function Form1Page() {
     },
   })
 
-  const numChildren = watch('numberOfChildren')
-
   useEffect(() => {
     if (apiError) {
       if (apiError.status === 410) {
@@ -75,7 +73,7 @@ export default function Form1Page() {
         toast.error(apiError.message || 'Something went wrong')
       }
     }
-  }, [apiError])
+  }, [apiError, router])
 
   useEffect(() => setMounted(true), [])
 
@@ -124,11 +122,16 @@ export default function Form1Page() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [open, mounted, onKeyDown])
 
-  const handleValidationErrors = () => {
-  Object.values(errors).forEach((err) => {
-    toast.error(err.message);
-  });
-};
+  // Takes the errors react-hook-form passes in, rather than reading the `errors`
+  // from the render closure — on a first failed submit that closure still holds
+  // the previous render's empty object, so no toast fired. Five of these fields
+  // render only a red border with no message, so the toast is their only
+  // feedback.
+  const handleValidationErrors = (validationErrors) => {
+    Object.values(validationErrors).forEach((error) => {
+      if (error?.message) toast.error(error.message)
+    })
+  }
 
 
   const onSubmit = async (data) => {

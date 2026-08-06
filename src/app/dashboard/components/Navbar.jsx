@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useEffect, useState } from 'react'
 import Profile from './Profile'
 import { Button } from '@/components/ui/button'
@@ -89,8 +89,12 @@ const Navbar = () => {
         <li>
           <DropdownMenu>
             <DropdownMenuTrigger>
+              {/* No AvatarImage: there is no avatar upload anywhere in the app.
+                  This used to point at https://github.com/shadcn.png from the
+                  component scaffold, which loaded fine and so showed every
+                  advisor the same stranger's face while the initials below
+                  never rendered. */}
               <Avatar className="cursor-pointer">
-                <AvatarImage src="https://github.com/shadcn.png" />
                 <AvatarFallback>{getUserInitials()}</AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>

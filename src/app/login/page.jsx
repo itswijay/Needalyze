@@ -26,7 +26,9 @@ const SearchParamsHandler = ({ setInfoMessage }) => {
       // Store in sessionStorage so it persists even if page reloads
       sessionStorage.setItem('loginInfoMessage', message)
       // Clean up the URL
-      router.replace('/login', { shallow: true })
+      // `shallow` was a Pages Router option and does nothing here; the App
+      // Router replaces the entry either way, which is all this needs.
+      router.replace('/login')
     } else {
       // Check if there's a stored message from redirect
       const storedMessage = sessionStorage.getItem('loginInfoMessage')

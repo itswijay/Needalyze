@@ -30,8 +30,6 @@ import {
 export default function NeedAnalysisFormPage2() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showConflictMessage, setShowConflictMessage] = useState(false)
-  const [showWarningMessage, setShowWarningMessage] = useState(false)
 
   // Get form context
   const { getStepData, updateStepData, isLoaded, linkId } = useFormContext()
@@ -42,7 +40,7 @@ export default function NeedAnalysisFormPage2() {
     watch,
     setValue,
     reset,
-    formState: { errors, isValid },
+    formState: { errors },
   } = useForm({
     resolver: zodResolver(step2Schema),
     defaultValues: {
@@ -66,14 +64,10 @@ export default function NeedAnalysisFormPage2() {
   const handleInsuranceNeedChange = (field, currentValue) => {
     const newValue = !currentValue
     setValue(`insuranceNeeds.${field}`, newValue, { shouldValidate: true })
-    setShowWarningMessage(false)
   }
 
   const handleHealthCoverChange = (field, currentValue) => {
     const newValue = !currentValue
-
-    // Hide warning message when selecting
-    setShowWarningMessage(false)
 
     // Turning a cover on must not create a conflicting pair. The pairs
     // themselves are declared in domain/constants/needCategories, alongside the
@@ -85,7 +79,6 @@ export default function NeedAnalysisFormPage2() {
       })
 
       if (wouldConflict) {
-        setShowConflictMessage(true)
         toast.error(
           'You cannot select Hospital Bill Cover and Surgery Cover together'
         )
@@ -128,28 +121,37 @@ export default function NeedAnalysisFormPage2() {
     router.push(`/form/${linkId}/step1`)
   }
 
-const handleNext = () => {
-  const insuranceSelected = Object.values(watchedValues.insuranceNeeds || {}).some(Boolean);
-  const healthSelected = Object.values(watchedValues.healthCovers || {}).some(Boolean);
-
-  // If nothing selected → toast
-  if (!insuranceSelected && !healthSelected) {
-    toast.error("Select at least one option to continue");
-    return;
+  const handleValidationErrors = (validationErrors) => {
+    Object.values(validationErrors).forEach((error) => {
+      if (error?.message) toast.error(error.message)
+    })
   }
 
-  // FIX: Read Zod refine errors correctly
-  const zodError =
-    errors.healthCovers?._errors?.[0] ||
-    errors.healthCovers?.root?.message;
+  const handleNext = () => {
+    const insuranceSelected = Object.values(
+      watchedValues.insuranceNeeds || {}
+    ).some(Boolean)
+    const healthSelected = Object.values(watchedValues.healthCovers || {}).some(
+      Boolean
+    )
 
-  if (zodError) {
-    toast.error(zodError);
-    return;
+    if (!insuranceSelected && !healthSelected) {
+      toast.error('Select at least one option to continue')
+      return
+    }
+
+    // An object-level refine lands on the field itself. This used to look at
+    // `errors.healthCovers._errors[0]`, which is the shape of ZodError.format()
+    // rather than react-hook-form's error tree, so the "only 3 options" rule
+    // never surfaced — and the submit below ran without an error callback, so
+    // the button simply did nothing.
+    if (errors.healthCovers?.message) {
+      toast.error(errors.healthCovers.message)
+      return
+    }
+
+    handleSubmit(onSubmit, handleValidationErrors)()
   }
-
-  handleSubmit(onSubmit)();
-};
 
 
   const handleStepNavigation = (stepNumber) => {
