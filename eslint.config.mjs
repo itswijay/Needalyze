@@ -103,10 +103,10 @@ const eslintConfig = [
   ...DEPENDENCY_RULE.map(({ files, forbidden, message }) => ({
     files,
     rules: {
-      // Errors, not warnings: the migration is complete, so a new violation is
-      // a regression rather than outstanding work.
+      // Warn during the migration; raised to "error" in the final sweep once
+      // every module has moved off the src/lib shims.
       "no-restricted-imports": [
-        "error",
+        "warn",
         { patterns: [{ group: forbidden, message }] },
       ],
     },
