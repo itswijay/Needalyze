@@ -295,7 +295,7 @@ const handleValidationErrors = (errors) => {
                       Forget Password
                     </Link>
                     <p className="text-center text-primary-900 text-sm mt-2">
-                      Don't have account?{' '}
+                      Don&apos;t have account?{' '}
                       <Link
                         href="/register"
                         className="text-primary-900 hover:text-primary-700 font-semibold inline"
@@ -386,7 +386,7 @@ const handleValidationErrors = (errors) => {
                       Forget Password
                     </Link>
                     <p className="text-center text-primary-600 text-xs mt-2">
-                      Don't have account?{' '}
+                      Don&apos;t have account?{' '}
                       <Link
                         href="/register"
                         className="text-primary-400 hover:text-primary-200 font-semibold inline"
@@ -405,7 +405,7 @@ const handleValidationErrors = (errors) => {
   )
 }
 
-const page = () => {
+const LoginRoute = () => {
   return (
     <Suspense
       fallback={
@@ -422,4 +422,4 @@ const page = () => {
   )
 }
 
-export default page
+export default LoginRoute

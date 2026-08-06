@@ -7,7 +7,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 
-const page = () => {
+const HomePage = () => {
   const router = useRouter()
   const { isAuthenticated, isApproved, loading } = useAuth()
 
@@ -72,4 +72,4 @@ const page = () => {
   )
 }
 
-export default page
+export default HomePage

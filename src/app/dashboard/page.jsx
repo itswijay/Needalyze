@@ -9,7 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 
-const page = () => {
+const DashboardPage = () => {
   const [formData, setFormData] = useState([]);
   const [cardData, setCardData] = useState({});
   const { userProfile } = useAuth();
@@ -109,4 +109,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default DashboardPage;

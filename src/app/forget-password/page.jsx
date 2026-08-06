@@ -17,7 +17,7 @@ const loginSchema = z.object({
     .email('Please enter a valid email address')
 })
 
-const page = () => {
+const ForgetPasswordPage = () => {
   const [loading, setLoading] = useState(false)
   const [isMobile, setIsMobile] = useState(null) // null initially to prevent hydration mismatch
 
@@ -178,4 +178,4 @@ const page = () => {
   )
 }
 
-export default page
+export default ForgetPasswordPage
