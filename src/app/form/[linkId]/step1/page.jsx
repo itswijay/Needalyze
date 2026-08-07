@@ -9,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 
 import { step1Schema } from '@/application/validation/needAnalysis'
 import FormContainer from '@/components/FormContainer'
+import FormField from '@/components/FormField'
 import FormNavButton from '@/components/FormNavButton'
 import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
 import ProgressBar from '@/components/ProgressBar'
@@ -19,7 +20,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { CalendarIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { useFormContext } from '@/context/FormContext'
 
@@ -37,14 +38,12 @@ export default function Form1Page() {
     isLoaded,
     linkId,
     apiError,
-    clearApiError,
   } = useFormContext()
 
   const {
     register,
     handleSubmit,
     control,
-    watch,
     reset,
     formState: { errors },
   } = useForm({
@@ -99,6 +98,8 @@ export default function Form1Page() {
     }
   }, [isLoaded, step1Data, reset])
 
+  // The date picker swaps between a popover and a full-screen sheet, because
+  // an anchored popover is unusable on a narrow screen.
   useEffect(() => {
     if (typeof window === 'undefined') return
     const mq = window.matchMedia('(max-width: 767px)')
@@ -124,15 +125,12 @@ export default function Form1Page() {
 
   // Takes the errors react-hook-form passes in, rather than reading the `errors`
   // from the render closure — on a first failed submit that closure still holds
-  // the previous render's empty object, so no toast fired. Five of these fields
-  // render only a red border with no message, so the toast is their only
-  // feedback.
+  // the previous render's empty object, so no toast fired.
   const handleValidationErrors = (validationErrors) => {
     Object.values(validationErrors).forEach((error) => {
       if (error?.message) toast.error(error.message)
     })
   }
-
 
   const onSubmit = async (data) => {
     if (isSubmitting) return // Prevent multiple submissions
@@ -163,12 +161,19 @@ export default function Form1Page() {
   }
 
   const handleStepNavigation = (stepNumber) => {
-    // Navigate to the selected step
     router.push(`/form/${linkId}/step${stepNumber}`)
   }
 
+  const calendarProps = {
+    mode: 'single',
+    fromYear: 1950,
+    toYear: new Date().getFullYear(),
+    captionLayout: 'dropdown',
+    initialFocus: true,
+  }
+
   return (
-    <main className="min-h-screen bg-gray-100 flex flex-col">
+    <main className="flex min-h-dvh flex-col bg-surface-page">
       <NeedAnalysisFormHeader />
       <ProgressBar
         currentStep={1}
@@ -177,123 +182,86 @@ export default function Form1Page() {
       />
 
       {isLoadingData ? (
-        <section className="flex-grow flex justify-center items-center py-8 px-4">
+        <section className="flex flex-grow items-center justify-center px-4 py-8">
           <div className="flex flex-col items-center gap-4">
-            <Spinner className="w-12 h-12 text-[#0C407C]" />
-            <p className="text-gray-600 text-sm">Loading form data...</p>
+            <Spinner className="size-10 text-primary-300" />
+            <p className="text-sm text-muted-foreground">Loading form data…</p>
           </div>
         </section>
       ) : (
-        <section className="flex-grow flex justify-center items-center py-8 px-4">
-          <FormContainer>
-          <form
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
-            onSubmit={handleSubmit(onSubmit, handleValidationErrors)}
-          >
+        <section className="flex flex-grow items-center justify-center px-4 py-8">
+          <FormContainer title="Your details">
+            <form
+              id="step1-form"
+              className="grid grid-cols-1 gap-4 text-sm sm:gap-5 md:grid-cols-2"
+              onSubmit={handleSubmit(onSubmit, handleValidationErrors)}
+            >
+              <FormField
+                label="Full Name"
+                placeholder="Ex: Sunil Nishantha Karunarathna"
+                error={errors.fullName?.message}
+                {...register('fullName')}
+              />
 
-              {/* Full Name */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Full Name
-                </label>
-                <input
-                  {...register('fullName')}
-                  placeholder="Ex: Sunil Nishantha Karunarathna"
-                  className={`border ${
-                    errors.fullName
-                      ? 'border-[var(--error-400)]'
-                      : 'border-[#8EABD2]'
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
-                />
-                {errors.fullName && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.fullName.message}
-                  </p>
-                )}
-              </div>
-
-              {/* Address */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Address
-                </label>
-                <input
-                  {...register('address')}
-                  placeholder="Your Address"
-                  className={`border ${
-                    errors.address
-                      ? 'border-[var(--error-400)]'
-                      : 'border-[#8EABD2]'
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
-                />
-              </div>
+              <FormField
+                label="Address"
+                placeholder="Your Address"
+                error={errors.address?.message}
+                {...register('address')}
+              />
 
               {/* Date of Birth */}
-              <div className="relative">
-                <label className="block text-gray-700 font-medium mb-1">
-                  Date of Birth
-                </label>
+              <FormField label="Date of Birth" error={errors.dateOfBirth?.message}>
                 <Controller
                   control={control}
                   name="dateOfBirth"
                   render={({ field }) => (
                     <div className="relative">
-                      <input
+                      <Input
                         readOnly
-                        value={
-                          field.value ? format(field.value, 'dd/MM/yyyy') : ''
-                        }
+                        value={field.value ? format(field.value, 'dd/MM/yyyy') : ''}
                         placeholder="DD/MM/YYYY"
-                        className={`border ${
-                          errors.dateOfBirth
-                            ? 'border-[var(--error-400)]'
-                            : 'border-[#8EABD2]'
-                        } rounded-full px-3 py-2 pr-10 bg-[#DCE7F2] w-full focus:outline-none cursor-pointer`}
+                        aria-invalid={Boolean(errors.dateOfBirth)}
+                        className="cursor-pointer pr-11"
                         onClick={() => setOpen(true)}
                       />
                       <Popover open={open && !isMobile} onOpenChange={setOpen}>
                         <PopoverTrigger asChild>
-                          <Button
+                          <button
                             type="button"
-                            className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-600 bg-transparent hover:bg-transparent"
+                            aria-label="Open calendar"
+                            className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
                             onClick={() => setOpen((s) => !s)}
                           >
-                            <CalendarIcon className="h-4 w-4" />
-                          </Button>
+                            <CalendarIcon className="size-4" />
+                          </button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 mt-2 border border-gray-200 rounded-xl shadow-lg">
+                        <PopoverContent className="w-auto p-0">
                           <Calendar
-                            mode="single"
+                            {...calendarProps}
                             selected={field.value}
                             onSelect={(d) => {
                               field.onChange(d)
                               setOpen(false)
                             }}
-                            fromYear={1950}
-                            toYear={new Date().getFullYear()}
-                            captionLayout="dropdown"
-                            initialFocus
                           />
                         </PopoverContent>
                       </Popover>
+
                       {mounted && isMobile && open && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center">
                           <div
-                            className="absolute inset-0 bg-black/40"
+                            className="absolute inset-0 bg-[var(--surface-overlay)] backdrop-blur-sm"
                             onClick={() => setOpen(false)}
                           />
-                          <div className="relative z-50 bg-white rounded-2xl p-3 shadow-lg border border-gray-200">
+                          <div className="relative z-50 rounded-2xl border border-border/70 bg-surface-raised p-3 shadow-xl">
                             <Calendar
-                              mode="single"
+                              {...calendarProps}
                               selected={field.value}
                               onSelect={(d) => {
                                 field.onChange(d)
                                 setOpen(false)
                               }}
-                              fromYear={1950}
-                              toYear={new Date().getFullYear()}
-                              captionLayout="dropdown"
-                              initialFocus
                             />
                           </div>
                         </div>
@@ -301,132 +269,60 @@ export default function Form1Page() {
                     </div>
                   )}
                 />
-                {errors.dateOfBirth && (
-                  <p className="text-xs mt-1 text-[var(--error-400)]">
-                    {errors.dateOfBirth.message}
-                  </p>
-                )}
-              </div>
+              </FormField>
 
-              {/* Phone Number */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Phone Number
-                </label>
-                <input
-                  {...register('phoneNumber')}
-                  placeholder="Ex: +94771234567"
-                  className={`border ${
-                    errors.phoneNumber
-                      ? 'border-[var(--error-400)]'
-                      : 'border-[#8EABD2]'
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
-                />
+              <FormField
+                label="Phone Number"
+                placeholder="Ex: +94771234567"
+                error={errors.phoneNumber?.message}
+                {...register('phoneNumber')}
+              />
 
-              </div>
+              <FormField
+                label="Spouse's Name"
+                placeholder="Ex: Samanthi Ishara Karunarathna"
+                error={errors.spouseName?.message}
+                {...register('spouseName')}
+              />
 
-              {/* Spouse Name */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Spouse’s Name
-                </label>
-                <input
-                  {...register('spouseName')}
-                  placeholder="Ex: Samanthi Ishara Karunarathna"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
-                />
-              </div>
+              <FormField
+                label="Number of Children"
+                placeholder="Ex: 3"
+                error={errors.numberOfChildren?.message}
+                {...register('numberOfChildren')}
+              />
 
-              {/* Number of Children */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Number of Children
-                </label>
-                <input
-                  {...register('numberOfChildren')}
-                  placeholder="Ex: 3"
-                  className={`border ${
-                    errors.numberOfChildren
-                      ? 'border-[var(--error-400)]'
-                      : 'border-[#8EABD2]'
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
-                />
+              <FormField
+                label="Children's Ages"
+                placeholder="Ex: 5, 8, 12"
+                error={errors.childrenAges?.message}
+                {...register('childrenAges')}
+              />
 
-              </div>
+              <FormField
+                label="Occupation / Business (Optional)"
+                placeholder="Your Job/Business"
+                error={errors.occupation?.message}
+                {...register('occupation')}
+              />
 
-              {/* Children’s Ages */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Children’s Ages
-                </label>
-                <input
-                  {...register('childrenAges')}
-                  placeholder="Ex: 5, 8, 12"
-                  className={`border ${
-                    errors.childrenAges
-                      ? 'border-[var(--error-400)]'
-                      : 'border-[#8EABD2]'
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none`}
-                />
-
-              </div>
-
-              {/* Occupation */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Occupation / Business (Optional)
-                </label>
-                <input
-                  {...register('occupation')}
-                  placeholder="Your Job/Business"
-                  className="border border-[#8EABD2] rounded-full px-3 py-2 bg-[#DCE7F2] w-full focus:outline-none"
-                />
-              </div>
-
-              {/* Monthly Income */}
-              <div
-                className={`${
-                  isMobile
-                    ? 'md:col-span-2 flex flex-col items-start mt-1'
-                    : 'md:col-span-2 flex flex-col items-center mt-1'
-                }`}
-              >
-                <label className="block text-gray-700 font-medium mb-1">
-                  Monthly Income (LKR)
-                </label>
-                <input
-                  {...register('monthlyIncome')}
-                  placeholder="Ex: 70000"
-                  className={`border ${
-                    errors.monthlyIncome
-                      ? 'border-[var(--error-400)]'
-                      : 'border-[#8EABD2]'
-                  } rounded-full px-3 py-2 bg-[#DCE7F2] w-full max-w-md focus:outline-none`}
-                />
-
-              </div>
+              <FormField
+                label="Monthly Income (LKR)"
+                placeholder="Ex: 70000"
+                error={errors.monthlyIncome?.message}
+                className="md:col-span-2 md:mx-auto md:w-full md:max-w-md"
+                {...register('monthlyIncome')}
+              />
             </form>
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between items-center mt-6">
-              <div className="hidden">
-                <FormNavButton
-                  label="Back"
-                  type="prev"
-                  variant="gradient"
-                  disabled
-                />
-              </div>
-              <div className="flex-grow flex justify-end">
-            <FormNavButton
-              label={isSubmitting ? 'Saving...' : 'Next'}
-              type="next"
-              variant="gradient"
-              onClick={handleSubmit(onSubmit, handleValidationErrors)}
-              disabled={isSubmitting}
-            />
-
-              </div>
+            <div className="mt-8 flex items-center justify-end">
+              <FormNavButton
+                label={isSubmitting ? 'Saving…' : 'Next'}
+                type="next"
+                onClick={handleSubmit(onSubmit, handleValidationErrors)}
+                disabled={isSubmitting}
+              />
             </div>
           </FormContainer>
         </section>

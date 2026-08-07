@@ -1,6 +1,8 @@
 'use client'
 
 import toast from 'react-hot-toast'
+import { motion } from 'framer-motion'
+import { Info } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
@@ -19,7 +21,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
 import { step2Schema } from '@/application/validation/needAnalysis'
+import { useMotion } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 import {
   emptySelection,
   findHealthCoverConflict,
@@ -160,7 +165,7 @@ export default function NeedAnalysisFormPage2() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 flex flex-col">
+    <main className="flex min-h-dvh flex-col bg-surface-page">
       <NeedAnalysisFormHeader />
       <ProgressBar
         currentStep={2}
@@ -168,43 +173,42 @@ export default function NeedAnalysisFormPage2() {
         onStepClick={handleStepNavigation}
       />
 
-      <section className="flex-grow flex justify-center items-start py-8 px-4">
+      <section className="flex flex-grow items-start justify-center px-4 py-8">
         <FormContainer>
           <div>
 
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 text-sm -mt-4">
+            <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 md:gap-6">
               {/* Insurance Need Section */}
-              <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-xl border border-gray-100">
+              <div className="rounded-2xl border border-border/70 bg-surface-raised p-4 shadow-md sm:p-6">
                 <div className="flex items-center justify-between mb-4 sm:mb-5">
-                  <h2 className="text-gray-700 font-medium text-base">
+                  <h2 className="text-base font-semibold">
                     Insurance Need
                   </h2>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80"
-                        style={{ backgroundColor: '#89acd0' }}
+                      <button
+                        type="button"
+                        aria-label="More information"
+                        className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full bg-primary-200 text-white transition-colors hover:bg-primary-300"
                       >
-                        <span className="text-white text-sm font-bold">i</span>
-                      </div>
+                        <Info className="size-3.5" strokeWidth={2.5} />
+                      </button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="w-[95%] sm:w-[85%] md:w-[75%] lg:w-[65%] xl:w-[55%] max-w-lg mx-auto rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
-                      <AlertDialogHeader className="text-center sm:text-left space-y-2 sm:space-y-3">
-                        <AlertDialogTitle className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 leading-tight">
+                    <AlertDialogContent className="max-w-lg">
+                      <AlertDialogHeader className="space-y-2 text-center sm:text-left">
+                        <AlertDialogTitle className="text-lg font-semibold sm:text-xl">
                           Insurance Need Information
                         </AlertDialogTitle>
-                        <AlertDialogDescription className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed">
+                        <AlertDialogDescription className="text-sm leading-relaxed">
                           Select one or more options from the available choices
                           to proceed with your insurance needs assessment.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
-                      <AlertDialogAction
-                        className="w-full sm:w-auto mt-4 sm:mt-6 text-white py-2 sm:py-3 px-4 sm:px-6 md:px-8 text-sm sm:text-base rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-                        style={{ backgroundColor: '#89acd0' }}
-                      >
-                        <span className="text-base sm:text-lg">✓</span>
-                        OK
+                      <AlertDialogAction asChild>
+                        <Button variant="gradient" className="mt-4 w-full sm:w-auto">
+                          OK
+                        </Button>
                       </AlertDialogAction>
                     </AlertDialogContent>
                   </AlertDialog>
@@ -292,42 +296,41 @@ export default function NeedAnalysisFormPage2() {
               </div>
 
               {/* Health Covers Section */}
-              <div className="bg-white rounded-3xl p-4 sm:p-6 shadow-xl border border-gray-100">
+              <div className="rounded-2xl border border-border/70 bg-surface-raised p-4 shadow-md sm:p-6">
                 <div className="flex items-center justify-between mb-4 sm:mb-5">
-                  <h2 className="text-gray-700 font-medium text-base">
+                  <h2 className="text-base font-semibold">
                     Health Covers
                   </h2>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <div
-                        className="w-6 h-6 rounded-full flex items-center justify-center cursor-pointer hover:opacity-80"
-                        style={{ backgroundColor: '#89acd0' }}
+                      <button
+                        type="button"
+                        aria-label="More information"
+                        className="inline-flex size-6 cursor-pointer items-center justify-center rounded-full bg-primary-200 text-white transition-colors hover:bg-primary-300"
                       >
-                        <span className="text-white text-sm font-bold">i</span>
-                      </div>
+                        <Info className="size-3.5" strokeWidth={2.5} />
+                      </button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="w-[95%] sm:w-[85%] md:w-[75%] lg:w-[65%] xl:w-[55%] max-w-lg mx-auto rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8">
-                      <AlertDialogHeader className="text-center sm:text-left space-y-2 sm:space-y-3">
-                        <AlertDialogTitle className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 leading-tight">
+                    <AlertDialogContent className="max-w-lg">
+                      <AlertDialogHeader className="space-y-2 text-center sm:text-left">
+                        <AlertDialogTitle className="text-lg font-semibold sm:text-xl">
                           Health Covers Information
                         </AlertDialogTitle>
-                        <AlertDialogDescription className="text-xs sm:text-sm md:text-base text-gray-600 leading-relaxed space-y-2">
+                        <AlertDialogDescription className="space-y-2 text-sm leading-relaxed">
                           <span className="block">
                             You can choose a maximum of 3 options from the
                             available health cover choices.
                           </span>
-                          <span className="block font-medium text-red-600">
+                          <span className="block font-medium text-destructive">
                             Note: Cannot select both Hospital Bill Cover and
                             Surgery Cover at the same time.
                           </span>
                         </AlertDialogDescription>
                       </AlertDialogHeader>
-                      <AlertDialogAction
-                        className="w-full sm:w-auto mt-4 sm:mt-6 text-white py-2 sm:py-3 px-4 sm:px-6 md:px-8 text-sm sm:text-base rounded-lg font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2"
-                        style={{ backgroundColor: '#89acd0' }}
-                      >
-                        <span className="text-base sm:text-lg">✓</span>
-                        OK
+                      <AlertDialogAction asChild>
+                        <Button variant="gradient" className="mt-4 w-full sm:w-auto">
+                          OK
+                        </Button>
                       </AlertDialogAction>
                     </AlertDialogContent>
                   </AlertDialog>
@@ -402,17 +405,11 @@ export default function NeedAnalysisFormPage2() {
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex flex-row justify-between items-center mt-8 w-full">
-              <FormNavButton
-                label="Back"
-                type="prev"
-                variant="gradient"
-                onClick={handleBack}
-              />
+            <div className="mt-8 flex w-full flex-row items-center justify-between">
+              <FormNavButton label="Back" type="prev" onClick={handleBack} />
               <FormNavButton
                 label="Next"
                 type="next"
-                variant="gradient"
                 onClick={handleNext}
                 disabled={isSubmitting}
               />
@@ -426,55 +423,70 @@ export default function NeedAnalysisFormPage2() {
 
 // Checkbox Card Component
 function CheckboxCard({ label, checked, onChange, disabled = false }) {
+  const m = useMotion()
+
   return (
-    <div
-      className={`flex items-center px-3 py-2 sm:px-4 sm:py-3 bg-white rounded-full shadow-xl border border-gray-200 
-                 transition-all duration-300 ${
-                   disabled
-                     ? 'cursor-not-allowed opacity-50'
-                     : 'cursor-pointer hover:shadow-2xl hover:scale-105'
-                 }`}
+    <motion.button
+      type="button"
       onClick={disabled ? undefined : onChange}
-      style={{
-        boxShadow:
-          '0 4px 15px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
-      }}
+      disabled={disabled}
+      role="checkbox"
+      aria-checked={checked}
+      whileHover={disabled || m.reduce ? undefined : { scale: 1.02 }}
+      whileTap={disabled || m.reduce ? undefined : { scale: 0.98 }}
+      className={cn(
+        'flex w-full items-center rounded-full border px-3 py-2.5 text-left shadow-sm sm:px-4 sm:py-3',
+        'transition-[background-color,border-color,box-shadow] duration-200',
+        disabled
+          ? 'cursor-not-allowed opacity-50'
+          : 'cursor-pointer hover:shadow-md',
+        checked
+          ? 'border-primary-300 bg-accent/60'
+          : 'border-border bg-surface-raised hover:border-primary-200'
+      )}
     >
-      <div
-        className={`w-4 h-4 sm:w-5 sm:h-5 rounded border-2 mr-2 sm:mr-3 flex items-center justify-center transition-colors flex-shrink-0`}
-        style={{
-          backgroundColor: checked
-            ? '#1b477f'
-            : disabled
-            ? '#d1d5db'
-            : '#89acd0',
-          borderColor: checked ? '#1b477f' : disabled ? '#d1d5db' : '#89acd0',
-        }}
-      >
-        {checked && (
-          <svg
-            className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 
-              01-1.414 0l-4-4a1 1 0 
-              011.414-1.414L8 12.586l7.293-7.293a1 1 
-              0 011.414 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-        )}
-      </div>
       <span
-        className={`font-medium text-sm sm:text-base ${
-          disabled ? 'text-gray-400' : 'text-gray-700'
-        }`}
+        className={cn(
+          'mr-2.5 flex size-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors duration-200 sm:mr-3',
+          disabled
+            ? 'border-muted bg-muted'
+            : checked
+              ? 'border-primary-400 bg-primary-400'
+              : 'border-primary-200 bg-primary-200'
+        )}
+      >
+        {/* The tick draws itself on rather than popping in. pathLength is a
+            Framer convenience for stroke-dasharray, so this needs no
+            hardcoded path length. */}
+        <motion.svg
+          viewBox="0 0 20 20"
+          fill="none"
+          className="size-3 text-white"
+          initial={false}
+          animate={checked ? 'checked' : 'unchecked'}
+        >
+          <motion.path
+            d="M4 10.5 L8.5 15 L16 6"
+            stroke="currentColor"
+            strokeWidth={3}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            variants={{
+              unchecked: { pathLength: 0, opacity: 0 },
+              checked: { pathLength: 1, opacity: 1 },
+            }}
+            transition={{ duration: m.duration(0.25), ease: [0.16, 1, 0.3, 1] }}
+          />
+        </motion.svg>
+      </span>
+      <span
+        className={cn(
+          'text-sm font-medium sm:text-base',
+          disabled ? 'text-muted-foreground' : 'text-foreground'
+        )}
       >
         {label}
       </span>
-    </div>
+    </motion.button>
   )
 }

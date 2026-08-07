@@ -1,8 +1,18 @@
+'use client'
+
+import { AnimatePresence, motion } from 'framer-motion'
+import { Check } from 'lucide-react'
+
+import { useMotion } from '@/lib/motion'
+import { cn } from '@/lib/utils'
+
 export default function ProgressBar({
   currentStep = 2,
   totalSteps = 4,
   onStepClick,
 }) {
+  const m = useMotion()
+
   const handleStepClick = (stepNumber) => {
     // Only allow navigation to completed steps (not current step)
     if (stepNumber < currentStep && onStepClick) {
@@ -11,7 +21,7 @@ export default function ProgressBar({
   }
 
   return (
-    <div className="w-full max-w-xs sm:max-w-lg md:max-w-xl lg:max-w-2xl mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 md:py-8">
+    <div className="mx-auto w-full max-w-xs px-4 py-5 sm:max-w-lg sm:px-6 sm:py-6 md:max-w-xl md:px-8 md:py-8 lg:max-w-2xl">
       <div className="flex items-center justify-center">
         {Array.from({ length: totalSteps }, (_, index) => {
           const stepNumber = index + 1
@@ -22,46 +32,76 @@ export default function ProgressBar({
           return (
             <div key={stepNumber} className="flex items-center">
               {/* Step Circle */}
-              <div
+              <motion.button
+                type="button"
                 onClick={() => handleStepClick(stepNumber)}
-                className={`
-                  w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center text-xs sm:text-sm font-semibold
-                  transition-all duration-200
-                  ${
-                    isActive
-                      ? 'bg-[var(--primary-200)] border border-[var(--primary-400)] text-white'
-                      : isCompleted
-                      ? 'bg-[var(--primary-300)] border border-[var(--primary-400)] text-white'
-                      : 'bg-neutral-300 border border-[var(--gray-200)] text-neutral-600'
-                  }
-                  ${
-                    isClickable
-                      ? 'cursor-pointer hover:scale-110 hover:shadow-lg'
-                      : 'cursor-default'
-                  }
-                `}
+                disabled={!isClickable}
+                aria-current={isActive ? 'step' : undefined}
+                animate={
+                  // A single attention pulse when a step becomes current —
+                  // it settles rather than looping, so it reads as an arrival
+                  // and not as a permanent decoration.
+                  isActive && !m.reduce ? { scale: [1, 1.12, 1] } : { scale: 1 }
+                }
+                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                whileHover={isClickable && !m.reduce ? { scale: 1.1 } : undefined}
+                whileTap={isClickable && !m.reduce ? { scale: 0.95 } : undefined}
+                className={cn(
+                  'flex size-8 items-center justify-center rounded-full border text-xs font-semibold sm:size-9 md:size-10 sm:text-sm',
+                  'transition-colors duration-300',
+                  isActive &&
+                    'border-primary-400 bg-primary-200 text-white shadow-md',
+                  isCompleted && 'border-primary-400 bg-primary-300 text-white',
+                  !isActive &&
+                    !isCompleted &&
+                    'border-border bg-surface-sunken text-muted-foreground',
+                  isClickable ? 'cursor-pointer' : 'cursor-default'
+                )}
                 title={
                   isClickable
                     ? `Go to Step ${stepNumber}`
                     : isActive
-                    ? `Current Step`
-                    : `Step ${stepNumber}`
+                      ? 'Current Step'
+                      : `Step ${stepNumber}`
                 }
               >
-                {stepNumber}
-              </div>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={isCompleted ? 'check' : 'number'}
+                    initial={{ opacity: 0, scale: m.reduce ? 1 : 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: m.reduce ? 1 : 0.5 }}
+                    transition={{ duration: m.duration(0.18) }}
+                    className="flex items-center justify-center"
+                  >
+                    {isCompleted ? (
+                      <Check className="size-4" strokeWidth={3} />
+                    ) : (
+                      stepNumber
+                    )}
+                  </motion.span>
+                </AnimatePresence>
+              </motion.button>
 
               {/* Progress Line (don't show after last step) */}
               {stepNumber < totalSteps && (
-                <div className="relative h-0.5 sm:h-1 w-12 sm:w-16 md:w-20 lg:w-24 mx-2 sm:mx-3 md:mx-4 bg-neutral-300 border border-[var(--gray-200)] rounded-full">
-                  {/* Half-filled line for current step */}
-                  {stepNumber === currentStep && (
-                    <div className="absolute top-0 left-0 h-0.5 sm:h-1 w-1/2 bg-[var(--primary-200)] border border-[var(--primary-400)] rounded-full" />
-                  )}
-                  {/* Fully filled line for completed steps */}
-                  {stepNumber < currentStep && (
-                    <div className="absolute top-0 left-0 h-0.5 sm:h-1 w-full bg-[var(--primary-300)] border border-[var(--primary-400)] rounded-full" />
-                  )}
+                <div className="relative mx-2 h-1 w-12 overflow-hidden rounded-full bg-surface-sunken sm:mx-3 sm:w-16 md:mx-4 md:w-20 lg:w-24">
+                  {/* One bar that grows, rather than the two separately
+                      rendered half- and full-width divs this used to have. */}
+                  <motion.div
+                    className={cn(
+                      'absolute inset-y-0 left-0 w-full origin-left rounded-full',
+                      isCompleted ? 'bg-primary-300' : 'bg-primary-200'
+                    )}
+                    initial={false}
+                    animate={{
+                      scaleX: isCompleted ? 1 : isActive ? 0.5 : 0,
+                    }}
+                    transition={{
+                      duration: m.duration(0.45),
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                  />
                 </div>
               )}
             </div>

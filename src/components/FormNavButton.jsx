@@ -1,49 +1,44 @@
-import React from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+'use client'
 
+import { ArrowLeft, ArrowRight } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+
+/**
+ * Back / Next control for the wizard.
+ *
+ * The previous version built its own `baseClasses` and `gradientClasses`
+ * strings and layered them over the Button variants, so the two fought:
+ * rounded-md from the base then rounded-full from the override, py-2 against
+ * the variant's own height. It now just picks a variant.
+ */
 const FormNavButton = ({
   label,
   type,
-  variant = "default",
+  variant = 'gradient',
   onClick,
   disabled = false,
 }) => {
-  const baseClasses = "px-6 py-2 rounded-md font-medium transition-all";
-  const gradientClasses = disabled
-    ? "bg-gray-300 text-gray-500 cursor-not-allowed rounded-full py-1"
-    : "bg-[var(--primary-200)] rounded-full py-2";
+  const isPrev = type === 'prev'
 
   return (
-    <div>
-      {type === "prev" ? (
-        <Button
-          type="button"
-          onClick={onClick}
-          disabled={disabled}
-          className={`flex items-center  ${baseClasses} ${
-            variant === "gradient" ? gradientClasses : ""
-          }`}
-        >
-          <ArrowLeft className="mr-1 w-4 h-4" />
-          {label}
-        </Button>
-      ) : (
-        <Button
-          type="button"
-          onClick={onClick}
-          disabled={disabled}
-          className={`flex items-center  ${baseClasses} ${
-            variant === "gradient" ? gradientClasses : ""
-          }`}
-        >
-          {label}
-
-          <ArrowRight className="ml-1 w-4 h-4" />
-        </Button>
+    <Button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      variant={disabled ? 'secondary' : variant}
+      size="lg"
+      className="group gap-1.5"
+    >
+      {isPrev && (
+        <ArrowLeft className="size-4 transition-transform duration-200 group-hover:-translate-x-1" />
       )}
-    </div>
-  );
-};
+      {label}
+      {!isPrev && (
+        <ArrowRight className="size-4 transition-transform duration-200 group-hover:translate-x-1" />
+      )}
+    </Button>
+  )
+}
 
-export default FormNavButton;
+export default FormNavButton

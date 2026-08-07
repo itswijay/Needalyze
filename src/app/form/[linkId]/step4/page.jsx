@@ -1,25 +1,31 @@
 'use client'
+
 import toast from 'react-hot-toast'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
+import { Download, RotateCcw } from 'lucide-react'
+
 import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
 import ProgressBar from '@/components/ProgressBar'
 import { Button } from '@/components/ui/button'
-import { CheckCircle2, Download, RotateCcw } from 'lucide-react'
+import { Spinner } from '@/components/ui/spinner'
 import { useFormContext } from '@/context/FormContext'
 import { useNeedAnalysisPdf } from '@/hooks/useNeedAnalysisPdf'
+import { useMotion } from '@/lib/motion'
 
 export default function Step4Page() {
   const router = useRouter()
   const [isRestarting, setIsRestarting] = useState(false)
   const { resetForm, getAllData, linkId } = useFormContext()
   const { generate, isGenerating: isGeneratingPDF } = useNeedAnalysisPdf(linkId)
+  const m = useMotion()
 
-useEffect(() => {
-  toast.success("Form submitted successfully!", {
-    id: "form-success"
-  });
-}, []);
+  useEffect(() => {
+    toast.success('Form submitted successfully!', {
+      id: 'form-success',
+    })
+  }, [])
 
   const handleDownload = async () => {
     try {
@@ -67,12 +73,11 @@ useEffect(() => {
   }
 
   const handleStepNavigation = (stepNumber) => {
-    // Navigate to the selected step
     router.push(`/form/${linkId}/step${stepNumber}`)
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 flex flex-col">
+    <main className="flex min-h-dvh flex-col bg-surface-page">
       <NeedAnalysisFormHeader />
       <ProgressBar
         currentStep={4}
@@ -80,60 +85,104 @@ useEffect(() => {
         onStepClick={handleStepNavigation}
       />
 
-      <section className="flex-grow flex justify-center items-center pb-10 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-3xl shadow-lg p-8 md:p-12 max-w-2xl w-full text-center">
-          {/* Success Icon */}
-          <div className="flex justify-center mb-4">
+      <section className="flex flex-grow items-center justify-center px-4 pb-10 sm:px-6 lg:px-8">
+        <motion.div
+          variants={m.stagger(0.1, 0.15)}
+          initial="hidden"
+          animate="visible"
+          className="w-full max-w-2xl rounded-3xl border border-border/70 bg-surface-raised p-8 text-center shadow-lg md:p-12"
+        >
+          {/* Success mark */}
+          <motion.div variants={m.scaleIn} className="mb-6 flex justify-center">
             <div className="relative">
-              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary-200 via-primary-400 to-primary-700 flex items-center justify-center shadow-xl">
-                <CheckCircle2
-                  className="w-20 h-20 text-white"
-                  strokeWidth={2}
+              {/* A single ring that expands and fades, rather than a looping
+                  pulse — this is a one-time arrival, not an ongoing state. */}
+              {!m.reduce && (
+                <motion.span
+                  aria-hidden="true"
+                  className="absolute inset-0 rounded-full bg-primary-200/40"
+                  initial={{ scale: 1, opacity: 0.7 }}
+                  animate={{ scale: 1.7, opacity: 0 }}
+                  transition={{ duration: 1.1, delay: 0.35, ease: 'easeOut' }}
                 />
+              )}
+              <div className="relative flex size-28 items-center justify-center rounded-full bg-gradient-to-br from-primary-200 via-primary-400 to-primary-700 shadow-xl md:size-32">
+                <motion.svg
+                  viewBox="0 0 52 52"
+                  fill="none"
+                  className="size-16 text-white md:size-20"
+                >
+                  <motion.path
+                    d="M14 27 L22 35 L38 18"
+                    stroke="currentColor"
+                    strokeWidth={4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    initial={{ pathLength: m.reduce ? 1 : 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{
+                      duration: m.duration(0.5),
+                      delay: m.duration(0.3),
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                  />
+                </motion.svg>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Success Message */}
-
-          <h1 className="text-2xl md:text-xl font-bold text-primary-600 mb-6">
+          <motion.h1
+            variants={m.fadeInUp}
+            className="mb-3 text-2xl font-bold tracking-tight text-primary-300"
+          >
             Form Completed Successfully
-          </h1>
+          </motion.h1>
 
-          <p className="text-gray-600 mb-8">
+          <motion.p
+            variants={m.fadeInUp}
+            className="mb-8 text-muted-foreground"
+          >
             Your need analysis has been completed. You can download it as a PDF
             or fill out the form again from the beginning.
-          </p>
+          </motion.p>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            {/* Start New Form Button */}
+          <motion.div
+            variants={m.fadeInUp}
+            className="flex flex-col items-center justify-center gap-3 sm:flex-row"
+          >
             <Button
               type="button"
               onClick={handleStartOver}
-              className="px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
               variant="outline"
+              size="lg"
               disabled={isRestarting}
+              className="w-full sm:w-auto"
             >
-              <RotateCcw className="w-5 h-5" />
-              <span>{isRestarting ? 'Starting...' : 'Fill Again'}</span>
+              {isRestarting ? (
+                <Spinner className="size-4" />
+              ) : (
+                <RotateCcw className="size-4" />
+              )}
+              {isRestarting ? 'Starting…' : 'Fill Again'}
             </Button>
 
-            {/* Download Button */}
             <Button
               type="button"
               onClick={handleDownload}
-              className="px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
               variant="gradient"
+              size="lg"
               disabled={isGeneratingPDF}
+              className="w-full sm:w-auto"
             >
-              <Download className="w-5 h-5" />
-              <span>
-                {isGeneratingPDF ? 'Generating PDF...' : 'Download PDF'}
-              </span>
+              {isGeneratingPDF ? (
+                <Spinner className="size-4" />
+              ) : (
+                <Download className="size-4" />
+              )}
+              {isGeneratingPDF ? 'Generating PDF…' : 'Download PDF'}
             </Button>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
     </main>
   )

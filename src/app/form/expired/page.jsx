@@ -1,23 +1,42 @@
-import React from "react";
-import Image from "next/image";
+'use client'
+
+import Image from 'next/image'
+import { motion } from 'framer-motion'
+import { Clock } from 'lucide-react'
+
+import { useMotion } from '@/lib/motion'
 
 const ExpiredLinkPage = () => {
+  const m = useMotion()
+
   return (
-    <main className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md text-center">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-surface-page px-4">
+      <motion.div
+        variants={m.fadeInUp}
+        initial="hidden"
+        animate="visible"
+        className="w-full max-w-md rounded-3xl border border-border/70 bg-surface-raised p-8 text-center shadow-lg"
+      >
         <Image
           src="/images/logos/secondary-t.png"
           alt="Needalyze"
           width={96}
           height={96}
-          className="mx-auto mb-4 w-24 h-auto"
+          className="mx-auto mb-6 h-auto w-24 dark:brightness-0 dark:invert"
           priority
         />
-        <h1 className="text-2xl font-bold mb-2">Your Link has expired</h1>
-        <p className="text-gray-600">Please contact support for assistance.</p>
-      </div>
+        <span className="mb-4 inline-flex size-12 items-center justify-center rounded-full bg-warning-50 text-warning-400 dark:bg-warning-700 dark:text-warning-100">
+          <Clock className="size-6" />
+        </span>
+        <h1 className="mb-2 text-2xl font-bold tracking-tight">
+          Your link has expired
+        </h1>
+        <p className="text-muted-foreground">
+          Please contact support for assistance.
+        </p>
+      </motion.div>
     </main>
-  );
-};
+  )
+}
 
-export default ExpiredLinkPage;
+export default ExpiredLinkPage

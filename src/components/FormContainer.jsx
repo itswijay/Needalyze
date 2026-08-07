@@ -1,25 +1,30 @@
-import React from "react";
+'use client'
 
-export default function FormContainer({ title, children, className = "" }) {
+import { motion } from 'framer-motion'
+
+import { useMotion } from '@/lib/motion'
+import { cn } from '@/lib/utils'
+
+export default function FormContainer({ title, children, className = '' }) {
+  const m = useMotion()
+
   return (
-    <div
-      className={`
-        bg-white shadow-xl rounded-3xl 
-        p-6 sm:p-10 md:p-14 
-        w-full max-w-4xl 
-        mx-auto 
-        -mt-6 sm:-mt-10 
-        ${className}
-        flex flex-col
-        min-h-[80vh] sm:min-h-0
-      `}
+    <motion.div
+      variants={m.fadeInUp}
+      initial="hidden"
+      animate="visible"
+      className={cn(
+        'mx-auto flex w-full max-w-4xl flex-col rounded-3xl border border-border/70 bg-surface-raised p-6 shadow-lg',
+        'min-h-[80vh] sm:min-h-0 sm:p-10 md:p-12',
+        className
+      )}
     >
       {title && (
-        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6 sm:mb-8">
+        <h2 className="mb-6 text-center text-2xl font-semibold tracking-tight sm:mb-8">
           {title}
         </h2>
       )}
       <div className="flex-grow">{children}</div>
-    </div>
-  );
+    </motion.div>
+  )
 }

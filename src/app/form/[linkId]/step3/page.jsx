@@ -5,8 +5,9 @@ import React, { useState, useEffect } from 'react'
 import FormContainer from '@/components/FormContainer'
 import NeedAnalysisFormHeader from '@/components/NeedAnalysisFormHeader'
 import ProgressBar from '@/components/ProgressBar'
-import { Button } from '@/components/ui/button'
+import FormField from '@/components/FormField'
 import FormNavButton from '@/components/FormNavButton'
+import { AnimatedNumber } from '@/components/ui/motion-primitives'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -16,18 +17,18 @@ import {
   calculateActualHlv,
   calculateHlv,
 } from '@/domain/services/humanLifeValue'
+import { formatCurrency } from '@/domain/services/money'
+import { cn } from '@/lib/utils'
 
 export default function Form3Page() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isMarkingComplete, setIsMarkingComplete] = useState(false)
   const handleBack = () => {
     router.push(`/form/${linkId}/step2`)
   }
 
   // Get form context
-  const { getStepData, updateStepData, isLoaded, linkId, getAllData } =
-    useFormContext()
+  const { getStepData, updateStepData, isLoaded, linkId } = useFormContext()
   const step3Data = getStepData('step3')
 
   // React Hook Form with Zod resolver
@@ -145,7 +146,7 @@ export default function Form3Page() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 flex flex-col">
+    <main className="flex min-h-dvh flex-col bg-surface-page">
       <NeedAnalysisFormHeader />
       <ProgressBar
         currentStep={3}
@@ -153,134 +154,74 @@ export default function Form3Page() {
         onStepClick={handleStepNavigation}
       />
 
-      <section className="flex-grow flex justify-center items-start py-8 px-4">
+      <section className="flex flex-grow items-start justify-center px-4 py-8">
         <FormContainer>
           <div className="mb-6">
-            <h1 className="font-bold text-2xl text-gray-800">
+            <h1 className="text-2xl font-bold tracking-tight">
               Calculation of Life Cover
             </h1>
-            <p className="text-neutral-500 text-sm sm:text-base">
-              Enter Your Details in the Following Fields
+            <p className="text-sm text-muted-foreground sm:text-base">
+              Enter your details in the following fields
             </p>
           </div>
 
           <form
             onSubmit={handleSubmit(onSubmit, onError)}
-            className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 text-sm"
+            className="grid grid-cols-1 gap-6 text-sm md:grid-cols-2"
           >
-
             {/* Left column - Input fields */}
-            <div className="flex flex-col space-y-3 sm:space-y-4">
-              {/* Fixed Monthly Expenses */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Fixed Monthly Expenses
-                </label>
-                <input
-                  type="number"
-                  className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                  {...register('fixedMonthlyExpenses', { valueAsNumber: true })}
-                />
+            <div className="flex flex-col space-y-4">
+              <FormField
+                label="Fixed Monthly Expenses"
+                type="number"
+                error={errors.fixedMonthlyExpenses?.message}
+                {...register('fixedMonthlyExpenses', { valueAsNumber: true })}
+              />
 
-              </div>
+              <FormField
+                label="Bank Interest Rate"
+                type="number"
+                step="0.1"
+                error={errors.bankInterestRate?.message}
+                {...register('bankInterestRate', { valueAsNumber: true })}
+              />
 
-              {/* Bank Interest Rate */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Bank Interest Rate
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                  {...register('bankInterestRate', { valueAsNumber: true })}
-                />
+              <FormField
+                label="Unsecured Bank Loan"
+                type="number"
+                placeholder="optional"
+                error={errors.unsecuredBankLoan?.message}
+                {...register('unsecuredBankLoan', { valueAsNumber: true })}
+              />
 
-              </div>
-
-              {/* HLV - Mobile only */}
-              <div className="md:hidden flex flex-col items-center mb-6">
-                <label className="block text-gray-700 font-medium mb-2 text-center">
-                  Your Human Life Value
-                </label>
-                <div className="border border-[#8EABD2] rounded-full px-6 py-2 bg-[#7792b7] w-64 text-white flex items-center justify-center font-bold text-xl sm:text-2xl">
-                  {hlvalue}
-                </div>
-              </div>
-
-              {/* Unsecured Bank Loan */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Unsecured Bank Loan
-                </label>
-                <input
-                  type="number"
-                  placeholder="optional"
-                  className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                  {...register('unsecuredBankLoan', { valueAsNumber: true })}
-                />
-              </div>
-
-              {/* Cash In Hand + Insurance */}
-              <div>
-                <label className="block text-gray-700 font-medium mb-1">
-                  Cash In Hand + Insurance
-                </label>
-                <input
-                  type="number"
-                  placeholder="optional"
-                  className="border border-[#8EABD2] rounded-full px-4 py-2 bg-[#DCE7F2] w-full focus:outline-none focus:ring-2 focus:ring-[#8EABD2]"
-                  {...register('cashInHandInsurance', { valueAsNumber: true })}
-                />
-              </div>
-
-              {/* Actual HLV - Mobile only */}
-              <div className="md:hidden flex flex-col items-center mb-2">
-                <label className="block text-gray-700 font-medium mb-2 text-center">
-                  Your Actual Human Life Value
-                </label>
-                <div className="border border-[#8EABD2] rounded-full px-6 py-2 bg-[#7792b7] w-64 text-white flex items-center justify-center font-bold text-xl sm:text-2xl">
-                  {actualHLValue}
-                </div>
-              </div>
+              <FormField
+                label="Cash In Hand + Insurance"
+                type="number"
+                placeholder="optional"
+                error={errors.cashInHandInsurance?.message}
+                {...register('cashInHandInsurance', { valueAsNumber: true })}
+              />
             </div>
 
-            {/* Right column - Calculated values (Desktop only) */}
-            <div className="hidden md:flex md:flex-col md:justify-around md:items-center">
-              {/* HLV - Desktop */}
-              <div className="flex flex-col items-center">
-                <label className="block text-gray-700 font-medium mb-2 text-center">
-                  Your Human Life Value
-                </label>
-                <div className="border border-[#8EABD2] rounded-full px-6 py-2 bg-[#7792b7] w-64 text-white flex items-center justify-center font-bold text-2xl">
-                  {hlvalue}
-                </div>
-              </div>
-
-              {/* Actual HLV - Desktop */}
-              <div className="flex flex-col items-center">
-                <label className="block text-gray-700 font-medium mb-2 text-center">
-                  Your Actual Human Life Value
-                </label>
-                <div className="border border-[#8EABD2] rounded-full px-6 py-2 bg-[#7792b7] w-64 text-white flex items-center justify-center font-bold text-2xl">
-                  {actualHLValue}
-                </div>
-              </div>
+            {/* Right column - the two calculated figures. These used to be
+                written out twice, once in a md:hidden block interleaved with
+                the inputs and once in a hidden md:flex column. */}
+            <div className="flex flex-col justify-center gap-6">
+              <ValueReadout label="Your Human Life Value" value={hlvalue} />
+              <ValueReadout
+                label="Your Actual Human Life Value"
+                value={actualHLValue}
+                emphasis
+              />
             </div>
           </form>
 
           {/* Navigation Buttons */}
-          <div className="flex flex-row justify-between items-center mt-8 gap-2">
+          <div className="mt-8 flex flex-row items-center justify-between gap-2">
+            <FormNavButton label="Back" type="prev" onClick={handleBack} />
             <FormNavButton
-              label="Back"
-              type="prev"
-              variant="gradient"
-              onClick={handleBack}
-            />
-            <FormNavButton
-              label={isSubmitting ? 'Submitting...' : 'Submit'}
+              label={isSubmitting ? 'Submitting…' : 'Submit'}
               type="next"
-              variant="gradient"
               onClick={handleSubmit(onSubmit, onError)}
               disabled={isSubmitting}
             />
@@ -288,5 +229,39 @@ export default function Form3Page() {
         </FormContainer>
       </section>
     </main>
+  )
+}
+
+/**
+ * One of the two calculated figures.
+ *
+ * The value counts to its new total instead of jumping, which matters here:
+ * these update on every keystroke in the fields beside them, and a number
+ * that animates makes the cause and effect legible. It also runs through
+ * formatCurrency now — these were the only place in the app still printing a
+ * raw ungrouped integer.
+ */
+function ValueReadout({ label, value, emphasis = false }) {
+  return (
+    <div className="flex flex-col items-center">
+      <span className="mb-2 block text-center text-sm font-medium text-muted-foreground">
+        {label}
+      </span>
+      <div
+        className={cn(
+          'flex w-full max-w-xs items-center justify-center rounded-2xl border px-6 py-3 text-center font-bold',
+          emphasis
+            ? 'border-primary-400 bg-gradient-brand-horizontal text-white shadow-md'
+            : 'border-border bg-surface-sunken text-foreground'
+        )}
+      >
+        <AnimatedNumber
+          value={value}
+          format={(n) => formatCurrency(Math.round(n)) || 'Rs. 0'}
+          startOnView={false}
+          className="text-lg sm:text-xl"
+        />
+      </div>
+    </div>
   )
 }
