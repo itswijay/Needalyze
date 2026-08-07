@@ -129,6 +129,32 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 14px);
+
+  /* Surfaces — page chrome, raised panels, inset fields. Every screen pulls
+     its background from one of these instead of reaching for bg-gray-100 or
+     bg-blue-50 directly, which is what made the app look assembled from
+     unrelated parts. */
+  --color-surface-page: var(--surface-page);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-overlay: var(--surface-overlay);
+  --color-surface-hover: var(--surface-hover);
+
+  /* Elevation. Tinted with the brand navy rather than neutral black, so a
+     raised card reads as part of the palette instead of a grey box. These
+     deliberately override Tailwind's default shadow scale. */
+  --shadow-xs: var(--elevation-xs);
+  --shadow-sm: var(--elevation-sm);
+  --shadow-md: var(--elevation-md);
+  --shadow-lg: var(--elevation-lg);
+  --shadow-xl: var(--elevation-xl);
+
+  /* Motion. Shared by CSS transitions and the Framer Motion variants in
+     lib/motion.js so both speak the same timing language. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 :root {
@@ -255,6 +281,40 @@
   --sidebar-accent-foreground: var(--base-black);
   --sidebar-border: var(--gray-200);
   --sidebar-ring: var(--primary-400);
+
+  /* Surfaces */
+  --surface-page: #f5f8fc;
+  --surface-raised: #ffffff;
+  --surface-sunken: #eaf1f9;
+  --surface-overlay: rgba(4, 13, 28, 0.55);
+  --surface-hover: #edf3fa;
+
+  /* Elevation — rgb(20, 40, 69) is --primary-600, the brand navy.
+     Kept as rgba() rather than a modern color function on purpose: the PDF
+     export rasterises live DOM through html2canvas 1.4.1, which throws on
+     oklch() and color-mix(). See infrastructure/pdf/html2canvasPdfRenderer. */
+  --elevation-xs: 0 1px 2px rgba(20, 40, 69, 0.06);
+  --elevation-sm: 0 1px 3px rgba(20, 40, 69, 0.08), 0 1px 2px rgba(20, 40, 69, 0.04);
+  --elevation-md: 0 4px 12px rgba(20, 40, 69, 0.08), 0 2px 4px rgba(20, 40, 69, 0.04);
+  --elevation-lg: 0 12px 28px rgba(20, 40, 69, 0.1), 0 4px 8px rgba(20, 40, 69, 0.05);
+  --elevation-xl: 0 24px 48px rgba(20, 40, 69, 0.14), 0 8px 16px rgba(20, 40, 69, 0.06);
+
+  /* Brand gradients — these exact ramps were previously written out by hand
+     as bg-[linear-gradient(...)] on five different pages. */
+  --gradient-brand: linear-gradient(to bottom, #24456e 0%, #04182f 80%);
+  --gradient-brand-horizontal: linear-gradient(to right, #24456e 0%, #04182f 90%);
+  --gradient-accent: linear-gradient(to right, #3eaa66 0%, #189370 100%);
+  --gradient-header: linear-gradient(
+    to right,
+    var(--primary-600),
+    var(--primary-300),
+    var(--primary-600)
+  );
+
+  /* Motion durations */
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
 }
 
 .dark {
@@ -291,6 +351,27 @@
   --sidebar-accent-foreground: var(--base-white);
   --sidebar-border: var(--gray-700);
   --sidebar-ring: var(--primary-300);
+
+  /* Surfaces — the page sits darkest and panels lift towards the viewer,
+     the inverse of the light theme's ordering. */
+  --surface-page: #07070a;
+  --surface-raised: #12181c;
+  --surface-sunken: #1b2328;
+  --surface-overlay: rgba(0, 0, 0, 0.7);
+  --surface-hover: #1f282d;
+
+  /* Elevation — a tint reads as fog against a dark page, so these go to
+     near-black at higher opacity and lean on the ring for separation. */
+  --elevation-xs: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --elevation-sm: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --elevation-md: 0 4px 12px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.3);
+  --elevation-lg: 0 12px 28px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+  --elevation-xl: 0 24px 48px rgba(0, 0, 0, 0.6), 0 8px 16px rgba(0, 0, 0, 0.4);
+
+  /* The brand ramp darkens so the navy panel does not glow against a black
+     page; the accent green stays put because it is the brand's signature. */
+  --gradient-brand: linear-gradient(to bottom, #1c365a 0%, #04182f 85%);
+  --gradient-brand-horizontal: linear-gradient(to right, #1c365a 0%, #04182f 90%);
 }
 
 @layer base {
@@ -299,6 +380,45 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* The CSS-side backstop for reduced motion. Framer Motion is told
+     separately via useMotionVariants() in lib/motion.js — this rule only
+     catches the transitions and keyframes CSS owns, so both halves are
+     needed. Not `animation: none`: that would leave elements which animate
+     *in* stuck at their starting opacity of 0. A near-zero duration lets
+     them jump straight to their final frame. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Gradient fills. Utilities rather than components because they land on
+     panels, buttons and headers alike. */
+  .bg-gradient-brand {
+    background-image: var(--gradient-brand);
+  }
+  .bg-gradient-brand-horizontal {
+    background-image: var(--gradient-brand-horizontal);
+  }
+  .bg-gradient-accent {
+    background-image: var(--gradient-accent);
+  }
+  .bg-gradient-header {
+    background-image: var(--gradient-header);
+  }
+
+  /* Number columns that should not jitter while counting up. */
+  .tabular-figures {
+    font-variant-numeric: tabular-nums;
   }
 }
 
