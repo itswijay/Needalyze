@@ -4,13 +4,17 @@ import { cn } from "@/lib/utils"
 
 function Card({
   className,
+  interactive = false,
   ...props
 }) {
   return (
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+        "bg-surface-raised text-card-foreground flex flex-col gap-6 rounded-2xl border border-border/70 py-6 shadow-sm",
+        "transition-[box-shadow,transform,border-color] duration-200 ease-[var(--ease-out-expo)]",
+        interactive &&
+          "hover:border-primary-100 hover:-translate-y-0.5 hover:shadow-lg",
         className
       )}
       {...props} />
@@ -39,7 +43,7 @@ function CardTitle({
   return (
     <div
       data-slot="card-title"
-      className={cn("leading-none font-semibold", className)}
+      className={cn("leading-none font-semibold tracking-tight", className)}
       {...props} />
   );
 }
