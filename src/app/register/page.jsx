@@ -1,13 +1,21 @@
 'use client'
-import toast from "react-hot-toast";
+
+import toast from 'react-hot-toast'
 import React, { useState, useEffect } from 'react'
-import { Eye, EyeOff, ChevronDown } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import Image from 'next/image'
-import { useForm } from 'react-hook-form'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Eye, EyeOff } from 'lucide-react'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
+
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Alert } from '@/components/ui/alert'
+import { Spinner } from '@/components/ui/spinner'
+import { SelectField } from '@/components/ui/select-field'
+import { AuthShell } from '@/components/AuthShell'
+import { FullScreenLoader } from '@/components/FullScreenLoader'
 import { apiClient } from '@/infrastructure/http/apiClient'
 import { registerSchema } from '@/application/validation/auth'
 import { BRANCH_OPTIONS } from '@/domain/constants/branches'
@@ -16,37 +24,38 @@ import {
   requiresCodeNumber,
 } from '@/domain/constants/positions'
 import { useAuth } from '@/context/AuthContext'
+import { useMotion } from '@/lib/motion'
+
+/** Show/hide control sitting inside a password field. */
+const PasswordToggle = ({ shown, onToggle }) => (
+  <button
+    type="button"
+    onClick={onToggle}
+    aria-label={shown ? 'Hide password' : 'Show password'}
+    className="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+  >
+    {shown ? <Eye size={18} /> : <EyeOff size={18} />}
+  </button>
+)
 
 export default function Register() {
   const router = useRouter()
   const { isAuthenticated, loading: authLoading } = useAuth()
-  const [isMobile, setIsMobile] = useState(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [showBranchDropdown, setShowBranchDropdown] = useState(false)
-  const [showPositionDropdown, setShowPositionDropdown] = useState(false)
-  const [selectedBranch, setSelectedBranch] = useState('')
-  const [selectedPosition, setSelectedPosition] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
-
-  // ============= Desktop dropdowns state =============
-  const [showBranchDropdownDesktop, setShowBranchDropdownDesktop] =
-    useState(false)
-  const [showPositionDropdownDesktop, setShowPositionDropdownDesktop] =
-    useState(false)
-
-  const branches = BRANCH_OPTIONS
-  const positions = POSITION_OPTIONS
+  const m = useMotion()
 
   // React Hook Form with Zod - MUST be called before any early returns
   const {
     register,
     handleSubmit,
+    control,
+    watch,
     formState: { errors },
     reset,
-    setValue,
   } = useForm({
     resolver: zodResolver(registerSchema),
     mode: 'onSubmit',
@@ -63,11 +72,16 @@ export default function Register() {
     },
   })
 
-const handleValidationErrors = (errors) => {
-  Object.values(errors).forEach((err) => {
-    toast.error(err.message);
-  });
-};
+  // Drives the conditional code-number field. Watching the form is what makes
+  // the two dropdowns plain controlled fields — they previously each kept a
+  // second copy of their value in component state purely to answer this.
+  const selectedPosition = watch('position')
+
+  const handleValidationErrors = (validationErrors) => {
+    Object.values(validationErrors).forEach((err) => {
+      toast.error(err.message)
+    })
+  }
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
@@ -76,60 +90,14 @@ const handleValidationErrors = (errors) => {
     }
   }, [isAuthenticated, authLoading, router])
 
-  // Check mobile viewport
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest('.dropdown-container')) {
-        setShowBranchDropdown(false)
-        setShowPositionDropdown(false)
-        setShowBranchDropdownDesktop(false)
-        setShowPositionDropdownDesktop(false)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
   // Show loading state while checking authentication or if already authenticated
   if (authLoading || isAuthenticated) {
     return (
-      <div className="w-full h-screen flex justify-center items-center bg-[linear-gradient(to_bottom,_#24456e_0%,_#04182f_80%)]">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>
-            {isAuthenticated ? 'Redirecting to dashboard...' : 'Loading...'}
-          </p>
-        </div>
-      </div>
+      <FullScreenLoader
+        brand
+        message={isAuthenticated ? 'Redirecting to dashboard…' : 'Loading…'}
+      />
     )
-  }
-
-  // Custom dropdown handlers
-  const handleBranchSelect = (branch) => {
-    setSelectedBranch(branch)
-    setValue('branch', branch)
-    setShowBranchDropdown(false)
-    setShowBranchDropdownDesktop(false)
-  }
-
-  const handlePositionSelect = (position) => {
-    setSelectedPosition(position)
-    setValue('position', position)
-    setShowPositionDropdown(false)
-    setShowPositionDropdownDesktop(false)
   }
 
   // handleSubmit with react-hook-form
@@ -148,8 +116,6 @@ const handleValidationErrors = (errors) => {
       )
 
       reset()
-      setSelectedBranch('')
-      setSelectedPosition('')
 
       setTimeout(() => {
         router.push('/login')
@@ -162,548 +128,182 @@ const handleValidationErrors = (errors) => {
     }
   }
 
-  // Render loading state during hydration
-  if (isMobile === null) {
-    return <div className="h-screen"></div>
-  }
-
-  // Mobile Layout
-  if (isMobile) {
-    return (
-      <div className="w-full min-h-screen flex flex-col overflow-hidden">
-        {/* Top Blue Section with Logo */}
-        <div className="w-full bg-[linear-gradient(to_bottom,#24456e_0%,#04182f_80%)] flex flex-col justify-center items-center pt-6 pb-12 relative flex-shrink-0">
-          <Image
-            src="/images/logos/white-t.png"
-            width={128}
-            height={128}
-            alt="Needalyze Logo"
-            priority
-            className="w-32 h-32"
-          />
-
-          {/* Curved bottom edge */}
-          <div className="absolute bottom-[-1px] left-0 w-full overflow-hidden leading-[0]">
-            <svg
-              className="relative block w-full h-[60px]"
-              viewBox="0 0 1200 120"
-              preserveAspectRatio="none"
-            >
-              <path
-                d="M0,0 C300,120 900,120 1200,0 L1200,120 L0,120 Z"
-                className="fill-gray-50"
-              ></path>
-            </svg>
-          </div>
-        </div>
-
-        {/* Form Section */}
-        <div className="w-full flex justify-center items-start px-4 py-4 bg-gray-50 flex-1 overflow-y-auto">
-          <div className="w-full max-w-sm mb-12">
-            <h1 className="text-center text-2xl font-bold text-primary-900 mb-5 mt-2">
-              Register
-            </h1>
-            <div className="mx-4">
-              {/* Success Message */}
-              {successMessage && (
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-                  {successMessage}
-                </div>
-              )}
-              {/* Error Message */}
-              {errorMessage && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                  {errorMessage}
-                </div>
-              )}
-              <form onSubmit={handleSubmit(onSubmit, handleValidationErrors)}>
-                {/* First Name */}
-                <div className="mb-4">
-                  <input
-                    type="text"
-                    placeholder="First Name"
-                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('firstName')}
-                  />
-
-                </div>
-                {/* Last Name */}
-                <div className="mb-4">
-                  <input
-                    type="text"
-                    placeholder="Last Name"
-                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('lastName')}
-                  />
-
-                </div>
-                {/* Phone Number */}
-                <div className="mb-4">
-                  <input
-                    type="tel"
-                    placeholder="Phone Number"
-                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('phoneNumber')}
-                  />
-
-                </div>
-                {/* Branch Dropdown */}
-                <div className="mb-4 relative dropdown-container">
-                  <input type="hidden" {...register('branch')} />
-                  <div
-                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0 text-left cursor-pointer flex items-center justify-between"
-                    onClick={() => setShowBranchDropdown(!showBranchDropdown)}
-                  >
-                    <span
-                      className={
-                        selectedBranch
-                          ? 'text-gray-900'
-                          : 'text-gray-500 text-xs'
-                      }
-                    >
-                      {selectedBranch || 'Select Branch'}
-                    </span>
-                    <ChevronDown
-                      className={`text-gray-600 transition-transform ${
-                        showBranchDropdown ? 'rotate-180' : ''
-                      }`}
-                      size={20}
-                    />
-                  </div>
-                  {showBranchDropdown && (
-                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto mt-1">
-                      {selectedBranch && (
-                        <div
-                          className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
-                          onClick={() => handleBranchSelect('')}
-                        >
-                          ✕ Clear Selection
-                        </div>
-                      )}
-                      {branches.map((branch) => (
-                        <div
-                          key={branch}
-                          className="px-5 py-3 hover:bg-gray-100 cursor-pointer text-left text-sm"
-                          onClick={() => handleBranchSelect(branch)}
-                        >
-                          {branch}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                </div>
-
-                {/* Position Dropdown */}
-                <div className="mb-4 relative dropdown-container">
-                  <input type="hidden" {...register('position')} />
-                  <div
-                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0 text-left cursor-pointer flex items-center justify-between"
-                    onClick={() =>
-                      setShowPositionDropdown(!showPositionDropdown)
-                    }
-                  >
-                    <span
-                      className={
-                        selectedPosition
-                          ? 'text-gray-900'
-                          : 'text-gray-500 text-xs'
-                      }
-                    >
-                      {selectedPosition || 'Select Position'}
-                    </span>
-                    <ChevronDown
-                      className={`text-gray-600 transition-transform ${
-                        showPositionDropdown ? 'rotate-180' : ''
-                      }`}
-                      size={20}
-                    />
-                  </div>
-                  {showPositionDropdown && (
-                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto mt-1">
-                      {selectedPosition && (
-                        <div
-                          className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
-                          onClick={() => handlePositionSelect('')}
-                        >
-                          ✕ Clear Selection
-                        </div>
-                      )}
-                      {positions.map((position) => (
-                        <div
-                          key={position}
-                          className="px-5 py-3 hover:bg-gray-100 cursor-pointer text-left text-sm"
-                          onClick={() => handlePositionSelect(position)}
-                        >
-                          {position}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                </div>
-
-                {/* Code Number - Show only for Advisor and Team Leader */}
-                {requiresCodeNumber(selectedPosition) && (
-                  <div className="mb-4">
-                    <input
-                      type="text"
-                      placeholder="Code Number"
-                      className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                      {...register('regCode')}
-                    />
-
-                  </div>
-                )}
-
-                {/* Email */}
-                <div className="mb-4">
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    autoComplete="email"
-                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('email')}
-                  />
-
-                </div>
-
-                {/* Password */}
-                <div className="mb-4 relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    autoComplete="new-password"
-                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('password')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
-                  >
-                    {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-                  </button>
-
-                </div>
-
-                {/* Confirm Password */}
-                <div className="mb-4 relative">
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Confirm Password"
-                    autoComplete="new-password"
-                    className="w-full rounded-full placeholder:text-xs p-2.5 px-5 bg-gray-200 border-0 focus:outline-none focus:ring-0"
-                    {...register('confirmPassword')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
-                  >
-                    {showConfirmPassword ? (
-                      <Eye size={20} />
-                    ) : (
-                      <EyeOff size={20} />
-                    )}
-                  </button>
-
-                </div>
-
-                {/* Register Button */}
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full rounded-full p-5.5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? 'Registering...' : 'Register'}
-                </Button>
-              </form>
-
-              {/* Login Link */}
-              <div className="space-y-2">
-                <p className="text-center text-primary-900 text-sm mt-4">
-                  Already have an Account?{' '}
-                  <Link
-                    href="/login"
-                    className="text-primary-900 hover:text-primary-700 font-semibold inline"
-                  >
-                    Login
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Desktop Layout
-
   return (
-    <div className="w-full h-screen flex flex-row overflow-hidden">
-      {/* Left Section - Blue Background*/}
-      <div className="w-1/2 bg-[linear-gradient(to_bottom,#24456e_0%,#04182f_80%)] flex flex-col justify-center items-center p-8">
-        <div className="text-center">
-          <div className="mb-1">
-            <div className="flex justify-center mb-1">
-              <Image
-                src="/images/logos/white-t.png"
-                alt="Needalyze Logo"
-                width={260}
-                height={260}
-                className="w-[260px] h-[260px] object-contain"
-                priority
+    <AuthShell
+      title="Create your account"
+      subtitle="Join Needalyze to start analysing customer needs"
+      footer={
+        <p className="text-center text-sm text-muted-foreground">
+          Already have an account?{' '}
+          <Link
+            href="/login"
+            className="font-semibold text-primary-300 transition-colors hover:text-primary-200"
+          >
+            Login
+          </Link>
+        </p>
+      }
+    >
+      <AnimatePresence initial={false}>
+        {successMessage && (
+          <Alert variant="success" className="mb-5">
+            {successMessage}
+          </Alert>
+        )}
+        {errorMessage && (
+          <Alert variant="error" className="mb-5">
+            {errorMessage}
+          </Alert>
+        )}
+      </AnimatePresence>
+
+      <motion.form
+        onSubmit={handleSubmit(onSubmit, handleValidationErrors)}
+        noValidate
+        variants={m.stagger(0.04, 0.05)}
+        initial="hidden"
+        animate="visible"
+        className="space-y-4"
+      >
+        <motion.div variants={m.fadeInUp} className="flex flex-col gap-4 sm:flex-row">
+          <Input
+            type="text"
+            placeholder="First name"
+            autoComplete="given-name"
+            aria-invalid={Boolean(errors.firstName)}
+            {...register('firstName')}
+          />
+          <Input
+            type="text"
+            placeholder="Last name"
+            autoComplete="family-name"
+            aria-invalid={Boolean(errors.lastName)}
+            {...register('lastName')}
+          />
+        </motion.div>
+
+        <motion.div variants={m.fadeInUp}>
+          <Input
+            type="tel"
+            placeholder="Phone number"
+            autoComplete="tel"
+            aria-invalid={Boolean(errors.phoneNumber)}
+            {...register('phoneNumber')}
+          />
+        </motion.div>
+
+        <motion.div variants={m.fadeInUp}>
+          <Controller
+            control={control}
+            name="branch"
+            render={({ field }) => (
+              <SelectField
+                value={field.value}
+                onChange={field.onChange}
+                options={BRANCH_OPTIONS}
+                placeholder="Select branch"
+                invalid={Boolean(errors.branch)}
               />
-            </div>
-          </div>
-        </div>
-      </div>
+            )}
+          />
+        </motion.div>
 
-      {/* Right Section - Form*/}
-      <div className="w-1/2 bg-white flex-1 overflow-y-auto py-8 px-8 flex justify-center">
-        <div className="w-full max-w-md my-auto">
-          <div className="bg-white p-10 rounded-lg shadow-sm border border-gray-200">
-            <h1 className="text-center text-2xl font-bold text-gray-900 mb-8">
-              Register
-            </h1>
-            {/* Success Message */}
-            {successMessage && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-                {successMessage}
-              </div>
+        <motion.div variants={m.fadeInUp}>
+          <Controller
+            control={control}
+            name="position"
+            render={({ field }) => (
+              <SelectField
+                value={field.value}
+                onChange={field.onChange}
+                options={POSITION_OPTIONS}
+                placeholder="Select position"
+                invalid={Boolean(errors.position)}
+              />
             )}
-            {/* Error Message */}
-            {errorMessage && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                {errorMessage}
-              </div>
-            )}
-<form onSubmit={handleSubmit(onSubmit, handleValidationErrors)}
-              className="space-y-4"
+          />
+        </motion.div>
+
+        {/* Code number, for the positions that require one. */}
+        <AnimatePresence initial={false}>
+          {requiresCodeNumber(selectedPosition) && (
+            <motion.div
+              key="regCode"
+              variants={m.collapse}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="overflow-hidden"
             >
-              {/* First Name */}
-              <div>
-                <input
-                  type="text"
-                  placeholder="First Name"
-                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('firstName')}
-                />
+              <Input
+                type="text"
+                placeholder="Code number"
+                aria-invalid={Boolean(errors.regCode)}
+                {...register('regCode')}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-              </div>
+        <motion.div variants={m.fadeInUp}>
+          <Input
+            type="email"
+            placeholder="Email"
+            autoComplete="email"
+            aria-invalid={Boolean(errors.email)}
+            {...register('email')}
+          />
+        </motion.div>
 
-              {/* Last Name */}
-              <div>
-                <input
-                  type="text"
-                  placeholder="Last Name"
-                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('lastName')}
-                />
+        <motion.div variants={m.fadeInUp} className="relative">
+          <Input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
+            autoComplete="new-password"
+            className="pr-12"
+            aria-invalid={Boolean(errors.password)}
+            {...register('password')}
+          />
+          <PasswordToggle
+            shown={showPassword}
+            onToggle={() => setShowPassword((shown) => !shown)}
+          />
+        </motion.div>
 
-              </div>
+        <motion.div variants={m.fadeInUp} className="relative">
+          <Input
+            type={showConfirmPassword ? 'text' : 'password'}
+            placeholder="Confirm password"
+            autoComplete="new-password"
+            className="pr-12"
+            aria-invalid={Boolean(errors.confirmPassword)}
+            {...register('confirmPassword')}
+          />
+          <PasswordToggle
+            shown={showConfirmPassword}
+            onToggle={() => setShowConfirmPassword((shown) => !shown)}
+          />
+        </motion.div>
 
-              {/* Phone Number */}
-              <div>
-                <input
-                  type="tel"
-                  placeholder="Phone Number"
-                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('phoneNumber')}
-                />
-
-              </div>
-
-              {/* Branch Dropdown */}
-              <div className="relative dropdown-container">
-                <input type="hidden" {...register('branch')} />
-                <div
-                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600 text-left cursor-pointer flex items-center justify-between bg-white"
-                  onClick={() =>
-                    setShowBranchDropdownDesktop(!showBranchDropdownDesktop)
-                  }
-                >
-                  <span
-                    className={
-                      selectedBranch ? 'text-gray-900' : 'text-gray-500 text-sm'
-                    }
-                  >
-                    {selectedBranch || 'Select Branch'}
-                  </span>
-                  <ChevronDown
-                    className={`text-gray-600 transition-transform ${
-                      showBranchDropdownDesktop ? 'rotate-180' : ''
-                    }`}
-                    size={20}
-                  />
-                </div>
-                {showBranchDropdownDesktop && (
-                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto mt-1">
-                    {selectedBranch && (
-                      <div
-                        className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
-                        onClick={() => handleBranchSelect('')}
-                      >
-                        ✕ Clear Selection
-                      </div>
-                    )}
-                    {branches.map((branch) => (
-                      <div
-                        key={branch}
-                        className="px-5 py-3 hover:bg-gray-100 cursor-pointer text-left text-sm"
-                        onClick={() => handleBranchSelect(branch)}
-                      >
-                        {branch}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-              </div>
-
-              {/* Position Dropdown */}
-              <div className="relative dropdown-container">
-                <input type="hidden" {...register('position')} />
-                <div
-                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600 text-left cursor-pointer flex items-center justify-between bg-white"
-                  onClick={() =>
-                    setShowPositionDropdownDesktop(!showPositionDropdownDesktop)
-                  }
-                >
-                  <span
-                    className={
-                      selectedPosition
-                        ? 'text-gray-900'
-                        : 'text-gray-500 text-sm'
-                    }
-                  >
-                    {selectedPosition || 'Select Position'}
-                  </span>
-                  <ChevronDown
-                    className={`text-gray-600 transition-transform ${
-                      showPositionDropdownDesktop ? 'rotate-180' : ''
-                    }`}
-                    size={20}
-                  />
-                </div>
-                {showPositionDropdownDesktop && (
-                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-40 overflow-y-auto mt-1">
-                    {selectedPosition && (
-                      <div
-                        className="px-5 py-3 hover:bg-red-50 cursor-pointer text-left text-sm text-red-600 border-b border-gray-200"
-                        onClick={() => handlePositionSelect('')}
-                      >
-                        ✕ Clear Selection
-                      </div>
-                    )}
-                    {positions.map((position) => (
-                      <div
-                        key={position}
-                        className="px-5 py-3 hover:bg-gray-100 cursor-pointer text-left text-sm"
-                        onClick={() => handlePositionSelect(position)}
-                      >
-                        {position}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-              </div>
-
-              {/* Code Number - Show only for Advisor and Team Leader */}
-              {requiresCodeNumber(selectedPosition) && (
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Code Number"
-                    className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                    {...register('regCode')}
-                  />
- 
-                </div>
-              )}
-
-              {/* Email */}
-              <div>
-                <input
-                  type="email"
-                  placeholder="Email"
-                  autoComplete="email"
-                  className="w-full rounded-full placeholder:text-sm px-5 py-2 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('email')}
-                />
-
-              </div>
-
-              {/* Password */}
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Password"
-                  autoComplete="new-password"
-                  className="w-full rounded-full placeholder:text-sm px-5 py-2 pr-12 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('password')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
-                </button>
-
-              </div>
-
-              {/* Confirm Password */}
-              <div className="relative">
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  placeholder="Confirm Password"
-                  autoComplete="new-password"
-                  className="w-full rounded-full placeholder:text-sm px-5 py-2 pr-12 border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary-600"
-                  {...register('confirmPassword')}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-5 top-3 text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  {showConfirmPassword ? (
-                    <Eye size={20} />
-                  ) : (
-                    <EyeOff size={20} />
-                  )}
-                </button>
-
-              </div>
-
-              {/* Register Button */}
-              <div className="pt-2">
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full rounded-full py-5.5 px-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? 'Registering...' : 'Register'}
-                </Button>
-              </div>
-
-              {/* Login Link */}
-              <p className="text-center text-gray-600 text-sm mt-6">
-                Already have an Account?{' '}
-                <Link
-                  href="/login"
-                  className="text-primary-600 hover:text-primary-700 font-semibold inline"
-                >
-                  Login
-                </Link>
-              </p>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+        <motion.div variants={m.fadeInUp} className="pt-1">
+          <Button
+            type="submit"
+            variant="brand"
+            size="lg"
+            disabled={isLoading}
+            className="w-full"
+          >
+            {isLoading ? (
+              <>
+                <Spinner className="size-4" />
+                Registering…
+              </>
+            ) : (
+              'Register'
+            )}
+          </Button>
+        </motion.div>
+      </motion.form>
+    </AuthShell>
   )
 }

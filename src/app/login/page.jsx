@@ -1,16 +1,23 @@
 'use client'
-import toast from "react-hot-toast";
-import Image from 'next/image'
+
+import toast from 'react-hot-toast'
 import React, { useState, useEffect, Suspense } from 'react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Eye, EyeOff } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter, useSearchParams } from 'next/navigation'
+
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Alert } from '@/components/ui/alert'
+import { Spinner } from '@/components/ui/spinner'
+import { AuthShell } from '@/components/AuthShell'
+import { FullScreenLoader } from '@/components/FullScreenLoader'
 import { loginSchema } from '@/application/validation/auth'
 import { useAuth } from '@/context/AuthContext'
+import { useMotion } from '@/lib/motion'
 
 // Separate component for handling search params
 const SearchParamsHandler = ({ setInfoMessage }) => {
@@ -51,16 +58,15 @@ const LoginPage = () => {
     signOut,
   } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [isMobile, setIsMobile] = useState(null) // null initially to prevent hydration mismatch
-  const [errorMessage, setErrorMessage] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [infoMessage, setInfoMessage] = useState('')
+  const m = useMotion()
 
   // React Hook Form with Zod resolver - MUST be called before any early returns
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
   } = useForm({
     resolver: zodResolver(loginSchema),
     mode: 'onSubmit',
@@ -78,38 +84,24 @@ const LoginPage = () => {
     }
   }, [isAuthenticated, isApproved, authLoading, router])
 
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768)
-    }
-
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
   // Show loading state while checking authentication or if authenticated AND approved
   // If authenticated but NOT approved, show the login page with the message
   if (authLoading || (isAuthenticated && isApproved)) {
     return (
-      <div className="w-full h-screen flex justify-center items-center bg-[linear-gradient(to_bottom,_#24456e_0%,_#04182f_80%)]">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-          <p>
-            {isAuthenticated && isApproved
-              ? 'Redirecting to dashboard...'
-              : 'Loading...'}
-          </p>
-        </div>
-      </div>
+      <FullScreenLoader
+        brand
+        message={
+          isAuthenticated && isApproved
+            ? 'Redirecting to dashboard…'
+            : 'Loading…'
+        }
+      />
     )
   }
 
   const handleLogin = async (data) => {
     try {
       setLoading(true)
-      setErrorMessage('')
       setInfoMessage('') // Clear info message on login attempt
       // Clear stored message when user attempts login
       sessionStorage.removeItem('loginInfoMessage')
@@ -122,13 +114,11 @@ const LoginPage = () => {
         return
       }
 
-      setErrorMessage(result.error || 'Login failed. Please try again.')
       toast.error(result.error || 'Login failed. Please try again.')
       setLoading(false)
     } catch (error) {
       console.error('Login error:', error)
-      setErrorMessage('An unexpected error occurred. Please try again.')
-      toast.error("Unexpected error occurred.");
+      toast.error('Unexpected error occurred.')
       setLoading(false)
     }
   }
@@ -148,252 +138,124 @@ const LoginPage = () => {
     }
   }
 
-const handleValidationErrors = (errors) => {
-  Object.values(errors).forEach((err) => {
-    toast.error(err.message);
-  });
-};
+  const handleValidationErrors = (validationErrors) => {
+    Object.values(validationErrors).forEach((err) => {
+      toast.error(err.message)
+    })
+  }
 
   return (
     <>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={null}>
         <SearchParamsHandler setInfoMessage={setInfoMessage} />
       </Suspense>
-      <div className="w-full h-screen flex flex-col md:flex-row overflow-hidden">
-        <div className="w-full md:w-1/2 bg-[linear-gradient(to_bottom,_#24456e_0%,_#04182f_80%)] flex flex-col justify-center items-center pt-6 pb-12 md:py-0 relative flex-shrink-0">
-          <Image
-            src="/images/logos/white-t.png"
-            width="260"
-            height="260"
-            alt="Needalyze-Logo"
-            priority
-            className="w-32 h-32 md:w-[260px] md:h-[260px]"
-          />
 
-          {/* Curved bottom edge - only on mobile */}
-          <div className="absolute bottom-[-1px] left-0 w-full overflow-hidden leading-[0] md:hidden">
-            <svg
-              className="relative block w-full h-[60px]"
-              viewBox="0 0 1200 120"
-              preserveAspectRatio="none"
+      <AuthShell
+        title="Welcome back"
+        subtitle="Sign in to continue to your dashboard"
+        footer={
+          <p className="text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?{' '}
+            <Link
+              href="/register"
+              className="font-semibold text-primary-300 transition-colors hover:text-primary-200"
             >
-              <path
-                d="M0,0 C300,120 900,120 1200,0 L1200,120 L0,120 Z"
-                className="fill-gray-50"
-              ></path>
-            </svg>
-          </div>
-        </div>
+              Sign up
+            </Link>
+          </p>
+        }
+      >
+        <AnimatePresence initial={false}>
+          {infoMessage && (
+            <Alert variant="info" className="mb-5">
+              {infoMessage}
+              {isAuthenticated && !isApproved && (
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  disabled={loading}
+                  className="mt-3 block cursor-pointer text-sm font-semibold underline underline-offset-2 disabled:opacity-50"
+                >
+                  Log out and try a different account
+                </button>
+              )}
+            </Alert>
+          )}
+        </AnimatePresence>
 
-        <div className="w-full md:w-1/2 flex justify-center items-start px-4 py-4 md:py-0 md:justify-center md:items-center bg-gray-50 md:bg-white flex-1 overflow-y-auto">
-          <div className="w-full max-w-sm">
-            {isMobile === null ? (
-              /* Loading state - show nothing or skeleton to prevent flash */
-              <div className="h-96"></div>
-            ) : isMobile ? (
-              /* Mobile View */
-              <div>
-                <h1 className="text-center text-2xl font-bold text-primary-900 mb-5 mt-2">
-                  Login
-                </h1>
-                <div className="mx-4">
-                  {/* Info Message */}
-                  {infoMessage && (
-                    <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
-                      <div className="flex items-start gap-2">
-                        <svg
-                          className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <div className="flex-1">
-                          <p className="text-blue-800 text-sm font-medium">
-                            {infoMessage}
-                          </p>
-                          {isAuthenticated && !isApproved && (
-                            <button
-                              onClick={handleLogout}
-                              disabled={loading}
-                              className="mt-3 text-blue-700 hover:text-blue-900 text-sm font-semibold underline disabled:opacity-50"
-                            >
-                              Logout and try different account
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {/* Error Message */}
-                  {/* {errorMessage && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                      {errorMessage}
-                    </div>
-                  )} */}
-                  <form onSubmit={handleSubmit(handleLogin, handleValidationErrors)} noValidate>
-                    <div className="mb-4">
-                      <Input
-                        className="rounded-full placeholder:text-xs p-5 bg-gray-200 border-0"
-                        type="email"
-                        placeholder="Email"
-                        autoComplete="email"
-                        {...register('email')}
-                      />
+        <motion.form
+          onSubmit={handleSubmit(handleLogin, handleValidationErrors)}
+          noValidate
+          variants={m.stagger(0.05, 0.05)}
+          initial="hidden"
+          animate="visible"
+          className="space-y-4"
+        >
+          <motion.div variants={m.fadeInUp}>
+            <Input
+              type="email"
+              placeholder="Email"
+              autoComplete="email"
+              aria-invalid={Boolean(errors.email)}
+              {...register('email')}
+            />
+          </motion.div>
 
-                    </div>
-                    <div className="mb-4">
-                      <Input
-                        className="rounded-full placeholder:text-xs p-5 bg-gray-200 border-0"
-                        type="password"
-                        placeholder="Password"
-                        autoComplete="current-password"
-                        {...register('password')}
-                      />
+          <motion.div variants={m.fadeInUp} className="relative">
+            <Input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password"
+              autoComplete="current-password"
+              className="pr-12"
+              aria-invalid={Boolean(errors.password)}
+              {...register('password')}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((shown) => !shown)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              className="absolute top-1/2 right-4 -translate-y-1/2 cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+            </button>
+          </motion.div>
 
-                    </div>
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full rounded-full p-5 bg-primary-900 hover:bg-primary-800 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? 'Loading...' : 'Login'}
-                    </Button>
-                  </form>
-                  <div className="space-y-2">
-                    <Link
-                      href="/forget-password"
-                      className="w-full block text-primary-900 hover:text-primary-700 text-sm font-semibold text-center mt-4"
-                    >
-                      Forget Password
-                    </Link>
-                    <p className="text-center text-primary-900 text-sm mt-2">
-                      Don&apos;t have account?{' '}
-                      <Link
-                        href="/register"
-                        className="text-primary-900 hover:text-primary-700 font-semibold inline"
-                      >
-                        Signup
-                      </Link>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* Desktop View - Card */
-              <Card className="shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-center text-2xl">Login</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {/* Info Message */}
-                  {infoMessage && (
-                    <div className="mb-4 p-4 bg-blue-50 border-2 border-blue-300 rounded-lg">
-                      <div className="flex items-start gap-2">
-                        <svg
-                          className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <div className="flex-1">
-                          <p className="text-blue-800 text-sm font-medium">
-                            {infoMessage}
-                          </p>
-                          {isAuthenticated && !isApproved && (
-                            <button
-                              onClick={handleLogout}
-                              disabled={loading}
-                              className="mt-3 text-blue-700 hover:text-blue-900 text-sm font-semibold underline disabled:opacity-50"
-                            >
-                              Logout and try different account
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                  {/* Error Message */}
-                  {/* {errorMessage && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                      {errorMessage}
-                    </div>
-                  )} */}
-                  <form onSubmit={handleSubmit(handleLogin, handleValidationErrors)} noValidate>
-                    <div className="mb-4">
-                      <Input
-                        className="rounded-full placeholder:text-xs p-5"
-                        type="email"
-                        placeholder="Email"
-                        autoComplete="email"
-                        {...register('email')}
-                      />
-                      
-                    </div>
-                    <div className="mb-4">
-                      <Input
-                        className="rounded-full placeholder:text-xs p-5"
-                        type="password"
-                        placeholder="Password"
-                        autoComplete="current-password"
-                        {...register('password')}
-                      />
+          <motion.div variants={m.fadeInUp} className="flex justify-end">
+            <Link
+              href="/forget-password"
+              className="text-xs font-semibold text-muted-foreground transition-colors hover:text-primary-300"
+            >
+              Forgot password?
+            </Link>
+          </motion.div>
 
-                    </div>
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full rounded-full p-5 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? 'Loading...' : 'Login'}
-                    </Button>
-                    <Link
-                      href="/forget-password"
-                      className="w-full block text-primary-600 hover:text-primary-400 text-xs font-semibold text-center mt-4 mb-2"
-                    >
-                      Forget Password
-                    </Link>
-                    <p className="text-center text-primary-600 text-xs mt-2">
-                      Don&apos;t have account?{' '}
-                      <Link
-                        href="/register"
-                        className="text-primary-400 hover:text-primary-200 font-semibold inline"
-                      >
-                        Signup
-                      </Link>
-                    </p>
-                  </form>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
-      </div>
+          <motion.div variants={m.fadeInUp}>
+            <Button
+              type="submit"
+              variant="brand"
+              size="lg"
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? (
+                <>
+                  <Spinner className="size-4" />
+                  Signing in…
+                </>
+              ) : (
+                'Login'
+              )}
+            </Button>
+          </motion.div>
+        </motion.form>
+      </AuthShell>
     </>
   )
 }
 
 const LoginRoute = () => {
   return (
-    <Suspense
-      fallback={
-        <div className="w-full h-screen flex justify-center items-center bg-[linear-gradient(to_bottom,_#24456e_0%,_#04182f_80%)]">
-          <div className="text-white text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p>Loading...</p>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<FullScreenLoader brand />}>
       <LoginPage />
     </Suspense>
   )
