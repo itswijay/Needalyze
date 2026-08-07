@@ -5,6 +5,7 @@ import { DataTable } from './components/Dashtable'
 import Navbar from './components/Navbar'
 import CreateLinkDialog from './components/CreateLinkDialog'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
+import { PageTransition } from '@/components/ui/motion-primitives'
 import { useAuth } from '@/context/AuthContext'
 import { useDashboard } from '@/hooks/useDashboard'
 
@@ -14,14 +15,19 @@ const DashboardPage = () => {
 
   return (
     <ProtectedRoute requireApproval={true}>
-      <div className="bg-[var(--primary-50)]/4">
-        <div className="min-h-screen max-w-7xl px-6 py-2 md:px-6 md:py-2 lg:px-10 lg:py-2 mx-auto">
+      {/* bg-surface-page, not the old bg-[var(--primary-50)]/4 — Tailwind v4
+          does not apply an opacity modifier to an arbitrary var() value, so
+          that class resolved to nothing and the page had no background. */}
+      <div className="min-h-dvh bg-surface-page">
+        <div className="mx-auto max-w-7xl px-6 lg:px-10">
           <Navbar />
-          <Cards cardData={cardData} />
-          <div className=" flex justify-end my-4">
-            <CreateLinkDialog />
-          </div>
-          <DataTable formData={forms} />
+          <PageTransition>
+            <Cards cardData={cardData} />
+            <div className="my-5 flex justify-end">
+              <CreateLinkDialog />
+            </div>
+            <DataTable formData={forms} />
+          </PageTransition>
         </div>
       </div>
     </ProtectedRoute>

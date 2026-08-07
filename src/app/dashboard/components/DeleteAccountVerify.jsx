@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
+import { Alert } from '@/components/ui/alert'
 import {
   Dialog,
   DialogContent,
@@ -47,37 +49,35 @@ const DeleteAccountVerify = ({ open, onOpenChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-3xl mx-auto px-2 sm:px-4 md:px-6">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-left mx-4">Delete account</DialogTitle>
-          <DialogDescription className="text-left mx-4">
+          <DialogTitle className="text-left text-destructive">Delete account</DialogTitle>
+          <DialogDescription className="text-left">
             Are you sure you want to delete your account? This action cannot be
             undone, but your account can be recovered within 7 days.
           </DialogDescription>
         </DialogHeader>
 
-        {error && (
-          <div className="mx-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-xs sm:text-sm">{error}</p>
-          </div>
-        )}
+        <AnimatePresence initial={false}>
+          {error && <Alert variant="error">{error}</Alert>}
+        </AnimatePresence>
 
-        <DialogFooter className="flex justify-end gap-2 mt-4 mx-2 flex-row">
+        <DialogFooter className="mt-2 flex-row justify-end gap-2">
           <Button variant="ghost" onClick={handleCancel} disabled={isDeleting}>
             Cancel
           </Button>
           <Button
-            className="bg-red-600 hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="destructive"
             onClick={handleConfirmDelete}
             disabled={isDeleting}
           >
             {isDeleting ? (
               <>
-                <Spinner className="w-4 h-4 mr-2" />
-                Deleting...
+                <Spinner className="size-4" />
+                Deleting…
               </>
             ) : (
-              'Confirm Delete'
+              'Confirm delete'
             )}
           </Button>
         </DialogFooter>

@@ -6,6 +6,8 @@ import {
   getCoreRowModel,
   useReactTable,
 } from '@tanstack/react-table'
+import { AnimatePresence, motion } from 'framer-motion'
+import { Check, X } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 import {
@@ -26,10 +28,12 @@ import {
 } from '@/components/ui/table'
 import { Spinner } from '@/components/ui/spinner'
 import { usePendingUsers } from '@/hooks/usePendingUsers'
+import { useMotion } from '@/lib/motion'
 
 const ApproveUser = ({ open, onOpenChange, onChange }) => {
   const { users, isLoading, processingId, load, approve, reject } =
     usePendingUsers()
+  const m = useMotion()
 
   React.useEffect(() => {
     if (!open) return
@@ -86,21 +90,27 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
         cell: ({ row }) => {
           const isProcessing = processingId === row.original.userId
           return (
-            <div className="flex flex-col md:flex-row items-center justify-center gap-2">
+            <div className="flex flex-col items-center justify-center gap-2 md:flex-row">
               <Button
-                className="bg-blue-600 text-white px-3 py-1 rounded-full text-xs md:text-sm w-full md:w-auto"
+                variant="accent"
+                size="sm"
+                className="w-full md:w-auto"
                 disabled={isProcessing}
                 onClick={() => handleDecision(row.original.userId, 'approved')}
               >
-                {isProcessing ? <Spinner /> : 'Approve'}
+                {isProcessing ? <Spinner /> : <Check className="size-3.5" />}
+                Approve
               </Button>
 
               <Button
-                className="bg-red-600 text-white px-3 py-1 rounded-full text-xs md:text-sm w-full md:w-auto"
+                variant="destructive"
+                size="sm"
+                className="w-full md:w-auto"
                 disabled={isProcessing}
                 onClick={() => handleDecision(row.original.userId, 'rejected')}
               >
-                {isProcessing ? <Spinner /> : 'Reject'}
+                {isProcessing ? <Spinner /> : <X className="size-3.5" />}
+                Reject
               </Button>
             </div>
           )
@@ -118,9 +128,9 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-md md:max-w-lg lg:max-w-4xl mx-auto p-4 sm:p-6 gap-3 sm:gap-4 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg lg:max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
+          <DialogTitle className="text-center text-xl">
             Approve User
           </DialogTitle>
         </DialogHeader>
@@ -133,7 +143,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
           ) : (
             <>
               {/* Desktop Table View */}
-              <div className="hidden md:block border rounded-lg overflow-x-auto">
+              <div className="hidden overflow-x-auto rounded-2xl border border-border/70 md:block">
                 <Table className="min-w-full text-sm md:text-base">
                   <TableHeader>
                     {table.getHeaderGroups().map((hg) => (
@@ -172,7 +182,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="text-center py-4">
+                        <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
                           No pending users found.
                         </TableCell>
                       </TableRow>
@@ -182,72 +192,83 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
               </div>
 
               {/* Mobile Card View */}
-              <div className="md:hidden space-y-4">
+              <div className="space-y-4 md:hidden">
+                <AnimatePresence initial={false}>
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => {
                     const isProcessing = processingId === row.original.userId
                     return (
-                      <div
+                      <motion.div
                         key={row.id}
-                        className="border rounded-lg p-4 bg-white shadow-sm"
+                        layout={!m.reduce}
+                        initial={{ opacity: 0, y: m.reduce ? 0 : 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: m.reduce ? 1 : 0.96 }}
+                        transition={{ duration: m.duration(0.22) }}
+                        className="rounded-2xl border border-border/70 bg-surface-raised p-4 shadow-sm"
                       >
                         <div className="space-y-3">
                           <div className="flex justify-between">
-                            <span className="font-semibold text-gray-600 text-xs sm:text-sm">
+                            <span className="text-xs font-medium text-muted-foreground sm:text-sm">
                               User
                             </span>
-                            <span className="font-medium text-xs sm:text-sm">
+                            <span className="text-xs font-medium sm:text-sm">
                               {row.original.name}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="font-semibold text-gray-600 text-xs sm:text-sm">
+                            <span className="text-xs font-medium text-muted-foreground sm:text-sm">
                               Branch
                             </span>
-                            <span className="font-medium text-xs sm:text-sm">
+                            <span className="text-xs font-medium sm:text-sm">
                               {row.original.branch}
                             </span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="font-semibold text-gray-600 text-xs sm:text-sm">
+                            <span className="text-xs font-medium text-muted-foreground sm:text-sm">
                               Code Number
                             </span>
-                            <span className="font-medium text-xs sm:text-sm">
+                            <span className="text-xs font-medium sm:text-sm">
                               {row.original.codeNumber}
                             </span>
                           </div>
-                          <div className="pt-3 border-t">
+                          <div className="border-t border-border/70 pt-3">
                             <div className="flex flex-col gap-2">
                               <Button
-                                className="bg-blue-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm w-full"
+                                variant="accent"
+                                className="w-full"
                                 disabled={isProcessing}
                                 onClick={() =>
                                   handleDecision(row.original.userId, 'approved')
                                 }
                               >
-                                {isProcessing ? <Spinner /> : 'Approve'}
+                                {isProcessing ? <Spinner /> : <Check className="size-4" />}
+                                Approve
                               </Button>
 
                               <Button
-                                className="bg-red-600 text-white px-3 py-2 rounded-full text-xs sm:text-sm w-full"
+                                variant="destructive"
+                                className="w-full"
                                 disabled={isProcessing}
                                 onClick={() =>
                                   handleDecision(row.original.userId, 'rejected')
                                 }
                               >
-                                {isProcessing ? <Spinner /> : 'Reject'}
+                                {isProcessing ? <Spinner /> : <X className="size-4" />}
+                                Reject
                               </Button>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     )
                   })
                 ) : (
-                  <div className="text-center py-4 text-gray-500 text-sm">
+                  <div className="py-6 text-center text-sm text-muted-foreground">
                     No pending users found.
                   </div>
                 )}
+                </AnimatePresence>
               </div>
             </>
           )}
