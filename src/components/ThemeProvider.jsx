@@ -16,7 +16,11 @@ export function ThemeProvider({ children }) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="light"
+      // "system" rather than "light": with an explicit default, next-themes
+      // never consults prefers-color-scheme, so enableSystem below would do
+      // nothing until the user touched the toggle. This way the app follows
+      // the OS on a first visit and the toggle overrides it from then on.
+      defaultTheme="system"
       enableSystem
       disableTransitionOnChange
     >

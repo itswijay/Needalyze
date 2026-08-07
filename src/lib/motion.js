@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useReducedMotion } from 'framer-motion'
 
 /**
@@ -169,10 +169,23 @@ export const HOVER_LIFT = {
  *   <motion.div variants={m.fadeInUp} initial="hidden" animate="visible" />
  */
 export function useMotion() {
-  // `useReducedMotion` is null until it has read the media query, which only
-  // happens after mount. Treating that as "animate" keeps the server and the
-  // first client render identical.
-  const reduce = useReducedMotion() ?? false
+  const prefersReduced = useReducedMotion() ?? false
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
+
+  // Deliberately false for the server render *and* the first client render.
+  //
+  // The media query cannot be read on the server, so branching on it directly
+  // makes the two renders disagree about a variant's opacity and transform,
+  // which React reports as a hydration mismatch and refuses to patch up — the
+  // element can then be left stranded at the server's opacity: 0.
+  //
+  // Holding the flag false until after mount keeps the markup identical.
+  // Framer then re-applies styles imperatively on the next commit, so a
+  // reduced-motion user still lands on the finished state; MotionConfig's
+  // `reducedMotion="user"` in Providers suppresses transforms in the meantime.
+  const reduce = mounted && prefersReduced
 
   return useMemo(
     () => ({
