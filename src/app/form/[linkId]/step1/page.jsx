@@ -205,13 +205,6 @@ export default function Form1Page() {
                 {...register('fullName')}
               />
 
-              <FormField
-                label="Address"
-                placeholder="Your Address"
-                error={errors.address?.message}
-                {...register('address')}
-              />
-
               {/* Date of Birth */}
               <FormField label="Date of Birth" error={errors.dateOfBirth?.message}>
                 <Controller
@@ -272,6 +265,17 @@ export default function Form1Page() {
                   )}
                 />
               </FormField>
+
+              {/* Full width: an address needs the room, and with seven
+                  single-width fields around one full-width Children control
+                  the grid would otherwise be left with a hole in it. */}
+              <FormField
+                label="Address"
+                placeholder="Your Address"
+                error={errors.address?.message}
+                className="md:col-span-2"
+                {...register('address')}
+              />
 
               <FormField label="Phone Number" error={errors.phoneNumber?.message}>
                 <Controller
@@ -337,7 +341,6 @@ export default function Form1Page() {
                 label="Monthly Income (LKR)"
                 placeholder="Ex: 70000"
                 error={errors.monthlyIncome?.message}
-                className="md:col-span-2 md:mx-auto md:w-full md:max-w-md"
                 {...register('monthlyIncome')}
               />
             </form>
