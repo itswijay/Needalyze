@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Alert } from '@/components/ui/alert'
 import { Spinner } from '@/components/ui/spinner'
 import { SelectField } from '@/components/ui/select-field'
+import { PhoneField } from '@/components/ui/phone-field'
 import { AuthShell } from '@/components/AuthShell'
 import { FullScreenLoader } from '@/components/FullScreenLoader'
 import { apiClient } from '@/infrastructure/http/apiClient'
@@ -183,12 +184,16 @@ export default function Register() {
         </motion.div>
 
         <motion.div variants={m.fadeInUp}>
-          <Input
-            type="tel"
-            placeholder="Phone number"
-            autoComplete="tel"
-            aria-invalid={Boolean(errors.phoneNumber)}
-            {...register('phoneNumber')}
+          <Controller
+            control={control}
+            name="phoneNumber"
+            render={({ field }) => (
+              <PhoneField
+                value={field.value}
+                onChange={field.onChange}
+                invalid={Boolean(errors.phoneNumber)}
+              />
+            )}
           />
         </motion.div>
 

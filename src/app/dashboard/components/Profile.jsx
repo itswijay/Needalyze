@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label'
 import { Alert } from '@/components/ui/alert'
 import { Spinner } from '@/components/ui/spinner'
 import { SelectField } from '@/components/ui/select-field'
+import { PhoneField } from '@/components/ui/phone-field'
 import { apiClient } from '@/infrastructure/http/apiClient'
 import { BRANCH_OPTIONS } from '@/domain/constants/branches'
 import { POSITION_OPTIONS } from '@/domain/constants/positions'
@@ -151,11 +152,10 @@ const Profile = ({ open, onOpenChange }) => {
 
               <div className="grid gap-2">
                 <Label htmlFor="phone_number">Phone number</Label>
-                <Input
+                <PhoneField
                   id="phone_number"
-                  placeholder="Enter phone number"
                   value={phone_number}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  onChange={setPhoneNumber}
                 />
               </div>
 

@@ -12,6 +12,10 @@ import {
   requiredAmount,
   requiredDate,
 } from './common'
+import {
+  MAX_AGE,
+  MAX_CHILDREN,
+} from '@/application/view-models/childrenAges'
 
 /**
  * Input schemas for the four form steps.
@@ -40,6 +44,7 @@ export const step1Schema = z
     numberOfChildren: z.coerce
       .number()
       .min(0, 'Number of children is required')
+      .max(MAX_CHILDREN, `Please enter no more than ${MAX_CHILDREN} children`)
       .int('Must be a whole number'),
     childrenAges: z.string().optional(),
     occupation: z.string().optional(),
@@ -55,14 +60,16 @@ export const step1Schema = z
         .split(',')
         .map((age) => age.trim())
         .filter(Boolean)
+      // The stepper in the UI makes a mismatch impossible, so this now guards
+      // against anything reaching the schema another way. The upper bound is
+      // new: /^\d+$/ on its own accepted an age of 999.
       return (
         ages.length === data.numberOfChildren &&
-        ages.every((age) => /^\d+$/.test(age))
+        ages.every((age) => /^\d{1,2}$/.test(age) && Number(age) <= MAX_AGE)
       )
     },
     {
-      message:
-        "Enter the exact number of children's ages separated by commas (e.g., 5, 8, 12)",
+      message: `Enter an age between 0 and ${MAX_AGE} for each child`,
       path: ['childrenAges'],
     }
   )

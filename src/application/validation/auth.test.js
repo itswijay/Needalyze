@@ -104,7 +104,7 @@ describe('registerSchema', () => {
     expect(
       firstError(registerSchema, { ...validRegistration, phoneNumber: '0771234567' })
     ).toBe(
-      'Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)'
+      'Enter a valid phone number for the selected country'
     )
   })
 
@@ -141,7 +141,7 @@ describe('profileSchema', () => {
     expect(
       firstError(profileSchema, { ...profileFields, phoneNumber: '123' })
     ).toBe(
-      'Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)'
+      'Enter a valid phone number for the selected country'
     )
   })
 })

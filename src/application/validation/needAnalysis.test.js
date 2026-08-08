@@ -123,7 +123,7 @@ describe('step1Schema', () => {
   describe('phone number', () => {
     it('requires a country code', () => {
       expect(firstError(step1Schema, { ...validStep1, phoneNumber: '0771234567' })).toBe(
-        'Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)'
+        'Enter a valid phone number for the selected country'
       )
     })
 
@@ -132,11 +132,34 @@ describe('step1Schema', () => {
         'Phone number is required'
       )
     })
+
+    // The rule used to be /^\+\d{11}$/ — exactly eleven digits, which is Sri
+    // Lanka's shape and nobody else's. Every number below was rejected by it,
+    // which would have made the country picker offer countries the form then
+    // refused. These are the regression.
+    it.each([
+      ['Sri Lanka', '+94771234567'],
+      ['India', '+919876543210'],
+      ['United Kingdom', '+447911123456'],
+      ['United Arab Emirates', '+971501234567'],
+      ['Singapore', '+6591234567'],
+    ])('accepts a valid %s number', (_country, phoneNumber) => {
+      expect(step1Schema.safeParse({ ...validStep1, phoneNumber }).success).toBe(
+        true
+      )
+    })
+
+    it('rejects digits that fit the shape but are not a real number', () => {
+      // Eleven digits, so the old length-only regex waved this through. It is
+      // not an allocated Sri Lankan number, and the numbering plan knows that.
+      expect(firstError(step1Schema, { ...validStep1, phoneNumber: '+94000000000' })).toBe(
+        'Enter a valid phone number for the selected country'
+      )
+    })
   })
 
   describe("children's ages", () => {
-    const agesMessage =
-      "Enter the exact number of children's ages separated by commas (e.g., 5, 8, 12)"
+    const agesMessage = 'Enter an age between 0 and 99 for each child'
 
     it('accepts one age per child', () => {
       const result = step1Schema.safeParse({
@@ -174,6 +197,32 @@ describe('step1Schema', () => {
         childrenAges: '',
       })
       expect(result.success).toBe(true)
+    })
+
+    // /^\d+$/ on its own let this through, so a typo became a stored age.
+    it('rejects an age that is not a plausible age', () => {
+      expect(
+        firstError(step1Schema, {
+          ...validStep1,
+          numberOfChildren: 1,
+          childrenAges: '999',
+        })
+      ).toBe(agesMessage)
+    })
+
+    it('accepts the edges of the supported age range', () => {
+      const result = step1Schema.safeParse({
+        ...validStep1,
+        numberOfChildren: 2,
+        childrenAges: '0, 99',
+      })
+      expect(result.success).toBe(true)
+    })
+
+    it('caps the number of children', () => {
+      expect(
+        firstError(step1Schema, { ...validStep1, numberOfChildren: 16 })
+      ).toBe('Please enter no more than 15 children')
     })
   })
 

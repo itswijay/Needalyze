@@ -21,6 +21,8 @@ import {
 } from '@/components/ui/popover'
 import { CalendarIcon } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { PhoneField } from '@/components/ui/phone-field'
+import { ChildrenField } from '@/components/ui/children-field'
 import { Spinner } from '@/components/ui/spinner'
 import { useFormContext } from '@/context/FormContext'
 
@@ -271,12 +273,19 @@ export default function Form1Page() {
                 />
               </FormField>
 
-              <FormField
-                label="Phone Number"
-                placeholder="Ex: +94771234567"
-                error={errors.phoneNumber?.message}
-                {...register('phoneNumber')}
-              />
+              <FormField label="Phone Number" error={errors.phoneNumber?.message}>
+                <Controller
+                  control={control}
+                  name="phoneNumber"
+                  render={({ field }) => (
+                    <PhoneField
+                      value={field.value}
+                      onChange={field.onChange}
+                      invalid={Boolean(errors.phoneNumber)}
+                    />
+                  )}
+                />
+              </FormField>
 
               <FormField
                 label="Spouse's Name"
@@ -285,19 +294,37 @@ export default function Form1Page() {
                 {...register('spouseName')}
               />
 
+              {/* One control drives both stored fields, so the count and the
+                  age list cannot disagree the way two free-text boxes could. */}
               <FormField
-                label="Number of Children"
-                placeholder="Ex: 3"
-                error={errors.numberOfChildren?.message}
-                {...register('numberOfChildren')}
-              />
-
-              <FormField
-                label="Children's Ages"
-                placeholder="Ex: 5, 8, 12"
-                error={errors.childrenAges?.message}
-                {...register('childrenAges')}
-              />
+                label="Children"
+                error={errors.numberOfChildren?.message ?? errors.childrenAges?.message}
+                className="md:col-span-2"
+              >
+                <Controller
+                  control={control}
+                  name="numberOfChildren"
+                  render={({ field: countField }) => (
+                    <Controller
+                      control={control}
+                      name="childrenAges"
+                      render={({ field: agesField }) => (
+                        <ChildrenField
+                          count={countField.value}
+                          ages={agesField.value}
+                          invalid={Boolean(
+                            errors.numberOfChildren || errors.childrenAges
+                          )}
+                          onChange={({ count, ages }) => {
+                            countField.onChange(count)
+                            agesField.onChange(ages)
+                          }}
+                        />
+                      )}
+                    />
+                  )}
+                />
+              </FormField>
 
               <FormField
                 label="Occupation / Business (Optional)"

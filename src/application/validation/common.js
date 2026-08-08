@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { isValidPhoneNumber } from 'libphonenumber-js'
 
 /**
  * Field-level schemas shared by every form.
@@ -6,15 +7,21 @@ import * as z from 'zod'
  * The phone rule in particular was written out twice with the same regex and
  * the same message — once in the step-1 customer form, once in the advisor
  * registration form — so the two could drift apart silently.
+ *
+ * That rule used to be /^\+\d{11}$/ — exactly eleven digits, which is Sri
+ * Lanka's shape hardcoded. It rejected valid Indian, British, Emirati and
+ * Singaporean numbers, so the country picker in the UI would have offered
+ * countries this refused. isValidPhoneNumber reads the country from the `+`
+ * prefix and checks against that country's real numbering plan, which also
+ * gives one canonical form per number — the `phone_number` column on
+ * user_profiles is UNIQUE, so two spellings of one number used to register as
+ * two advisors.
  */
 
 export const phoneNumberSchema = z
   .string()
   .min(1, 'Phone number is required')
-  .regex(
-    /^\+\d{11}$/,
-    'Phone number must be with valid country code (e.g. +94771234567 for Sri Lanka)'
-  )
+  .refine(isValidPhoneNumber, 'Enter a valid phone number for the selected country')
 
 export const emailSchema = z
   .string()
