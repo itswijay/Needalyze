@@ -65,7 +65,7 @@ export function SelectField({
           aria-controls={listboxId}
           aria-invalid={invalid || undefined}
           className={cn(
-            'flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-full border border-border bg-surface-sunken px-4 text-left text-sm',
+            'flex h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-border bg-surface-sunken px-4 text-left text-sm',
             'transition-[color,background-color,border-color,box-shadow] duration-200 ease-[var(--ease-out-expo)]',
             'outline-none focus-visible:border-primary-300 focus-visible:ring-ring/40 focus-visible:ring-[3px]',
             'disabled:pointer-events-none disabled:opacity-50',

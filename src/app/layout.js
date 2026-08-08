@@ -47,7 +47,7 @@ export default function RootLayout({ children }) {
               color: 'var(--foreground)',
               border: '1px solid var(--border)',
               boxShadow: 'var(--elevation-lg)',
-              borderRadius: 'calc(var(--radius) + 4px)',
+              borderRadius: 'calc(var(--radius) + 6px)', // panel tier
               fontSize: '0.875rem',
             },
             success: { iconTheme: { primary: 'var(--success-300)', secondary: '#ffffff' } },

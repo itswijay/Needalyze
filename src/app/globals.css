@@ -125,11 +125,24 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* One rule: radius scales with the element it lands on. The same absolute
+     value reads far rounder on a 40px control than on a 900px panel, so a
+     single radius for everything would be as wrong as none at all.
+
+       6px  tick marks, inline markers
+       8px  calendar day cells
+      10px  CONTROL — buttons, inputs, select triggers, icon buttons
+      12px  nested — menu items, option rows, icon chips
+      16px  PANEL   — cards, dialogs, popovers, table, alerts, sections
+      24px  PAGE    — form container, auth card, error cards
+
+     rounded-full is reserved for elements that are round because of what they
+     are: avatars, status chips, progress dots, switches, radios. */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-xl: calc(var(--radius) + 2px);
+  --radius-2xl: calc(var(--radius) + 6px);
   --radius-3xl: calc(var(--radius) + 14px);
 
   /* Surfaces — page chrome, raised panels, inset fields. Every screen pulls

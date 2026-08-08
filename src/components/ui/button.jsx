@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
   cn(
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium",
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium",
     "cursor-pointer select-none",
     // Colour and shadow move quickly, transform a touch quicker still, so a
     // press reads as immediate while the hover fill stays smooth.

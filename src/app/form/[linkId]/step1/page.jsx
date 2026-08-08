@@ -230,7 +230,7 @@ export default function Form1Page() {
                           <button
                             type="button"
                             aria-label="Open calendar"
-                            className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+                            className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
                             onClick={() => setOpen((s) => !s)}
                           >
                             <CalendarIcon className="size-4" />

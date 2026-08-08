@@ -25,8 +25,11 @@ export function ThemeToggle({ className }) {
 
   const isDark = resolvedTheme === 'dark'
 
+  // A rounded square rather than a circle: it sits in a row of icon buttons,
+  // which now take the control tier. Circles are kept for the avatar beside
+  // it, which is round because of what it represents.
   const base = cn(
-    'relative inline-flex size-9 items-center justify-center rounded-full',
+    'relative inline-flex size-9 items-center justify-center rounded-lg',
     'text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground',
     'focus-visible:ring-ring/50 outline-none focus-visible:ring-[3px]',
     className

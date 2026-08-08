@@ -187,6 +187,10 @@ export default function NeedAnalysisFormPage2() {
                   </h2>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
+                      {/* Stays a circle while other icon controls moved to the
+                          control tier: the round form is part of how an "i"
+                          marker reads, and at 24px a rounded square would just
+                          look like a small button. */}
                       <button
                         type="button"
                         aria-label="More information"
@@ -303,6 +307,10 @@ export default function NeedAnalysisFormPage2() {
                   </h2>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
+                      {/* Stays a circle while other icon controls moved to the
+                          control tier: the round form is part of how an "i"
+                          marker reads, and at 24px a rounded square would just
+                          look like a small button. */}
                       <button
                         type="button"
                         aria-label="More information"
@@ -435,7 +443,7 @@ function CheckboxCard({ label, checked, onChange, disabled = false }) {
       whileHover={disabled || m.reduce ? undefined : { scale: 1.02 }}
       whileTap={disabled || m.reduce ? undefined : { scale: 0.98 }}
       className={cn(
-        'flex w-full items-center rounded-full border px-3 py-2.5 text-left shadow-sm sm:px-4 sm:py-3',
+        'flex w-full items-center rounded-xl border px-3 py-2.5 text-left shadow-sm sm:px-4 sm:py-3',
         'transition-[background-color,border-color,box-shadow] duration-200',
         disabled
           ? 'cursor-not-allowed opacity-50'
