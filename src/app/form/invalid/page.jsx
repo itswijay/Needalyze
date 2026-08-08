@@ -14,7 +14,7 @@ const InvalidLinkPage = () => {
         variants={m.fadeInUp}
         initial="hidden"
         animate="visible"
-        className="w-full max-w-md rounded-3xl border border-border/70 bg-surface-raised p-8 text-center shadow-lg"
+        className="w-full max-w-md rounded-3xl border border-border bg-surface-raised p-8 text-center shadow-lg"
       >
         <Image
           src="/images/invalid.png"

@@ -101,7 +101,7 @@ export default function ResetPasswordPage() {
             exit="exit"
             className="flex flex-col items-center gap-3 py-8"
           >
-            <Spinner className="size-8 text-primary-300" />
+            <Spinner className="size-8 text-brand-foreground" />
             <p className="text-sm text-muted-foreground">Checking your link…</p>
           </motion.div>
         )}

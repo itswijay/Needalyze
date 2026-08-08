@@ -65,7 +65,7 @@ const ForgetPasswordPage = () => {
         <p className="text-center text-sm text-muted-foreground">
           <Link
             href="/login"
-            className="font-semibold text-primary-300 transition-colors hover:text-primary-200"
+            className="font-semibold text-brand-foreground transition-colors hover:text-brand-foreground-muted"
           >
             Back to login
           </Link>

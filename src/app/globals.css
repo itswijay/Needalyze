@@ -142,6 +142,12 @@
   --color-surface-overlay: var(--surface-overlay);
   --color-surface-hover: var(--surface-hover);
 
+  /* Semantic foregrounds. Reach for these rather than a palette step whenever
+     the colour has to survive a theme flip. */
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-foreground-muted: var(--brand-foreground-muted);
+  --color-success-foreground: var(--success-foreground);
+
   /* Elevation. Tinted with the brand navy rather than neutral black, so a
      raised card reads as part of the palette instead of a grey box. These
      deliberately override Tailwind's default shadow scale. */
@@ -289,6 +295,25 @@
   --surface-overlay: rgba(4, 13, 28, 0.55);
   --surface-hover: #edf3fa;
 
+  /* Brand-coloured text and icons — stat figures, the wordmark, avatar
+     initials, links.
+
+     These exist because a palette step cannot do this job. Screens used to
+     name `primary-300` directly, which is a dark navy built to sit on a light
+     background: correct here, but only 2.93:1 once the surface went dark, and
+     a fixed colour cannot flip with the theme. Naming the role instead of the
+     step lets each theme pick the end of the ramp that reads against it. */
+  --brand-foreground: var(--primary-300);
+  /* The hover pair deepens rather than lightens, so the interaction gains
+     contrast instead of losing it. primary-200 was the obvious-looking choice
+     and measured 3.75:1 on white — under AA, and a link is exactly the kind of
+     small text that cannot afford it. */
+  --brand-foreground-muted: var(--primary-500);
+  /* success-300 came out at 3.25:1 on white. It reads as a confident green on
+     a dark panel but not on a light one, so the two themes take different
+     steps of the ramp. */
+  --success-foreground: var(--success-400);
+
   /* Elevation — rgb(20, 40, 69) is --primary-600, the brand navy.
      Kept as rgba() rather than a modern color function on purpose: the PDF
      export rasterises live DOM through html2canvas 1.4.1, which throws on
@@ -319,24 +344,31 @@
 
 .dark {
   /* Theme Variables - Dark Mode */
-  --background: var(--base-black);
+  --background: var(--surface-page);
   --foreground: var(--base-white);
-  --card: var(--gray-800);
+  --card: var(--surface-raised);
   --card-foreground: var(--base-white);
-  --popover: var(--gray-800);
+  --popover: var(--surface-raised);
   --popover-foreground: var(--base-white);
   --primary: var(--primary-400);
   --primary-foreground: var(--base-white);
   --secondary: var(--secondary-400);
   --secondary-foreground: var(--base-black);
   --muted: var(--gray-700);
-  --muted-foreground: var(--gray-300);
+  /* gray-300 measured 4.05:1 on a raised panel, under the 4.5:1 needed for
+     body text — and this token carries nearly every label, table cell and
+     placeholder in the app. gray-200 lands at 6.85:1. */
+  --muted-foreground: var(--gray-200);
   --accent: var(--primary-700);
   --accent-foreground: var(--base-white);
   --destructive: var(--error-300);
   --destructive-foreground: var(--base-black);
-  --border: var(--gray-700);
-  --input: var(--gray-700);
+  /* Not a step from the gray ramp: its dark end is bunched so tightly that
+     gray-700 came out at 1.15:1 against a card — an invisible edge. A dark
+     panel is defined by its border rather than its fill, so this is tuned to
+     1.54:1, a little firmer than GitHub's equivalent. */
+  --border: #333d47;
+  --input: #333d47;
   --ring: var(--primary-300);
   --chart-1: var(--primary-300);
   --chart-2: var(--secondary-300);
@@ -353,12 +385,24 @@
   --sidebar-ring: var(--primary-300);
 
   /* Surfaces — the page sits darkest and panels lift towards the viewer,
-     the inverse of the light theme's ordering. */
-  --surface-page: #07070a;
-  --surface-raised: #12181c;
-  --surface-sunken: #1b2328;
+     the inverse of the light theme's ordering.
+
+     Charcoal rather than the near-black these started at. Pure black leaves
+     the surfaces sitting on top of each other with nowhere for the elevation
+     ladder or the hairlines to register, and it drags every foreground ratio
+     down with it. Lifting the floor buys contrast everywhere at once. */
+  --surface-page: #0d1117;
+  --surface-raised: #161d24;
+  --surface-sunken: #1f272e;
   --surface-overlay: rgba(0, 0, 0, 0.7);
-  --surface-hover: #1f282d;
+  --surface-hover: #232c34;
+
+  /* The light end of the same ramps, mirroring the light theme's dark end.
+     Measured on a raised panel: numbers 8.96:1, icons 7.97:1 on their chip,
+     wordmark 9.97:1 on the page. */
+  --brand-foreground: var(--primary-100);
+  --brand-foreground-muted: var(--primary-50);
+  --success-foreground: var(--success-200);
 
   /* Elevation — a tint reads as fog against a dark page, so these go to
      near-black at higher opacity and lean on the ring for separation. */

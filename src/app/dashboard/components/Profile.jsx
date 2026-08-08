@@ -113,7 +113,7 @@ const Profile = ({ open, onOpenChange }) => {
 
           {isLoading ? (
             <div className="flex flex-col items-center justify-center gap-3 py-10">
-              <Spinner className="size-8 text-primary-300" />
+              <Spinner className="size-8 text-brand-foreground" />
               <p className="text-sm text-muted-foreground">
                 Loading your profile…
               </p>

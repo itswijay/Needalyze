@@ -158,7 +158,7 @@ const LoginPage = () => {
             Don&apos;t have an account?{' '}
             <Link
               href="/register"
-              className="font-semibold text-primary-300 transition-colors hover:text-primary-200"
+              className="font-semibold text-brand-foreground transition-colors hover:text-brand-foreground-muted"
             >
               Sign up
             </Link>
@@ -223,7 +223,7 @@ const LoginPage = () => {
           <motion.div variants={m.fadeInUp} className="flex justify-end">
             <Link
               href="/forget-password"
-              className="text-xs font-semibold text-muted-foreground transition-colors hover:text-primary-300"
+              className="text-xs font-semibold text-muted-foreground transition-colors hover:text-brand-foreground"
             >
               Forgot password?
             </Link>

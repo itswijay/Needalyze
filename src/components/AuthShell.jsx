@@ -102,7 +102,7 @@ export function AuthShell({ title, subtitle, children, footer, className }) {
             </div>
           )}
 
-          <div className="rounded-3xl border border-border/70 bg-surface-raised p-6 shadow-lg sm:p-8">
+          <div className="rounded-3xl border border-border bg-surface-raised p-6 shadow-lg sm:p-8">
             {children}
           </div>
 

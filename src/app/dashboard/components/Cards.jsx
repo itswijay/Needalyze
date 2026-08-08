@@ -57,7 +57,7 @@ function StatTile({ label, value, icon: Icon, accent = 'accent' }) {
       >
         <CardHeader className="items-center gap-3 px-4">
           <CardTitle className="flex items-center gap-2.5">
-            <span className="hidden shrink-0 rounded-xl bg-surface-sunken p-2 text-primary-300 sm:inline-flex">
+            <span className="hidden shrink-0 rounded-xl bg-surface-sunken p-2 text-brand-foreground sm:inline-flex">
               <Icon className="size-4" strokeWidth={2} />
             </span>
             <span className="line-clamp-2 text-xs leading-tight font-medium text-muted-foreground sm:text-sm">
@@ -69,7 +69,7 @@ function StatTile({ label, value, icon: Icon, accent = 'accent' }) {
             <AnimatedNumber
               value={value ?? 0}
               startOnView={false}
-              className="text-2xl font-semibold text-primary-300 sm:text-4xl"
+              className="text-2xl font-semibold text-brand-foreground sm:text-4xl"
             />
           </CardAction>
         </CardHeader>

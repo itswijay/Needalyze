@@ -119,7 +119,7 @@ function DialogContent({
               exit="exit"
               className={cn(
                 "fixed inset-0 z-50 m-auto grid h-fit w-full max-w-[calc(100%-2rem)] gap-4",
-                "rounded-2xl border border-border/70 bg-surface-raised p-6 shadow-xl sm:max-w-lg",
+                "rounded-2xl border border-border bg-surface-raised p-6 shadow-xl sm:max-w-lg",
                 className
               )}
             >

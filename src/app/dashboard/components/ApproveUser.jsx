@@ -143,7 +143,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
           ) : (
             <>
               {/* Desktop Table View */}
-              <div className="hidden overflow-x-auto rounded-2xl border border-border/70 md:block">
+              <div className="hidden overflow-x-auto rounded-2xl border border-border md:block">
                 <Table className="min-w-full text-sm md:text-base">
                   <TableHeader>
                     {table.getHeaderGroups().map((hg) => (
@@ -205,7 +205,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: m.reduce ? 1 : 0.96 }}
                         transition={{ duration: m.duration(0.22) }}
-                        className="rounded-2xl border border-border/70 bg-surface-raised p-4 shadow-sm"
+                        className="rounded-2xl border border-border bg-surface-raised p-4 shadow-sm"
                       >
                         <div className="space-y-3">
                           <div className="flex justify-between">
@@ -232,7 +232,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                               {row.original.codeNumber}
                             </span>
                           </div>
-                          <div className="border-t border-border/70 pt-3">
+                          <div className="border-t border-border pt-3">
                             <div className="flex flex-col gap-2">
                               <Button
                                 variant="accent"

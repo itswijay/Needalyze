@@ -184,7 +184,7 @@ export default function Form1Page() {
       {isLoadingData ? (
         <section className="flex flex-grow items-center justify-center px-4 py-8">
           <div className="flex flex-col items-center gap-4">
-            <Spinner className="size-10 text-primary-300" />
+            <Spinner className="size-10 text-brand-foreground" />
             <p className="text-sm text-muted-foreground">Loading form data…</p>
           </div>
         </section>
@@ -254,7 +254,7 @@ export default function Form1Page() {
                             className="absolute inset-0 bg-[var(--surface-overlay)] backdrop-blur-sm"
                             onClick={() => setOpen(false)}
                           />
-                          <div className="relative z-50 rounded-2xl border border-border/70 bg-surface-raised p-3 shadow-xl">
+                          <div className="relative z-50 rounded-2xl border border-border bg-surface-raised p-3 shadow-xl">
                             <Calendar
                               {...calendarProps}
                               selected={field.value}

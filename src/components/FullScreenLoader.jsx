@@ -57,7 +57,11 @@ export function FullScreenLoader({ message = 'Loading…', brand = false, classN
           'block size-10 rounded-full border-[3px]',
           brand
             ? 'border-white/25 border-t-white'
-            : 'border-primary-100 border-t-primary-300'
+            : // Track and highlight both have to flip with the theme. Naming
+              // palette steps put the pale end on the track and the dark end
+              // on the moving quadrant, which inverts in dark mode — the ring
+              // ends up brighter than the thing meant to stand out on it.
+              'border-border border-t-brand-foreground'
         )}
         animate={m.reduce ? { opacity: [0.4, 1, 0.4] } : { rotate: 360 }}
         transition={

@@ -90,7 +90,7 @@ export default function Step4Page() {
           variants={m.stagger(0.1, 0.15)}
           initial="hidden"
           animate="visible"
-          className="w-full max-w-2xl rounded-3xl border border-border/70 bg-surface-raised p-8 text-center shadow-lg md:p-12"
+          className="w-full max-w-2xl rounded-3xl border border-border bg-surface-raised p-8 text-center shadow-lg md:p-12"
         >
           {/* Success mark */}
           <motion.div variants={m.scaleIn} className="mb-6 flex justify-center">
@@ -133,7 +133,7 @@ export default function Step4Page() {
 
           <motion.h1
             variants={m.fadeInUp}
-            className="mb-3 text-2xl font-bold tracking-tight text-primary-300"
+            className="mb-3 text-2xl font-bold tracking-tight text-brand-foreground"
           >
             Form Completed Successfully
           </motion.h1>

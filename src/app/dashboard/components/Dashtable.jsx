@@ -38,28 +38,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { formatCurrency } from '@/domain/services/money'
+import { statusVariant } from '@/application/view-models/formStatusView'
 import { useMotion } from '@/lib/motion'
 import { cn } from '@/lib/utils'
-
-/**
- * Status to badge tint. This mapping used to live as an inline ternary chain
- * inside the detail dialog only, so the table cell showed the same word with
- * no colour at all and the two could not agree.
- */
-export function statusVariant(status) {
-  switch (status) {
-    case 'Completed':
-      return 'success'
-    case 'In Progress':
-      return 'info'
-    case 'Pending':
-      return 'warning'
-    case 'On Hold':
-      return 'destructive'
-    default:
-      return 'muted'
-  }
-}
 
 /** Columns hidden on small screens, by index. */
 const MOBILE_HIDDEN_COLUMNS = new Set([1, 2, 3])
@@ -202,7 +183,7 @@ function CustomerDetailDialog({ customer }) {
         </DialogHeader>
 
         <div className="space-y-5">
-          <div className="flex justify-center border-b border-border/70 pb-5">
+          <div className="flex justify-center border-b border-border pb-5">
             <Image
               src="/images/logos/secondary-t.png"
               width={100}
@@ -215,7 +196,7 @@ function CustomerDetailDialog({ customer }) {
 
           <div className="grid gap-4 md:grid-cols-2">
             <section className="rounded-2xl bg-surface-sunken p-4">
-              <h3 className="mb-3 border-b border-border/70 pb-2 text-sm font-semibold">
+              <h3 className="mb-3 border-b border-border pb-2 text-sm font-semibold">
                 Personal Details
               </h3>
               <dl className="space-y-2 text-sm">
@@ -229,7 +210,7 @@ function CustomerDetailDialog({ customer }) {
             </section>
 
             <section className="rounded-2xl bg-surface-sunken p-4">
-              <h3 className="mb-3 border-b border-border/70 pb-2 text-sm font-semibold">
+              <h3 className="mb-3 border-b border-border pb-2 text-sm font-semibold">
                 Financial Details
               </h3>
               <dl className="space-y-2 text-sm">
@@ -241,14 +222,17 @@ function CustomerDetailDialog({ customer }) {
                   <dt className="text-muted-foreground">
                     Actual Human Life Value
                   </dt>
-                  <dd className="text-right font-bold text-success-300">
+                  <dd className="text-right font-bold text-success-foreground">
                     {formatCurrency(customer.actualHumanLifeValue)}
                   </dd>
                 </div>
                 <div className="flex items-center justify-between gap-3">
                   <dt className="text-muted-foreground">Status</dt>
                   <dd>
-                    <Badge variant={statusVariant(customer.status)}>
+                    <Badge
+                      variant={statusVariant(customer.status)}
+                      className="capitalize"
+                    >
                       {customer.status}
                     </Badge>
                   </dd>
@@ -268,7 +252,7 @@ function CustomerDetailDialog({ customer }) {
             </p>
           </div>
 
-          <div className="border-t border-border/70 pt-4 text-center">
+          <div className="border-t border-border pt-4 text-center">
             <p className="text-xs text-muted-foreground">
               Generated on{' '}
               {new Date().toLocaleDateString('en-US', {
@@ -369,7 +353,7 @@ export function DataTable({ formData }) {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border/70 bg-surface-raised shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface-raised shadow-sm">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -405,7 +389,7 @@ export function DataTable({ formData }) {
                       delay: m.duration(Math.min(rowIndex, 8) * 0.03),
                     }}
                     className={cn(
-                      'border-b border-border/60 transition-colors duration-150',
+                      'border-b border-border transition-colors duration-150',
                       'hover:bg-surface-hover data-[state=selected]:bg-accent/40'
                     )}
                   >

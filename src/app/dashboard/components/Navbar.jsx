@@ -50,7 +50,7 @@ const Navbar = () => {
     <>
       {/* A <header>/<nav> pair rather than the <ul>/<li> this used to be:
           these are landmarks and controls, not a list of items. */}
-      <header className="bg-surface-page/80 sticky top-0 z-30 -mx-6 border-b border-border/70 px-6 backdrop-blur-md lg:-mx-10 lg:px-10">
+      <header className="bg-surface-page/80 sticky top-0 z-30 -mx-6 border-b border-border px-6 backdrop-blur-md lg:-mx-10 lg:px-10">
         <nav className="flex items-center justify-between gap-3 py-4">
           {/* --- Left: Logo --- */}
           <div className="flex items-center gap-2">
@@ -61,7 +61,7 @@ const Navbar = () => {
               alt=""
               priority
             />
-            <span className="text-lg font-semibold tracking-tight text-primary-300">
+            <span className="text-lg font-semibold tracking-tight text-brand-foreground">
               Needalyze
             </span>
           </div>
@@ -107,8 +107,8 @@ const Navbar = () => {
                   aria-label="Account menu"
                   className="cursor-pointer rounded-full outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
-                  <Avatar className="border border-border/70 transition-transform duration-200 hover:scale-105">
-                    <AvatarFallback className="bg-surface-sunken text-sm font-semibold text-primary-300">
+                  <Avatar className="border border-border transition-transform duration-200 hover:scale-105">
+                    <AvatarFallback className="bg-surface-sunken text-sm font-semibold text-brand-foreground">
                       {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>

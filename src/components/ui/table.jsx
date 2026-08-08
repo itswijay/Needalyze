@@ -25,7 +25,7 @@ function TableHeader({
   return (
     <thead
       data-slot="table-header"
-      className={cn("bg-surface-sunken [&_tr]:border-b [&_tr]:border-border/70", className)}
+      className={cn("bg-surface-sunken [&_tr]:border-b [&_tr]:border-border", className)}
       {...props} />
   );
 }
@@ -49,7 +49,7 @@ function TableFooter({
   return (
     <tfoot
       data-slot="table-footer"
-      className={cn("bg-surface-sunken border-t border-border/70 font-medium [&>tr]:last:border-b-0", className)}
+      className={cn("bg-surface-sunken border-t border-border font-medium [&>tr]:last:border-b-0", className)}
       {...props} />
   );
 }
@@ -62,7 +62,7 @@ function TableRow({
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b border-border/60 transition-colors duration-150",
+        "border-b border-border transition-colors duration-150",
         "hover:bg-surface-hover data-[state=selected]:bg-accent/40",
         className
       )}

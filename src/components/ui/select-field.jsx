@@ -91,7 +91,7 @@ export function SelectField({
       <PopoverContent
         align="start"
         sideOffset={6}
-        className="w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-2xl border-border/70 bg-surface-raised p-1.5 shadow-lg"
+        className="w-[var(--radix-popover-trigger-width)] overflow-hidden rounded-2xl border-border bg-surface-raised p-1.5 shadow-lg"
       >
         <div
           role="listbox"

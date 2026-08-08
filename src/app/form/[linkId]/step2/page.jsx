@@ -180,7 +180,7 @@ export default function NeedAnalysisFormPage2() {
 
             <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2 md:gap-6">
               {/* Insurance Need Section */}
-              <div className="rounded-2xl border border-border/70 bg-surface-raised p-4 shadow-md sm:p-6">
+              <div className="rounded-2xl border border-border bg-surface-raised p-4 shadow-md sm:p-6">
                 <div className="flex items-center justify-between mb-4 sm:mb-5">
                   <h2 className="text-base font-semibold">
                     Insurance Need
@@ -296,7 +296,7 @@ export default function NeedAnalysisFormPage2() {
               </div>
 
               {/* Health Covers Section */}
-              <div className="rounded-2xl border border-border/70 bg-surface-raised p-4 shadow-md sm:p-6">
+              <div className="rounded-2xl border border-border bg-surface-raised p-4 shadow-md sm:p-6">
                 <div className="flex items-center justify-between mb-4 sm:mb-5">
                   <h2 className="text-base font-semibold">
                     Health Covers
