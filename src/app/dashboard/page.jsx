@@ -10,8 +10,11 @@ import { useAuth } from '@/context/AuthContext'
 import { useDashboard } from '@/hooks/useDashboard'
 
 const DashboardPage = () => {
-  const { isAuthenticated } = useAuth()
-  const { forms, cardData } = useDashboard({ enabled: isAuthenticated })
+  const { isAuthenticated, user } = useAuth()
+  const { forms, cardData } = useDashboard({
+    enabled: isAuthenticated,
+    advisorUserId: user?.id ?? null,
+  })
 
   return (
     <ProtectedRoute requireApproval={true}>
