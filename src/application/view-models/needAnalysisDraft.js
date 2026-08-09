@@ -5,6 +5,10 @@ import {
   selectionFromKeys,
 } from '@/domain/constants/needCategories'
 import { FORM_STATUS } from '@/domain/constants/formStatus'
+import { step1Schema, step2Schema } from '@/application/validation/needAnalysis'
+
+/** Steps in the wizard, the last of which is the report rather than a question. */
+export const TOTAL_STEPS = 4
 
 /**
  * The step-keyed shape the four form pages edit.
@@ -102,4 +106,20 @@ function selectedFrom(selection) {
   return Object.entries(selection)
     .filter(([, isSelected]) => Boolean(isSelected))
     .map(([key]) => key)
+}
+
+/**
+ * The furthest step a draft entitles the customer to be on.
+ *
+ * Doubles as where a returning visit resumes and as the guard against
+ * deep-linking ahead, so a step counts as reached only if the data behind it
+ * would still pass the schema that step submits against.
+ *
+ * @param {ReturnType<typeof emptyDraft>} draft
+ * @returns {number}
+ */
+export function furthestReachableStep(draft) {
+  if (!step1Schema.safeParse(draft.step1).success) return 1
+  if (!step2Schema.safeParse(draft.step2).success) return 2
+  return draft.step4.completed ? TOTAL_STEPS : 3
 }

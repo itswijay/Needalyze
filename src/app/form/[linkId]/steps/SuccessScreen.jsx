@@ -11,17 +11,20 @@ import { useFormContext } from '@/context/FormContext'
 import { useNeedAnalysisPdf } from '@/hooks/useNeedAnalysisPdf'
 import { useMotion } from '@/lib/motion'
 
-export default function SuccessScreen({ onRestart }) {
+export default function SuccessScreen({ announce = false, onRestart }) {
   const [isRestarting, setIsRestarting] = useState(false)
   const { resetForm, getAllData, linkId } = useFormContext()
   const { generate, isGenerating: isGeneratingPDF } = useNeedAnalysisPdf(linkId)
   const m = useMotion()
 
+  // Only on an actual submission. This screen is also where a completed form
+  // reopens, and announcing a submission that happened days ago would be a lie.
   useEffect(() => {
+    if (!announce) return
     toast.success('Form submitted successfully!', {
       id: 'form-success',
     })
-  }, [])
+  }, [announce])
 
   const handleDownload = async () => {
     try {

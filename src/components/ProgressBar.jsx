@@ -9,13 +9,19 @@ import { cn } from '@/lib/utils'
 export default function ProgressBar({
   currentStep = 2,
   totalSteps = 4,
+  maxStep,
   onStepClick,
 }) {
   const m = useMotion()
 
+  // How far the customer has actually got. Steps behind that stay reachable in
+  // both directions: walking backwards only was enough while a step could not
+  // be re-entered, but someone reopening a finished form starts at the step
+  // they left off at and has to be able to move around it.
+  const furthest = Math.max(maxStep ?? currentStep, currentStep)
+
   const handleStepClick = (stepNumber) => {
-    // Only allow navigation to completed steps (not current step)
-    if (stepNumber < currentStep && onStepClick) {
+    if (stepNumber !== currentStep && stepNumber <= furthest && onStepClick) {
       onStepClick(stepNumber)
     }
   }
@@ -26,8 +32,11 @@ export default function ProgressBar({
         {Array.from({ length: totalSteps }, (_, index) => {
           const stepNumber = index + 1
           const isActive = stepNumber === currentStep
-          const isCompleted = stepNumber < currentStep
-          const isClickable = isCompleted && onStepClick
+          // Done is done, wherever the customer is standing now — a step
+          // behind the furthest reached keeps its tick even when they step
+          // back to it.
+          const isCompleted = !isActive && stepNumber < furthest
+          const isClickable = !isActive && stepNumber <= furthest && onStepClick
 
           return (
             <div key={stepNumber} className="flex items-center">
