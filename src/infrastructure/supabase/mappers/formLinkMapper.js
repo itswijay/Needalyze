@@ -17,6 +17,7 @@ export function toFormLink(row) {
 
   return createFormLink({
     linkId: row.link_id,
+    slug: row.slug,
     advisorUserId: row.user_id,
     status: row.status,
     generatedAt: toDate(row.generated_date),

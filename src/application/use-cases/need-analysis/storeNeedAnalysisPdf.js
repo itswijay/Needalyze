@@ -1,6 +1,7 @@
 import { attempt } from '@/application/result'
 import { ExpiredError, NotFoundError, ValidationError } from '@/domain/errors'
-import { isActive, isExpired, isValidLinkId } from '@/domain/entities/formLink'
+import { isActive, isExpired } from '@/domain/entities/formLink'
+import { isValidSlug } from '@/domain/services/formLinkSlug'
 
 const MAX_PDF_BYTES = 5 * 1024 * 1024
 const FOLDER = 'need-analysis'
@@ -22,9 +23,9 @@ export function storeNeedAnalysisPdf({
   fileStorage,
   buildFilename,
 }) {
-  return ({ linkId, file }) =>
+  return ({ slug, file }) =>
     attempt(async () => {
-      if (!isValidLinkId(linkId)) {
+      if (!isValidSlug(slug)) {
         throw new ValidationError('Invalid link ID format')
       }
 
@@ -40,7 +41,7 @@ export function storeNeedAnalysisPdf({
         throw new ValidationError('Only PDF uploads are accepted')
       }
 
-      const link = await formLinks.findById(linkId)
+      const link = await formLinks.findBySlug(slug)
 
       if (!link || !isActive(link)) {
         throw new NotFoundError('Invalid link')
@@ -50,7 +51,7 @@ export function storeNeedAnalysisPdf({
         throw new ExpiredError('Link has expired')
       }
 
-      const analysis = await needAnalyses.findByLinkId(linkId)
+      const analysis = await needAnalyses.findByLinkId(link.linkId)
       if (!analysis) {
         throw new NotFoundError('There is no completed form to save')
       }
@@ -59,7 +60,7 @@ export function storeNeedAnalysisPdf({
 
       const stored = await fileStorage.upload({
         // Namespaced by link so one customer's report cannot clobber another's.
-        path: `${FOLDER}/${linkId}/${filename}`,
+        path: `${FOLDER}/${link.linkId}/${filename}`,
         body: Buffer.from(await file.arrayBuffer()),
         contentType: 'application/pdf',
       })

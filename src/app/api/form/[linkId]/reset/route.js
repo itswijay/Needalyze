@@ -9,6 +9,6 @@ import { resetNeedAnalysis } from '@/application/use-cases/need-analysis/resetNe
 export async function POST(_request, { params }) {
   const { linkId } = await params
   const container = createContainer({ serviceRole: true })
-  const result = await resetNeedAnalysis(container)({ linkId })
+  const result = await resetNeedAnalysis(container)({ slug: linkId })
   return toResponse(result)
 }

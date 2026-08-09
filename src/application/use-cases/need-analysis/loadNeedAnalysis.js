@@ -1,6 +1,7 @@
 import { attempt } from '@/application/result'
 import { ExpiredError, NotFoundError, ValidationError } from '@/domain/errors'
-import { isActive, isExpired, isValidLinkId } from '@/domain/entities/formLink'
+import { isActive, isExpired } from '@/domain/entities/formLink'
+import { isValidSlug } from '@/domain/services/formLinkSlug'
 
 /**
  * Fetch the analysis behind a customer's form link.
@@ -8,16 +9,16 @@ import { isActive, isExpired, isValidLinkId } from '@/domain/entities/formLink'
  * Anonymous: possession of an unexpired, active link is the authorisation.
  *
  * @param {{ formLinks: import('@/application/ports/formLinkRepository').FormLinkRepository, needAnalyses: import('@/application/ports/needAnalysisRepository').NeedAnalysisRepository }} deps
- * @param {{ linkId: string }} input
+ * @param {{ slug: string }} input
  */
 export function loadNeedAnalysis({ formLinks, needAnalyses }) {
-  return ({ linkId }) =>
+  return ({ slug }) =>
     attempt(async () => {
-      if (!isValidLinkId(linkId)) {
+      if (!isValidSlug(slug)) {
         throw new ValidationError('Invalid link ID format')
       }
 
-      const link = await formLinks.findById(linkId)
+      const link = await formLinks.findBySlug(slug)
 
       if (!link || !isActive(link)) {
         throw new NotFoundError('Invalid or expired link')
@@ -29,7 +30,7 @@ export function loadNeedAnalysis({ formLinks, needAnalyses }) {
 
       return {
         link: { linkId: link.linkId, expiresAt: link.expiresAt },
-        analysis: await needAnalyses.findByLinkId(linkId),
+        analysis: await needAnalyses.findByLinkId(link.linkId),
       }
     })
 }

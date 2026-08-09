@@ -4,7 +4,8 @@ import { LINK_STATUS } from '../constants/formStatus'
  * A shareable link an advisor generates for one customer to fill in.
  *
  * @typedef {Object} FormLink
- * @property {string} linkId
+ * @property {string} linkId - internal UUID primary key, never exposed in a URL.
+ * @property {string} slug - short public identifier used in the customer-facing URL.
  * @property {string} advisorUserId - the advisor the resulting form belongs to.
  *   This is the authority on ownership; it is never taken from a request body.
  * @property {string} status
@@ -19,6 +20,7 @@ import { LINK_STATUS } from '../constants/formStatus'
 export function createFormLink(props) {
   return {
     linkId: props.linkId,
+    slug: props.slug,
     advisorUserId: props.advisorUserId,
     status: props.status || LINK_STATUS.ACTIVE,
     generatedAt: props.generatedAt || null,
@@ -55,15 +57,4 @@ export function isActive(link) {
  */
 export function isUsable(link, now = new Date()) {
   return isActive(link) && !isExpired(link, now)
-}
-
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-/**
- * @param {unknown} value
- * @returns {boolean}
- */
-export function isValidLinkId(value) {
-  return typeof value === 'string' && UUID_PATTERN.test(value)
 }

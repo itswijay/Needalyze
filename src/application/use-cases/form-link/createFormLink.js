@@ -28,7 +28,7 @@ export function createFormLink({ formLinks, baseUrl }) {
       return {
         linkId: link.linkId,
         expiresAt: link.expiresAt,
-        formUrl: `${baseUrl}/form/${link.linkId}/step1`,
+        formUrl: `${baseUrl}/form/${link.slug}/step1`,
       }
     })
 }

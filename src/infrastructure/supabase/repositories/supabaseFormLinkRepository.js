@@ -1,5 +1,9 @@
 import { toFormLink } from '../mappers/formLinkMapper'
 import { LINK_STATUS } from '@/domain/constants/formStatus'
+import { generateSlug } from '@/domain/services/formLinkSlug'
+
+const UNIQUE_VIOLATION = '23505'
+const MAX_SLUG_ATTEMPTS = 5
 
 /**
  * @param {import('@supabase/supabase-js').SupabaseClient} client
@@ -7,11 +11,11 @@ import { LINK_STATUS } from '@/domain/constants/formStatus'
  */
 export function createSupabaseFormLinkRepository(client) {
   return {
-    async findById(linkId) {
+    async findBySlug(slug) {
       const { data, error } = await client
         .from('form_link')
         .select('*')
-        .eq('link_id', linkId)
+        .eq('slug', slug)
         .maybeSingle()
 
       if (error) throw error
@@ -19,18 +23,25 @@ export function createSupabaseFormLinkRepository(client) {
     },
 
     async create({ advisorUserId, expiresAt }) {
-      const { data, error } = await client
-        .from('form_link')
-        .insert({
-          user_id: advisorUserId,
-          expiry_date: expiresAt.toISOString(),
-          status: LINK_STATUS.ACTIVE,
-        })
-        .select()
-        .single()
+      // A 10-char slug isn't collision-proof at DB scale the way the UUID
+      // primary key is, so a clash just means "try another one".
+      for (let attempt = 1; attempt <= MAX_SLUG_ATTEMPTS; attempt++) {
+        const { data, error } = await client
+          .from('form_link')
+          .insert({
+            user_id: advisorUserId,
+            expiry_date: expiresAt.toISOString(),
+            status: LINK_STATUS.ACTIVE,
+            slug: generateSlug(),
+          })
+          .select()
+          .single()
 
-      if (error) throw error
-      return toFormLink(data)
+        if (!error) return toFormLink(data)
+        if (error.code !== UNIQUE_VIOLATION || attempt === MAX_SLUG_ATTEMPTS) {
+          throw error
+        }
+      }
     },
   }
 }

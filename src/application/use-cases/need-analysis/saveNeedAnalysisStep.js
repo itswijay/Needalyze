@@ -1,6 +1,7 @@
 import { attempt } from '@/application/result'
 import { ExpiredError, NotFoundError, ValidationError } from '@/domain/errors'
-import { isActive, isExpired, isValidLinkId } from '@/domain/entities/formLink'
+import { isActive, isExpired } from '@/domain/entities/formLink'
+import { isValidSlug } from '@/domain/services/formLinkSlug'
 import { FORM_STATUS } from '@/domain/constants/formStatus'
 import { calculateAge } from '@/domain/services/age'
 import { calculateLifeCover } from '@/domain/services/humanLifeValue'
@@ -20,9 +21,9 @@ import { STEP_SCHEMAS } from '@/application/validation/needAnalysis'
  * @param {{ formLinks: import('@/application/ports/formLinkRepository').FormLinkRepository, needAnalyses: import('@/application/ports/needAnalysisRepository').NeedAnalysisRepository }} deps
  */
 export function saveNeedAnalysisStep({ formLinks, needAnalyses }) {
-  return ({ linkId, step, data }) =>
+  return ({ slug, step, data }) =>
     attempt(async () => {
-      if (!isValidLinkId(linkId)) {
+      if (!isValidSlug(slug)) {
         throw new ValidationError('Invalid link ID format')
       }
 
@@ -31,7 +32,7 @@ export function saveNeedAnalysisStep({ formLinks, needAnalyses }) {
         throw new ValidationError(`Unknown form step: ${step}`)
       }
 
-      const link = await formLinks.findById(linkId)
+      const link = await formLinks.findBySlug(slug)
 
       if (!link || !isActive(link)) {
         throw new NotFoundError('Invalid link')
@@ -51,10 +52,12 @@ export function saveNeedAnalysisStep({ formLinks, needAnalyses }) {
       }
 
       const patch = patchForStep(step, parsed.data)
-      const existing = await needAnalyses.findByLinkId(linkId)
+      const existing = await needAnalyses.findByLinkId(link.linkId)
 
       if (existing) {
-        return { analysis: await needAnalyses.updateByLinkId(linkId, patch) }
+        return {
+          analysis: await needAnalyses.updateByLinkId(link.linkId, patch),
+        }
       }
 
       if (step !== 'step1') {
@@ -63,7 +66,7 @@ export function saveNeedAnalysisStep({ formLinks, needAnalyses }) {
 
       return {
         analysis: await needAnalyses.create({
-          linkId,
+          linkId: link.linkId,
           advisorUserId: link.advisorUserId,
           patch,
         }),

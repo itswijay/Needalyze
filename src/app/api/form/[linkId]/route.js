@@ -21,7 +21,7 @@ function container() {
 
 export async function GET(_request, { params }) {
   const { linkId } = await params
-  const result = await loadNeedAnalysis(container())({ linkId })
+  const result = await loadNeedAnalysis(container())({ slug: linkId })
   return toResponse(result)
 }
 
@@ -38,7 +38,7 @@ export async function POST(request, { params }) {
   }
 
   const result = await saveNeedAnalysisStep(container())({
-    linkId,
+    slug: linkId,
     step: body?.step,
     data: body?.data,
   })

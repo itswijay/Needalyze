@@ -28,7 +28,7 @@ export async function POST(request, { params }) {
   const result = await storeNeedAnalysisPdf({
     ...container,
     buildFilename: needAnalysisFilename,
-  })({ linkId, file: form.get('file') })
+  })({ slug: linkId, file: form.get('file') })
 
   return toResponse(result)
 }

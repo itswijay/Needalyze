@@ -1,6 +1,7 @@
 import { attempt } from '@/application/result'
 import { ExpiredError, NotFoundError, ValidationError } from '@/domain/errors'
-import { isActive, isExpired, isValidLinkId } from '@/domain/entities/formLink'
+import { isActive, isExpired } from '@/domain/entities/formLink'
+import { isValidSlug } from '@/domain/services/formLinkSlug'
 import { FORM_STATUS } from '@/domain/constants/formStatus'
 
 /**
@@ -15,13 +16,13 @@ import { FORM_STATUS } from '@/domain/constants/formStatus'
  * @param {{ formLinks: import('@/application/ports/formLinkRepository').FormLinkRepository, needAnalyses: import('@/application/ports/needAnalysisRepository').NeedAnalysisRepository }} deps
  */
 export function resetNeedAnalysis({ formLinks, needAnalyses }) {
-  return ({ linkId }) =>
+  return ({ slug }) =>
     attempt(async () => {
-      if (!isValidLinkId(linkId)) {
+      if (!isValidSlug(slug)) {
         throw new ValidationError('Invalid link ID format')
       }
 
-      const link = await formLinks.findById(linkId)
+      const link = await formLinks.findBySlug(slug)
 
       if (!link || !isActive(link)) {
         throw new NotFoundError('Invalid link')
@@ -31,13 +32,13 @@ export function resetNeedAnalysis({ formLinks, needAnalyses }) {
         throw new ExpiredError('Link has expired')
       }
 
-      const existing = await needAnalyses.findByLinkId(linkId)
+      const existing = await needAnalyses.findByLinkId(link.linkId)
 
       // Nothing started yet — already in the state the caller is asking for.
       if (!existing) return { analysis: null }
 
       return {
-        analysis: await needAnalyses.updateByLinkId(linkId, {
+        analysis: await needAnalyses.updateByLinkId(link.linkId, {
           lifeCover: { humanLifeValue: 0 },
           status: FORM_STATUS.PENDING,
         }),
