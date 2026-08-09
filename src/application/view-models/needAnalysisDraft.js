@@ -10,8 +10,8 @@ import { FORM_STATUS } from '@/domain/constants/formStatus'
  * The step-keyed shape the four form pages edit.
  *
  * A view model, not an entity: it exists because the UI is a wizard, and it
- * holds the four step-3 inputs that the form needs but the database has no
- * columns for. Entities arrive here as JSON, so dates are ISO strings.
+ * groups the persisted fields by the step that edits them. Entities arrive here
+ * as JSON, so dates are ISO strings.
  */
 
 export function emptyDraft() {
@@ -80,10 +80,10 @@ export function toDraft(analysis) {
       ),
     },
     step3: {
-      // The four inputs below are deliberately blank on reload: the
-      // need_analysis_form table stores only the resulting total, so there is
-      // nothing to restore them from.
-      ...draft.step3,
+      fixedMonthlyExpenses: lifeCover.fixedMonthlyExpenses ?? '',
+      bankInterestRate: lifeCover.bankInterestRate ?? '',
+      unsecuredBankLoan: lifeCover.unsecuredBankLoan ?? '',
+      cashInHandInsurance: lifeCover.cashInHandInsurance ?? '',
       humanLifeValue: lifeCover.humanLifeValue ?? 0,
     },
     step4: {

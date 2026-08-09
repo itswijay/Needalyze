@@ -57,6 +57,10 @@ export function toNeedAnalysis(row) {
       healthCovers: selectionFromKeys(row.health_covers, HEALTH_COVER_KEYS),
     },
     lifeCover: {
+      fixedMonthlyExpenses: toNumberOrNull(row.fixed_monthly_expenses),
+      bankInterestRate: toNumberOrNull(row.bank_interest_rate),
+      unsecuredBankLoan: toNumberOrNull(row.unsecured_bank_loan),
+      cashInHandInsurance: toNumberOrNull(row.cash_in_hand_insurance),
       humanLifeValue: toNumberOrNull(row.human_life_value) ?? 0,
     },
     status: row.status || FORM_STATUS.PENDING,
@@ -71,8 +75,8 @@ export function toNeedAnalysis(row) {
  * knowing any column names. Only the sections present in the patch are
  * translated, which is what makes one-step-at-a-time saves possible.
  *
- * Note `human_life_value` holds the *adjusted* figure, and the four step-3
- * inputs have no columns of their own — the table keeps only the total.
+ * Note `human_life_value` holds the *adjusted* figure; the four inputs it was
+ * derived from are stored alongside it.
  *
  * @param {Partial<import('@/domain/entities/needAnalysis').NeedAnalysis>} patch
  * @returns {Object} column/value pairs
@@ -111,7 +115,15 @@ export function toColumns(patch) {
   }
 
   if (patch.lifeCover) {
-    columns.human_life_value = patch.lifeCover.humanLifeValue ?? 0
+    const { lifeCover } = patch
+
+    Object.assign(columns, {
+      fixed_monthly_expenses: toNumberOrNull(lifeCover.fixedMonthlyExpenses),
+      bank_interest_rate: toNumberOrNull(lifeCover.bankInterestRate),
+      unsecured_bank_loan: toNumberOrNull(lifeCover.unsecuredBankLoan),
+      cash_in_hand_insurance: toNumberOrNull(lifeCover.cashInHandInsurance),
+      human_life_value: lifeCover.humanLifeValue ?? 0,
+    })
   }
 
   if (patch.status) {

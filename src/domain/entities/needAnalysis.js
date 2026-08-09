@@ -31,11 +31,13 @@ import {
  * @property {Record<string, boolean>} healthCovers
  *
  * @typedef {Object} LifeCover
+ * @property {number | null} fixedMonthlyExpenses
+ * @property {number | null} bankInterestRate
+ * @property {number | null} unsecuredBankLoan
+ * @property {number | null} cashInHandInsurance
  * @property {number} humanLifeValue - the *adjusted* figure (what
- *   calculateActualHlv returns). This is the only life-cover number the
- *   database keeps: `need_analysis_form` has no columns for the four step-3
- *   inputs, so they live in the draft and in the request that computes this
- *   value, but are not persisted.
+ *   calculateActualHlv returns), stored alongside the four inputs it was
+ *   derived from so the report can be reproduced after a reload.
  *
  * @typedef {Object} NeedAnalysis
  * @property {string | null} formId
@@ -74,7 +76,13 @@ export function emptyCoverage() {
 
 /** @returns {LifeCover} */
 export function emptyLifeCover() {
-  return { humanLifeValue: 0 }
+  return {
+    fixedMonthlyExpenses: null,
+    bankInterestRate: null,
+    unsecuredBankLoan: null,
+    cashInHandInsurance: null,
+    humanLifeValue: 0,
+  }
 }
 
 /**

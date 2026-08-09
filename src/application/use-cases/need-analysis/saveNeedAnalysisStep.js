@@ -97,10 +97,11 @@ function patchForStep(step, input) {
     }
   }
 
-  // step3: submitting the calculation is what completes the form.
+  // step3: submitting the calculation is what completes the form. The inputs
+  // are stored with the result so the report survives a reload.
   const { actualHlv } = calculateLifeCover(input)
   return {
-    lifeCover: { humanLifeValue: actualHlv },
+    lifeCover: { ...input, humanLifeValue: actualHlv },
     status: FORM_STATUS.COMPLETED,
   }
 }

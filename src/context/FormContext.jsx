@@ -1,6 +1,13 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { useParams } from 'next/navigation'
 
 import { apiClient } from '@/infrastructure/http/apiClient'
@@ -76,7 +83,7 @@ export function FormProvider({ children }) {
    * @param {boolean} [saveToDb]
    * @returns {Promise<{ success: boolean, error?: string }>}
    */
-  const updateStepData = async (step, data, saveToDb = false) => {
+  const updateStepData = useCallback(async (step, data, saveToDb = false) => {
     setFormData((previous) => ({
       ...previous,
       [step]: { ...previous[step], ...data },
@@ -91,10 +98,9 @@ export function FormProvider({ children }) {
         { auth: false }
       )
 
-      // Adopt the two things the server owns: the computed life cover and the
-      // completion status. Deliberately not the whole draft — the four step-3
-      // inputs are not persisted, so a full overwrite would blank the numbers
-      // the customer just typed.
+      // Adopt only what the server owns: the computed life cover and the
+      // completion status. Deliberately not the whole draft — a full overwrite
+      // would clobber anything typed while the request was in flight.
       if (analysis) {
         const saved = toDraft(analysis)
         setFormData((previous) => ({
@@ -111,14 +117,14 @@ export function FormProvider({ children }) {
     } catch (error) {
       return { success: false, error: error.message }
     }
-  }
+  }, [linkId])
 
-  const getStepData = (step) => formData[step]
+  const getStepData = useCallback((step) => formData[step], [formData])
 
-  const getAllData = () => formData
+  const getAllData = useCallback(() => formData, [formData])
 
   /** Start the form over: clear the draft and put the saved form back to pending. */
-  const resetForm = async () => {
+  const resetForm = useCallback(async () => {
     setFormData(emptyDraft())
     clearCache()
 
@@ -132,19 +138,37 @@ export function FormProvider({ children }) {
     } catch (error) {
       return { success: false, error: error.message }
     }
-  }
+  }, [linkId])
 
-  const value = {
-    formData,
-    updateStepData,
-    getStepData,
-    getAllData,
-    resetForm,
-    isLoaded,
-    linkId,
-    apiError,
-    clearApiError: () => setApiError(null),
-  }
+  const clearApiError = useCallback(() => setApiError(null), [])
+
+  // Memoised so a consumer does not re-render on every provider render: the
+  // step components seed their fields from these, and a fresh identity each
+  // time is what made that seeding hard to do safely.
+  const value = useMemo(
+    () => ({
+      formData,
+      updateStepData,
+      getStepData,
+      getAllData,
+      resetForm,
+      isLoaded,
+      linkId,
+      apiError,
+      clearApiError,
+    }),
+    [
+      formData,
+      updateStepData,
+      getStepData,
+      getAllData,
+      resetForm,
+      isLoaded,
+      linkId,
+      apiError,
+      clearApiError,
+    ]
+  )
 
   return <FormContext.Provider value={value}>{children}</FormContext.Provider>
 }
