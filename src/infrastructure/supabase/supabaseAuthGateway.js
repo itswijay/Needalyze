@@ -87,7 +87,14 @@ export function createBrowserAuthGateway() {
 export function createAdminAuthGateway() {
   return {
     async createAccount({ email, password }) {
-      const { data, error } = await anonymous().auth.signUp({ email, password })
+      const origin = process.env.NEXT_PUBLIC_BASE_URL || ''
+      const emailRedirectTo = origin ? `${origin.replace(/\/$/, '')}/login` : undefined
+
+      const { data, error } = await anonymous().auth.signUp({
+        email,
+        password,
+        ...(emailRedirectTo ? { options: { emailRedirectTo } } : {}),
+      })
 
       if (error) {
         const err = new Error(error.message)
