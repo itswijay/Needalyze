@@ -17,7 +17,7 @@ export function usePendingUsers({ enabled = true, pollInterval = 15000 } = {}) {
   const [users, setUsers] = useState([])
   const [pendingCount, setPendingCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
-  const [processingId, setProcessingId] = useState(null)
+  const [processingState, setProcessingState] = useState(null)
 
   const refreshCount = useCallback(async () => {
     if (!enabled) return
@@ -113,7 +113,7 @@ export function usePendingUsers({ enabled = true, pollInterval = 15000 } = {}) {
    * @param {'approved'|'rejected'} status
    */
   const decide = useCallback(async (userId, status) => {
-    setProcessingId(userId)
+    setProcessingState({ id: userId, action: status })
     try {
       await apiClient.post(`/api/admin/users/${userId}/status`, { status })
       setUsers((previous) => previous.filter((user) => user.userId !== userId))
@@ -122,7 +122,7 @@ export function usePendingUsers({ enabled = true, pollInterval = 15000 } = {}) {
     } catch (error) {
       return { success: false, error: error.message }
     } finally {
-      setProcessingId(null)
+      setProcessingState(null)
     }
   }, [])
 
@@ -130,7 +130,8 @@ export function usePendingUsers({ enabled = true, pollInterval = 15000 } = {}) {
     users,
     pendingCount,
     isLoading,
-    processingId,
+    processingId: processingState?.id || null,
+    processingAction: processingState?.action || null,
     load,
     refreshCount,
     approve: (userId) => decide(userId, USER_STATUS.APPROVED),

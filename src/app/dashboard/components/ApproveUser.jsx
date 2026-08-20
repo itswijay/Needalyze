@@ -32,7 +32,7 @@ import { usePendingUsers } from '@/hooks/usePendingUsers'
 import { useMotion } from '@/lib/motion'
 
 const ApproveUser = ({ open, onOpenChange, onChange }) => {
-  const { users, isLoading, processingId, load, approve, reject } =
+  const { users, isLoading, processingId, processingAction, load, approve, reject } =
     usePendingUsers()
   const m = useMotion()
 
@@ -103,6 +103,8 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
         header: 'Actions',
         cell: ({ row }) => {
           const isProcessing = processingId === row.original.userId
+          const isApproving = isProcessing && processingAction === 'approved'
+          const isRejecting = isProcessing && processingAction === 'rejected'
           return (
             <div className="flex flex-col items-center justify-center gap-2 md:flex-row">
               <Button
@@ -112,7 +114,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                 disabled={isProcessing}
                 onClick={() => handleDecision(row.original.userId, 'approved')}
               >
-                {isProcessing ? <Spinner /> : <Check className="size-3.5" />}
+                {isApproving ? <Spinner /> : <Check className="size-3.5" />}
                 Approve
               </Button>
 
@@ -123,7 +125,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                 disabled={isProcessing}
                 onClick={() => handleDecision(row.original.userId, 'rejected')}
               >
-                {isProcessing ? <Spinner /> : <X className="size-3.5" />}
+                {isRejecting ? <Spinner /> : <X className="size-3.5" />}
                 Reject
               </Button>
             </div>
@@ -131,7 +133,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
         },
       },
     ],
-    [processingId, handleDecision]
+    [processingId, processingAction, handleDecision]
   )
 
   const table = useReactTable({
@@ -214,6 +216,8 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => {
                     const isProcessing = processingId === row.original.userId
+                    const isApproving = isProcessing && processingAction === 'approved'
+                    const isRejecting = isProcessing && processingAction === 'rejected'
                     return (
                       <motion.div
                         key={row.id}
@@ -267,7 +271,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                                   handleDecision(row.original.userId, 'approved')
                                 }
                               >
-                                {isProcessing ? <Spinner /> : <Check className="size-4" />}
+                                {isApproving ? <Spinner /> : <Check className="size-4" />}
                                 Approve
                               </Button>
 
@@ -279,7 +283,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                                   handleDecision(row.original.userId, 'rejected')
                                 }
                               >
-                                {isProcessing ? <Spinner /> : <X className="size-4" />}
+                                {isRejecting ? <Spinner /> : <X className="size-4" />}
                                 Reject
                               </Button>
                             </div>
