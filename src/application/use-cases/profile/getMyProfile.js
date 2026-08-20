@@ -1,9 +1,9 @@
 import { attempt } from '@/application/result'
 import { NotFoundError } from '@/domain/errors'
-import { isAdmin, isApproved } from '@/domain/entities/userProfile'
+import { isAdmin, isApproved, isApprover } from '@/domain/entities/userProfile'
 
 /**
- * The signed-in advisor's own profile, plus the two derived flags the UI gates
+ * The signed-in advisor's own profile, plus the derived flags the UI gates
  * on. Those were computed in AuthContext by comparing `role_id` against a
  * constant and `status` against a string literal — decisions the domain owns.
  *
@@ -22,6 +22,7 @@ export function getMyProfile({ userProfiles }) {
         profile,
         isAdmin: isAdmin(profile),
         isApproved: isApproved(profile),
+        isApprover: isApprover(profile),
       }
     })
 }

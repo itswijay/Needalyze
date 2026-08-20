@@ -25,13 +25,14 @@ import { fullName, initials } from '@/domain/entities/userProfile'
 import { useMotion } from '@/lib/motion'
 
 const Navbar = () => {
-  const router = useRouter()
-  const { userProfile, isAdmin, signOut } = useAuth()
+  const { userProfile, isAdmin, isApprover, signOut } = useAuth()
   const m = useMotion()
 
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [isApproveUserOpen, setIsApproveUserOpen] = useState(false)
-  const { pendingCount, refreshCount } = usePendingUsers({ enabled: isAdmin })
+
+  const hasApprovalAccess = Boolean(isApprover || isAdmin || userProfile?.position === 'Branch Manager')
+  const { pendingCount, refreshCount } = usePendingUsers({ enabled: hasApprovalAccess })
 
   useEffect(() => {
     refreshCount()
@@ -68,7 +69,7 @@ const Navbar = () => {
 
           {/* --- Right: actions --- */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {isAdmin && (
+            {hasApprovalAccess && (
               // One responsive button rather than the two that used to be
               // rendered and hidden at opposite breakpoints.
               <Button
@@ -151,8 +152,8 @@ const Navbar = () => {
       {/* --- Profile Dialog --- */}
       <Profile open={isProfileOpen} onOpenChange={setIsProfileOpen} />
 
-      {/* --- Approve User Dialog (admins only) --- */}
-      {isAdmin && (
+      {/* --- Approve User Dialog --- */}
+      {hasApprovalAccess && (
         <ApproveUser
           open={isApproveUserOpen}
           onOpenChange={(open) => {

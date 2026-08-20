@@ -24,7 +24,7 @@ export async function POST(request, { params }) {
     )
   }
 
-  const { userProfiles } = createContainer({ accessToken: caller.accessToken })
+  const { userProfiles } = createContainer({ serviceRole: true })
 
   return toResponse(
     await setUserStatus({ userProfiles })({

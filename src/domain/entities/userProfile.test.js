@@ -7,8 +7,10 @@ import {
   initials,
   isAdmin,
   isApproved,
+  isApprover,
 } from './userProfile'
 import { ROLE_IDS } from '../constants/roles'
+import { POSITIONS } from '../constants/positions'
 import { USER_STATUS } from '../constants/userStatus'
 
 const profile = (overrides = {}) =>
@@ -52,7 +54,7 @@ describe('fullName and initials', () => {
   })
 })
 
-describe('isApproved and isAdmin', () => {
+describe('isApproved, isAdmin and isApprover', () => {
   it('recognises an approved account', () => {
     expect(isApproved(profile())).toBe(true)
     expect(isApproved(profile({ status: USER_STATUS.PENDING }))).toBe(false)
@@ -61,6 +63,17 @@ describe('isApproved and isAdmin', () => {
   it('recognises an admin', () => {
     expect(isAdmin(profile({ roleId: ROLE_IDS.ADMIN }))).toBe(true)
     expect(isAdmin(profile())).toBe(false)
+  })
+
+  it('recognises an approver (admin or approved branch manager)', () => {
+    expect(isApprover(profile({ roleId: ROLE_IDS.ADMIN }))).toBe(true)
+    expect(
+      isApprover(profile({ position: POSITIONS.BRANCH_MANAGER, status: USER_STATUS.APPROVED }))
+    ).toBe(true)
+    expect(
+      isApprover(profile({ position: POSITIONS.BRANCH_MANAGER, status: USER_STATUS.PENDING }))
+    ).toBe(false)
+    expect(isApprover(profile({ position: POSITIONS.ADVISOR }))).toBe(false)
   })
 })
 

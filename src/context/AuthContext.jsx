@@ -34,12 +34,14 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [userProfile, setUserProfile] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [isApprover, setIsApprover] = useState(false)
   const [isApproved, setIsApproved] = useState(false)
   const [loading, setLoading] = useState(true)
 
   const clearProfile = useCallback(() => {
     setUserProfile(null)
     setIsAdmin(false)
+    setIsApprover(false)
     setIsApproved(false)
   }, [])
 
@@ -48,6 +50,7 @@ export function AuthProvider({ children }) {
       const data = await apiClient.get('/api/me')
       setUserProfile(data.profile)
       setIsAdmin(Boolean(data.isAdmin))
+      setIsApprover(Boolean(data.isApprover || data.isAdmin || data.profile?.position === 'Branch Manager'))
       setIsApproved(Boolean(data.isApproved))
       return data
     } catch (error) {
@@ -182,6 +185,7 @@ export function AuthProvider({ children }) {
     loading,
     isAuthenticated: Boolean(user && session),
     isAdmin,
+    isApprover,
     isApproved,
     signIn,
     signOut,

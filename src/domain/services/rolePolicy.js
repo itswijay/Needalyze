@@ -12,13 +12,10 @@ import { USER_STATUS } from '../constants/userStatus'
  * @returns {string} role UUID
  */
 export function roleIdForPosition(position) {
-  if (
-    position === POSITIONS.TEAM_LEADER ||
-    position === POSITIONS.BRANCH_MANAGER
-  ) {
+  if (position === POSITIONS.TEAM_LEADER) {
     return ROLE_IDS.ADMIN
   }
-  // Advisor, and anything unrecognised, defaults to the least-privileged role.
+  // Advisor, Branch Manager, and anything unrecognised, defaults to the user role.
   return ROLE_IDS.USER
 }
 
@@ -59,15 +56,12 @@ export function canManageUser(actorProfile, targetProfile) {
     return false
   }
 
-  // System Admin (not assigned as a Branch Manager) can manage all users
-  if (
-    isAdminRole(actorProfile.role_id) &&
-    actorProfile.position !== POSITIONS.BRANCH_MANAGER
-  ) {
+  // System Admin (top level) can manage all users regardless of position
+  if (isAdminRole(actorProfile.role_id)) {
     return true
   }
 
-  // Branch Manager can manage users in their own branch
+  // Branch Manager (non-admin) can manage users in their own branch
   if (isBranchManager(actorProfile)) {
     return Boolean(actorProfile.branch && actorProfile.branch === targetProfile.branch)
   }

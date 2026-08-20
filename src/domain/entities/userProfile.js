@@ -54,6 +54,17 @@ export function isAdmin(profile) {
 
 /**
  * @param {UserProfile} profile
+ * @returns {boolean}
+ */
+export function isApprover(profile) {
+  return (
+    isAdmin(profile) ||
+    (profile?.position === 'Branch Manager' && profile?.status === USER_STATUS.APPROVED)
+  )
+}
+
+/**
+ * @param {UserProfile} profile
  * @returns {string}
  */
 export function fullName(profile) {

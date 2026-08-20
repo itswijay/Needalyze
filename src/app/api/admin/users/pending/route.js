@@ -12,7 +12,7 @@ export async function GET(request) {
     return toResponse(Result.fromError(error))
   }
 
-  const { userProfiles } = createContainer({ accessToken: caller.accessToken })
+  const { userProfiles } = createContainer({ serviceRole: true })
   return toResponse(
     await listPendingUsers({ userProfiles })({ actorBranch: caller.branch })
   )

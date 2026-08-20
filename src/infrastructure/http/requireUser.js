@@ -105,8 +105,8 @@ export async function requireApprover(request) {
     throw new ForbiddenError('Account approval required')
   }
 
+  const isSysAdmin = isAdminRole(profile.role_id)
   const isBranchMgr = profile.position === POSITIONS.BRANCH_MANAGER
-  const isSysAdmin = isAdminRole(profile.role_id) && !isBranchMgr
 
   if (!isBranchMgr && !isSysAdmin) {
     throw new ForbiddenError('Approval permissions required')
@@ -117,6 +117,6 @@ export async function requireApprover(request) {
     profile,
     isSysAdmin,
     isBranchManager: isBranchMgr,
-    branch: isBranchMgr ? profile.branch : null,
+    branch: isSysAdmin ? null : profile.branch,
   }
 }

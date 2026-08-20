@@ -11,15 +11,15 @@ import { POSITIONS } from '../constants/positions'
 import { USER_STATUS } from '../constants/userStatus'
 
 describe('roleIdForPosition', () => {
-  it.each([
-    [POSITIONS.TEAM_LEADER],
-    [POSITIONS.BRANCH_MANAGER],
-  ])('gives %s the admin role', (position) => {
-    expect(roleIdForPosition(position)).toBe(ROLE_IDS.ADMIN)
+  it('gives team leader the admin role', () => {
+    expect(roleIdForPosition(POSITIONS.TEAM_LEADER)).toBe(ROLE_IDS.ADMIN)
   })
 
-  it('gives an advisor the ordinary user role', () => {
-    expect(roleIdForPosition(POSITIONS.ADVISOR)).toBe(ROLE_IDS.USER)
+  it.each([
+    [POSITIONS.BRANCH_MANAGER],
+    [POSITIONS.ADVISOR],
+  ])('gives %s the ordinary user role', (position) => {
+    expect(roleIdForPosition(position)).toBe(ROLE_IDS.USER)
   })
 
   // Failing closed matters here: an unrecognised position must not be a route
@@ -83,18 +83,26 @@ describe('canManageUser', () => {
     branch: 'Colombo',
   }
 
-  const branchMgrWarakapola = {
+  const adminAndBranchMgr = {
     role_id: ROLE_IDS.ADMIN,
     status: USER_STATUS.APPROVED,
     position: POSITIONS.BRANCH_MANAGER,
     branch: 'Warakapola',
   }
 
-  it('allows System Admin to manage any user', () => {
+  const branchMgrWarakapola = {
+    role_id: ROLE_IDS.USER,
+    status: USER_STATUS.APPROVED,
+    position: POSITIONS.BRANCH_MANAGER,
+    branch: 'Warakapola',
+  }
+
+  it('allows System Admin to manage any user regardless of position', () => {
     expect(canManageUser(sysAdmin, { branch: 'Kandy' })).toBe(true)
+    expect(canManageUser(adminAndBranchMgr, { branch: 'Kandy' })).toBe(true)
   })
 
-  it('allows Branch Manager to manage users in their own branch only', () => {
+  it('allows Branch Manager (non-admin) to manage users in their own branch only', () => {
     expect(canManageUser(branchMgrWarakapola, { branch: 'Warakapola' })).toBe(true)
     expect(canManageUser(branchMgrWarakapola, { branch: 'Kandy' })).toBe(false)
   })
