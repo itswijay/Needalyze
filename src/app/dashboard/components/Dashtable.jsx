@@ -33,6 +33,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -180,6 +181,9 @@ function CustomerDetailDialog({ customer }) {
           <DialogTitle className="text-center text-xl">
             Customer Details
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Detailed view of customer need analysis submission.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5">

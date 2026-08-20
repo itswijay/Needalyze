@@ -13,6 +13,7 @@ import toast from 'react-hot-toast'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -146,6 +147,9 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
           <DialogTitle className="text-center text-xl">
             Approve User
           </DialogTitle>
+          <DialogDescription className="text-center text-xs text-muted-foreground">
+            Review and manage pending user registration requests.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="mt-6">
