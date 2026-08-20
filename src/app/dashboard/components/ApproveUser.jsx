@@ -38,12 +38,20 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
   React.useEffect(() => {
     if (!open) return
 
-    load().then((result) => {
-      if (!result.success) {
+    // Initial load: show spinner only if we don't already have user data loaded
+    load({ silent: users.length > 0 }).then((result) => {
+      if (!result?.success && result?.error) {
         toast.error(result.error || 'Failed to load pending users')
       }
     })
-  }, [open, load])
+
+    // Silent background poll while modal stays open
+    const timer = setInterval(() => {
+      load({ silent: true })
+    }, 10000)
+
+    return () => clearInterval(timer)
+  }, [open, load, users.length])
 
   const handleDecision = React.useCallback(
     async (userId, decision) => {

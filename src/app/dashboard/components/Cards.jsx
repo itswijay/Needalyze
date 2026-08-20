@@ -109,14 +109,17 @@ const Cards = ({ cardData }) => {
       stagger={0.06}
       className="grid grid-cols-2 gap-4 pt-4 sm:grid-cols-3 sm:pt-5 md:gap-5 lg:grid-cols-4"
     >
-      {TILES.map((tile) => (
+      {TILES.map(({ key, label, icon, group, className }) => (
         <StatTile
-          key={tile.key}
-          {...tile}
+          key={key}
+          label={label}
+          icon={icon}
+          group={group}
+          className={className}
           value={
-            tile.group === 'summary'
-              ? cardData?.[tile.key]
-              : cardData?.categories?.[tile.key]
+            group === 'summary'
+              ? cardData?.[key]
+              : cardData?.categories?.[key]
           }
         />
       ))}

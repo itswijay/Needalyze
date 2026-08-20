@@ -1,17 +1,19 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { apiClient } from '@/infrastructure/http/apiClient'
+import { browserClient } from '@/infrastructure/supabase/browserClient'
 import { USER_STATUS } from '@/domain/constants/userStatus'
 
 /**
  * Pending-approval queue and its count, for the admin views.
  *
  * Both the dialog and the navbar badge read from here, so approving someone in
- * one place cannot leave the other showing a stale number.
+ * one place cannot leave the other showing a stale number. Includes automatic
+ * background polling and real-time updates when new users register.
  */
-export function usePendingUsers({ enabled = true } = {}) {
+export function usePendingUsers({ enabled = true, pollInterval = 15000 } = {}) {
   const [users, setUsers] = useState([])
   const [pendingCount, setPendingCount] = useState(0)
   const [isLoading, setIsLoading] = useState(false)
@@ -27,22 +29,84 @@ export function usePendingUsers({ enabled = true } = {}) {
     }
   }, [enabled])
 
-  const load = useCallback(async () => {
-    if (!enabled) return { success: true }
+  const load = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!enabled) return { success: true }
 
-    setIsLoading(true)
-    try {
-      const { users: pending } = await apiClient.get('/api/admin/users/pending')
-      setUsers(pending || [])
-      setPendingCount(pending?.length || 0)
-      return { success: true }
-    } catch (error) {
-      setUsers([])
-      return { success: false, error: error.message }
-    } finally {
-      setIsLoading(false)
+      if (!silent) {
+        setIsLoading(true)
+      }
+      try {
+        const { users: pending } = await apiClient.get('/api/admin/users/pending')
+        setUsers(pending || [])
+        setPendingCount(pending?.length || 0)
+        return { success: true }
+      } catch (error) {
+        if (!silent) {
+          setUsers([])
+        }
+        return { success: false, error: error.message }
+      } finally {
+        if (!silent) {
+          setIsLoading(false)
+        }
+      }
+    },
+    [enabled]
+  )
+
+  useEffect(() => {
+    if (!enabled) return
+
+    // Initial count fetch
+    refreshCount()
+
+    // 1. Periodic polling fallback (every 15 seconds)
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshCount()
+      }
+    }, pollInterval)
+
+    // 2. Refetch on tab focus or visibility change
+    const handleFocus = () => {
+      if (document.visibilityState === 'visible') {
+        refreshCount()
+      }
     }
-  }, [enabled])
+    window.addEventListener('visibilitychange', handleFocus)
+    window.addEventListener('focus', handleFocus)
+
+    // 3. Supabase Real-time table listener
+    let channel = null
+    try {
+      channel = browserClient
+        .channel('user_profile_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'user_profile',
+          },
+          () => {
+            refreshCount()
+          }
+        )
+        .subscribe()
+    } catch (err) {
+      console.error('Failed to subscribe to realtime updates:', err)
+    }
+
+    return () => {
+      clearInterval(timer)
+      window.removeEventListener('visibilitychange', handleFocus)
+      window.removeEventListener('focus', handleFocus)
+      if (channel) {
+        browserClient.removeChannel(channel)
+      }
+    }
+  }, [enabled, pollInterval, refreshCount])
 
   /**
    * @param {string} userId
