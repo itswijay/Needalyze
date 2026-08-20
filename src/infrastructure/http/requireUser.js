@@ -1,5 +1,6 @@
 import { UnauthorizedError, ForbiddenError } from '@/domain/errors'
 import { isAdminRole } from '@/domain/services/rolePolicy'
+import { POSITIONS } from '@/domain/constants/positions'
 import { USER_STATUS } from '@/domain/constants/userStatus'
 import { anonymous, forUser } from '../supabase/serverClient'
 
@@ -57,7 +58,7 @@ export async function requireUser(request) {
  * that they hold the admin role and their own account is approved.
  *
  * @param {Request} request
- * @returns {Promise<Caller & { profile: { role_id: string, status: string } }>}
+ * @returns {Promise<Caller & { profile: { role_id: string, status: string, position?: string, branch?: string } }>}
  * @throws {UnauthorizedError | ForbiddenError}
  */
 export async function requireAdmin(request) {
@@ -65,7 +66,7 @@ export async function requireAdmin(request) {
 
   const { data: profile, error } = await caller.client
     .from('user_profile')
-    .select('role_id, status')
+    .select('role_id, status, position, branch')
     .eq('user_id', caller.userId)
     .single()
 
@@ -78,4 +79,44 @@ export async function requireAdmin(request) {
   }
 
   return { ...caller, profile }
+}
+
+/**
+ * Verify caller holds approval permissions (either a System Admin or an approved Branch Manager).
+ *
+ * @param {Request} request
+ * @returns {Promise<Caller & { profile: any, isSysAdmin: boolean, isBranchManager: boolean, branch: string | null }>}
+ * @throws {UnauthorizedError | ForbiddenError}
+ */
+export async function requireApprover(request) {
+  const caller = await requireUser(request)
+
+  const { data: profile, error } = await caller.client
+    .from('user_profile')
+    .select('role_id, status, position, branch')
+    .eq('user_id', caller.userId)
+    .single()
+
+  if (error || !profile) {
+    throw new ForbiddenError('Unable to verify your account permissions')
+  }
+
+  if (profile.status !== USER_STATUS.APPROVED) {
+    throw new ForbiddenError('Account approval required')
+  }
+
+  const isBranchMgr = profile.position === POSITIONS.BRANCH_MANAGER
+  const isSysAdmin = isAdminRole(profile.role_id) && !isBranchMgr
+
+  if (!isBranchMgr && !isSysAdmin) {
+    throw new ForbiddenError('Approval permissions required')
+  }
+
+  return {
+    ...caller,
+    profile,
+    isSysAdmin,
+    isBranchManager: isBranchMgr,
+    branch: isBranchMgr ? profile.branch : null,
+  }
 }
