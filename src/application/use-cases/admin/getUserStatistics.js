@@ -7,9 +7,11 @@ import { USER_STATUS } from '@/domain/constants/userStatus'
  * @param {{ userProfiles: import('@/application/ports/userProfileRepository').UserProfileRepository }} deps
  */
 export function getUserStatistics({ userProfiles }) {
-  return () =>
+  return ({ actorBranch } = {}) =>
     attempt(async () => {
-      const counts = await userProfiles.countByStatus()
+      const counts = await userProfiles.countByStatus(
+        actorBranch ? { branch: actorBranch } : {}
+      )
 
       return {
         stats: {

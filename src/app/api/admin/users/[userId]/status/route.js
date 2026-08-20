@@ -1,5 +1,5 @@
 import { createContainer } from '@/infrastructure/container'
-import { requireAdmin } from '@/infrastructure/http/requireUser'
+import { requireApprover } from '@/infrastructure/http/requireUser'
 import { toResponse } from '@/infrastructure/http/response'
 import { Result } from '@/application/result'
 import { ERROR_CODES } from '@/domain/errors'
@@ -8,7 +8,7 @@ import { setUserStatus } from '@/application/use-cases/admin/setUserStatus'
 export async function POST(request, { params }) {
   let caller
   try {
-    caller = await requireAdmin(request)
+    caller = await requireApprover(request)
   } catch (error) {
     return toResponse(Result.fromError(error))
   }
@@ -29,6 +29,8 @@ export async function POST(request, { params }) {
   return toResponse(
     await setUserStatus({ userProfiles })({
       actorUserId: caller.userId,
+      actorBranch: caller.branch,
+      isSysAdmin: caller.isSysAdmin,
       userId,
       status: body?.status,
     })

@@ -37,12 +37,17 @@ export function createSupabaseUserProfileRepository(client) {
       return data ? toUserProfile(data) : null
     },
 
-    async listByStatus(status) {
-      const { data, error } = await client
+    async listByStatus(status, options = {}) {
+      let query = client
         .from('user_profile')
         .select(USER_PROFILE_COLUMNS)
         .eq('status', status)
-        .order('created_at', { ascending: false })
+
+      if (options.branch) {
+        query = query.eq('branch', options.branch)
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false })
 
       if (error) throw error
       return (data || []).map(toUserProfile)
@@ -91,20 +96,26 @@ export function createSupabaseUserProfileRepository(client) {
      * One grouped read instead of the four separate count queries the dashboard
      * statistics helper used to fire.
      */
-    async countByStatus() {
-      const { data, error } = await client.from('user_profile').select('status')
+    async countByStatus(options = {}) {
+      let query = client.from('user_profile').select('status')
+
+      if (options.branch) {
+        query = query.eq('branch', options.branch)
+      }
+
+      const { data, error } = await query
 
       if (error) throw error
 
       const counts = {
-        total: data.length,
+        total: (data || []).length,
         [USER_STATUS.PENDING]: 0,
         [USER_STATUS.APPROVED]: 0,
         [USER_STATUS.REJECTED]: 0,
         [USER_STATUS.DELETED]: 0,
       }
 
-      for (const row of data) {
+      for (const row of (data || [])) {
         if (counts[row.status] !== undefined) counts[row.status] += 1
       }
 

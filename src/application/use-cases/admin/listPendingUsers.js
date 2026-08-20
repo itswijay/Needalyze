@@ -12,9 +12,12 @@ import { fullName } from '@/domain/entities/userProfile'
  * @param {{ userProfiles: import('@/application/ports/userProfileRepository').UserProfileRepository }} deps
  */
 export function listPendingUsers({ userProfiles }) {
-  return () =>
+  return ({ actorBranch } = {}) =>
     attempt(async () => {
-      const profiles = await userProfiles.listByStatus(USER_STATUS.PENDING)
+      const profiles = await userProfiles.listByStatus(
+        USER_STATUS.PENDING,
+        actorBranch ? { branch: actorBranch } : {}
+      )
 
       return {
         users: profiles.map((profile) => ({
