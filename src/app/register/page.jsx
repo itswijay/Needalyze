@@ -112,8 +112,11 @@ export default function Register() {
       // created server-side, so there is no session to immediately sign out of.
       await apiClient.post('/api/auth/register', data, { auth: false })
 
+      // setSuccessMessage(
+      //   'Registration successful! Please check your email to verify your account. After email verification, your account will be pending admin approval.'
+      // )
       setSuccessMessage(
-        'Registration successful! Please check your email to verify your account. After email verification, your account will be pending admin approval.'
+        'Registration successful! Your account is currently pending admin approval.'
       )
 
       reset()
