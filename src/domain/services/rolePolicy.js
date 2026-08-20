@@ -1,5 +1,6 @@
 import { ROLE_IDS } from '../constants/roles'
 import { POSITIONS } from '../constants/positions'
+import { USER_STATUS } from '../constants/userStatus'
 
 /**
  * Which role a newly registered user gets, based on the position they picked.
@@ -30,4 +31,46 @@ export function roleIdForPosition(position) {
  */
 export function isAdminRole(roleId) {
   return roleId === ROLE_IDS.ADMIN
+}
+
+/**
+ * @param {{ position?: string, status?: string } | null | undefined} profile
+ * @returns {boolean}
+ */
+export function isBranchManager(profile) {
+  return (
+    profile?.position === POSITIONS.BRANCH_MANAGER &&
+    profile?.status === USER_STATUS.APPROVED
+  )
+}
+
+/**
+ * Check whether an actor profile is permitted to approve or manage a target user.
+ *
+ * @param {{ role_id?: string, status?: string, position?: string, branch?: string } | null | undefined} actorProfile
+ * @param {{ branch?: string } | null | undefined} targetProfile
+ * @returns {boolean}
+ */
+export function canManageUser(actorProfile, targetProfile) {
+  if (!actorProfile || actorProfile.status !== USER_STATUS.APPROVED) {
+    return false
+  }
+  if (!targetProfile) {
+    return false
+  }
+
+  // System Admin (not assigned as a Branch Manager) can manage all users
+  if (
+    isAdminRole(actorProfile.role_id) &&
+    actorProfile.position !== POSITIONS.BRANCH_MANAGER
+  ) {
+    return true
+  }
+
+  // Branch Manager can manage users in their own branch
+  if (isBranchManager(actorProfile)) {
+    return Boolean(actorProfile.branch && actorProfile.branch === targetProfile.branch)
+  }
+
+  return false
 }
