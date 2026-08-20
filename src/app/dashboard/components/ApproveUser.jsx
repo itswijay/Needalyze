@@ -88,6 +88,11 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
         cell: ({ row }) => <div>{row.getValue('branch')}</div>,
       },
       {
+        accessorKey: 'position',
+        header: 'Position',
+        cell: ({ row }) => <div>{row.getValue('position') || 'Not Provided'}</div>,
+      },
+      {
         accessorKey: 'codeNumber',
         header: 'Code Number',
         cell: ({ row }) => <div>{row.getValue('codeNumber')}</div>,
@@ -136,7 +141,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg lg:max-w-3xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl">
         <DialogHeader>
           <DialogTitle className="text-center text-xl">
             Approve User
@@ -159,7 +164,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                         {hg.headers.map((header) => (
                           <TableHead
                             key={header.id}
-                            className="px-4 py-2 text-center"
+                            className="px-3.5 py-3 text-center"
                           >
                             {flexRender(
                               header.column.columnDef.header,
@@ -178,7 +183,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                           {row.getVisibleCells().map((cell) => (
                             <TableCell
                               key={cell.id}
-                              className="px-4 py-2 text-center"
+                              className="px-3.5 py-3 text-center"
                             >
                               {flexRender(
                                 cell.column.columnDef.cell,
@@ -190,7 +195,7 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={4} className="py-8 text-center text-muted-foreground">
+                        <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
                           No pending users found.
                         </TableCell>
                       </TableRow>
@@ -230,6 +235,14 @@ const ApproveUser = ({ open, onOpenChange, onChange }) => {
                             </span>
                             <span className="text-xs font-medium sm:text-sm">
                               {row.original.branch}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-xs font-medium text-muted-foreground sm:text-sm">
+                              Position
+                            </span>
+                            <span className="text-xs font-medium sm:text-sm">
+                              {row.original.position || 'Not Provided'}
                             </span>
                           </div>
                           <div className="flex justify-between">
