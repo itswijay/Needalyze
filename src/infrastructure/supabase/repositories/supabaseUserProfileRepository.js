@@ -22,6 +22,21 @@ export function createSupabaseUserProfileRepository(client) {
       return toUserProfile(data)
     },
 
+    async findBranchManager(branch) {
+      if (!branch) return null
+
+      const { data, error } = await client
+        .from('user_profile')
+        .select(USER_PROFILE_COLUMNS)
+        .eq('branch', branch)
+        .eq('position', 'Branch Manager')
+        .neq('status', USER_STATUS.DELETED)
+        .maybeSingle()
+
+      if (error) throw error
+      return data ? toUserProfile(data) : null
+    },
+
     async listByStatus(status) {
       const { data, error } = await client
         .from('user_profile')

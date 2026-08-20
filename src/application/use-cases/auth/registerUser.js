@@ -2,6 +2,7 @@ import { attempt } from '@/application/result'
 import { ConflictError, ValidationError } from '@/domain/errors'
 import { createUserProfile } from '@/domain/entities/userProfile'
 import { roleIdForPosition } from '@/domain/services/rolePolicy'
+import { POSITIONS } from '@/domain/constants/positions'
 import { USER_STATUS } from '@/domain/constants/userStatus'
 import { registerSchema } from '@/application/validation/auth'
 
@@ -26,6 +27,16 @@ export function registerUser({ auth, userProfiles }) {
       }
 
       const data = parsed.data
+
+      if (data.position === POSITIONS.BRANCH_MANAGER) {
+        const existingManager = await userProfiles.findBranchManager?.(data.branch)
+        if (existingManager) {
+          throw new ConflictError(
+            `A Branch Manager already exists for the ${data.branch} branch.`
+          )
+        }
+      }
+
       let userId
 
       try {
