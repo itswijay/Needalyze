@@ -1,5 +1,6 @@
 'use client'
 
+import AnalyticsCharts from './components/AnalyticsCharts'
 import Cards from './components/Cards'
 import { DataTable } from './components/Dashtable'
 import Navbar from './components/Navbar'
@@ -26,6 +27,7 @@ const DashboardPage = () => {
           <Navbar />
           <PageTransition>
             <Cards cardData={cardData} />
+            <AnalyticsCharts cardData={cardData} forms={forms} />
             <div className="my-5 flex justify-end">
               <CreateLinkDialog />
             </div>
