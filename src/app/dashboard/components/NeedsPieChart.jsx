@@ -21,6 +21,38 @@ const PIE_COLORS = [
   '#ec4899', // Pink
 ]
 
+const RADIAN = Math.PI / 180
+
+const renderCustomizedLabel = ({
+  cx,
+  cy,
+  midAngle,
+  innerRadius,
+  outerRadius,
+  percent,
+}) => {
+  if (percent < 0.04) return null
+
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5
+  const x = cx + radius * Math.cos(-midAngle * RADIAN)
+  const y = cy + radius * Math.sin(-midAngle * RADIAN)
+
+  return (
+    <text
+      x={x}
+      y={y}
+      fill="#ffffff"
+      textAnchor="middle"
+      dominantBaseline="central"
+      fontSize={10}
+      fontWeight="700"
+      style={{ pointerEvents: 'none' }}
+    >
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  )
+}
+
 function CustomTooltip({ active, payload, totalCount }) {
   if (active && payload && payload.length) {
     const data = payload[0].payload
@@ -84,11 +116,13 @@ export default function NeedsPieChart({ categories }) {
             data={activeChartData}
             cx="50%"
             cy="38%"
-            innerRadius={32}
-            outerRadius={52}
+            innerRadius={30}
+            outerRadius={56}
             paddingAngle={3}
             dataKey="count"
             nameKey="category"
+            labelLine={false}
+            label={renderCustomizedLabel}
           >
             {activeChartData.map((entry, index) => (
               <Cell
