@@ -42,7 +42,7 @@ function CustomTooltip({ active, payload, totalCount }) {
 
 function renderLegendText(value) {
   return (
-    <span className="text-xs font-medium text-muted-foreground">{value}</span>
+    <span className="text-[11px] font-medium text-muted-foreground">{value}</span>
   )
 }
 
@@ -65,7 +65,7 @@ export default function NeedsPieChart({ categories }) {
 
   if (totalCount === 0) {
     return (
-      <div className="flex h-[260px] w-full flex-col items-center justify-center text-center">
+      <div className="flex h-[200px] w-full flex-col items-center justify-center text-center">
         <p className="text-sm font-medium text-muted-foreground">
           No insurance needs recorded yet.
         </p>
@@ -77,16 +77,16 @@ export default function NeedsPieChart({ categories }) {
   }
 
   return (
-    <div className="h-[260px] w-full pt-1">
+    <div className="h-[200px] w-full pt-1">
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+        <PieChart margin={{ top: 8, right: 10, left: 10, bottom: 4 }}>
           <Pie
             data={activeChartData}
             cx="50%"
-            cy="45%"
-            innerRadius={55}
-            outerRadius={80}
-            paddingAngle={4}
+            cy="38%"
+            innerRadius={32}
+            outerRadius={52}
+            paddingAngle={3}
             dataKey="count"
             nameKey="category"
           >
@@ -104,9 +104,9 @@ export default function NeedsPieChart({ categories }) {
             verticalAlign="bottom"
             align="center"
             iconType="circle"
-            iconSize={8}
+            iconSize={7}
             formatter={renderLegendText}
-            wrapperStyle={{ paddingTop: '8px' }}
+            wrapperStyle={{ paddingTop: '4px' }}
           />
         </PieChart>
       </ResponsiveContainer>

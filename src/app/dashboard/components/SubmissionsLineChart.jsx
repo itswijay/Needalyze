@@ -44,7 +44,7 @@ export default function SubmissionsLineChart({ forms }) {
 
   if (!chartData || chartData.length === 0) {
     return (
-      <div className="flex h-[260px] w-full flex-col items-center justify-center text-center">
+      <div className="flex h-[200px] w-full flex-col items-center justify-center text-center">
         <p className="text-sm font-medium text-muted-foreground">
           No submission trends available yet.
         </p>
@@ -56,19 +56,19 @@ export default function SubmissionsLineChart({ forms }) {
   }
 
   return (
-    <div className="h-[260px] w-full pt-2">
+    <div className="h-[200px] w-full pt-1">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={chartData}
-          margin={{ top: 10, right: 10, left: -20, bottom: 10 }}
+          margin={{ top: 10, right: 15, left: -15, bottom: 5 }}
         >
           <defs>
             <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35} />
               <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
             </linearGradient>
             <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+              <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
               <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
             </linearGradient>
           </defs>
@@ -96,6 +96,8 @@ export default function SubmissionsLineChart({ forms }) {
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorTotal)"
+            dot={{ r: 4, stroke: '#3b82f6', strokeWidth: 2, fill: 'var(--card, #ffffff)' }}
+            activeDot={{ r: 6 }}
           />
           <Area
             type="monotone"
@@ -105,6 +107,8 @@ export default function SubmissionsLineChart({ forms }) {
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorCompleted)"
+            dot={{ r: 4, stroke: '#10b981', strokeWidth: 2, fill: 'var(--card, #ffffff)' }}
+            activeDot={{ r: 6 }}
           />
         </AreaChart>
       </ResponsiveContainer>
