@@ -1,10 +1,10 @@
 'use client'
 
-import { BarChart3, TrendingUp } from 'lucide-react'
+import { PieChart as PieChartIcon, TrendingUp } from 'lucide-react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MotionItem, MotionList } from '@/components/ui/motion-primitives'
-import NeedsBarChart from './NeedsBarChart'
+import NeedsPieChart from './NeedsPieChart'
 import SubmissionsLineChart from './SubmissionsLineChart'
 
 export default function AnalyticsCharts({ cardData, forms }) {
@@ -18,13 +18,13 @@ export default function AnalyticsCharts({ cardData, forms }) {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-semibold text-brand-foreground">
               <span className="rounded-lg bg-primary-100 p-1.5 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
-                <BarChart3 className="size-4" />
+                <PieChartIcon className="size-4" />
               </span>
               Insurance Needs Breakdown
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
-            <NeedsBarChart categories={cardData?.categories} />
+            <NeedsPieChart categories={cardData?.categories} />
           </CardContent>
         </Card>
       </MotionItem>
